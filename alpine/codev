@@ -1,0 +1,95 @@
+#!/bin/bash
+
+new () {
+  # remote_host username project_name
+
+  # https://hackertarget.com/ssh-examples-tunnels/
+  # https://phoenixnap.com/kb/ssh-to-connect-to-remote-server-linux-or-windows
+  # https://www.geeksforgeeks.org/ssh-command-in-linux-with-examples/
+  # https://linuxize.com/post/using-the-ssh-config-file/
+  # https://www.digitalocean.com/community/tutorials/how-to-configure-custom-connection-options-for-your-ssh-client
+  # https://man.archlinux.org/listing/openssh
+
+  # if there is no user associated to the host in "~/.ssh/config"
+  #   ; ssh username@remote_host
+  #   project_path: "/home/user_name/public_html/project_name"
+  #   "remote_host:project_path" will be kept in "project_path/.data/codev/remote"
+  #   printf "Host $remote_host\n  User $username\n" > ~/.ssh/config
+  # if there is no SSH keys, create a key pair
+  # copy the public key to the server:
+  # https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server
+  # create a user on "hashbang.sh"
+  # https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.html
+  # https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.sh
+  # https://github.com/hashbang/shell-server/blob/master/ansible/tasks/packages/main.yml
+  # https://github.com/hashbang
+  # make a homepage
+}
+
+push () {
+  # if a file named "lock" exists at the remote, and it's younger than 20 seconds, exit
+  # if the index file in remote is not the same as ".cache/codev/indexed/index", exit
+  #   because it means that someone else has already pushed to the remote before you,
+  #   and you must pull and merge it before pushing
+  # snapshot ".cache/codev/remote" into ".cache/codev/temp"
+  # flatten the paths of all files in ".cache/codev/temp" using their hashes for the file names
+  #   if the file's modification time is the same as the one in the index file ".cache/codev/indexed/index",
+  #   take the hash from the index file, otherwise calculate the hash and add the file to the index file
+  # move ".cache/codev/temp" to ".cache/codev/indexed"
+  # sync up ".cache/codev/indexed" to the public_html directory of the remote (using SFTP),
+  #   except the index file, and without deleting any file at the remote
+  # create a file named "lock" in the remote
+  # if index file in remote is not the same as the one in ".cache/codev/indexed", exit
+  #   because it means that someone else has already pushed to the remote before you,
+  #   and you must pull it before pushing
+  # send ".cache/codev/indexed/index" to the remote
+  # remove the lock file
+  # delete those remote files which are not in index file
+  # snapshot the ".cache/codev/remote" into ".cache/codev/pristine"
+}
+
+pull () {
+  # download the index file from the public_html directory of the remote, into ".cache/codev/indexed"
+  # sync down the files mentioned in the index file (using CURL)
+  # snapshot ".cache/codev/indexed" to ".cache/codev/temp"
+  # delete the index file and ".cache/codev/tmp/.cache/"
+  # rename the files in ".cache/codev/temp" based on the index file ".cache/codev/indexed/index"
+  # move ".cache/codev/temp" to ".cache/codev/remote"
+  # show the diff based on the working directory, pristine and remote
+  # merge the remote into the working directory
+  # snapshot the working directory into ".cache/codev/remote"
+
+  # https://curl.se/
+  # https://curl.se/docs/
+  # https://curl.se/docs/manpage.html
+  # https://curl.se/docs/manual.html
+  # https://curlie.io/
+  # https://github.com/jakubroztocil/httpie
+
+  # https://www.gnu.org/software/diffutils/manual/html_mono/diff.html
+  # https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff
+  # file tree diff
+  # https://stackoverflow.com/questions/776854/how-do-i-compare-two-source-trees-in-linux
+  # https://github.com/dandavison/delta
+  # https://github.com/dandavison/delta
+  # https://github.com/so-fancy/diff-so-fancy
+  # https://diffoscope.org/
+  # https://github.com/MightyCreak/diffuse
+  # http://meldmerge.org/
+  # https://git-scm.com/docs/git-diff
+}
+
+backup () {}
+
+add_user () {}
+
+remove_user () {}
+
+case "$1" in
+  new) new;;
+  push) push;;
+  pull) pull;;
+  backup) backup;;
+  add) add_user;;
+  remove) remove_user;;
+esac

@@ -1,0 +1,285 @@
+#!/bin/sh
+set -e
+
+# https://wiki.alpinelinux.org/wiki/Tutorials_and_Howtos
+# https://wiki.alpinelinux.org/wiki/Setting_up_disks_manually
+#
+# https://wiki.alpinelinux.org/wiki/Alpine_setup_scripts
+# https://gitlab.alpinelinux.org/alpine/alpine-conf
+# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-alpine.in
+# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-interfaces.in
+# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
+#
+# https://pkgs.alpinelinux.org/package/edge/main/x86_64/alpine-base
+# https://pkgs.alpinelinux.org/package/edge/main/x86_64/mkinitfs
+# https://pkgs.alpinelinux.org/package/edge/main/x86_64/linux-lts
+#
+# https://skarnet.org/software/s6/
+# https://wiki.gentoo.org/wiki/S6_and_s6-rc-based_init_system
+# https://github.com/kisslinux/init
+# https://wiki.alpinelinux.org/wiki/Alpine_Linux_Init_System
+# https://wiki.alpinelinux.org/wiki/Multiple_Instances_of_Services
+# https://wiki.alpinelinux.org/wiki/Writing_Init_Scripts
+# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/busybox-initscripts
+# https://wiki.artixlinux.org/Main/Migration
+#
+# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/busybox
+# https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/main/busybox/busyboxconfig
+# https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/main/busybox/busyboxconfig-extras
+#
+# https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management
+# https://gitlab.alpinelinux.org/alpine/apk-tools/-/tree/master/doc
+#
+# https://wiki.gentoo.org/wiki/PipeWire
+# https://wiki.alpinelinux.org/wiki/PipeWire
+# https://pkgs.alpinelinux.org/package/edge/community/x86_64/pipewire
+# https://pkgs.alpinelinux.org/package/edge/community/x86_64/pipewire-pulse
+# https://pkgs.alpinelinux.org/package/edge/community/x86_64/pipewire-alsa
+# https://pkgs.alpinelinux.org/package/edge/community/x86_64/pipewire-echo-cancel
+# https://pkgs.alpinelinux.org/package/edge/community/x86_64/pipewire-spa-bluez
+#
+# https://pkgs.alpinelinux.org/package/edge/community/x86_64/seatd
+# https://wiki.gentoo.org/wiki/Elogind
+# https://wiki.alpinelinux.org/wiki/Sway
+#
+# https://pkgs.alpinelinux.org/package/edge/main/x86_64/intel-ucode
+# https://pkgs.alpinelinux.org/package/edge/main/x86_64/amd-ucode
+
+ARCH=$(apk --print-arch)
+
+if [ "$1" = 'format' ]; then
+  printf 'label: gpt\n,260MiB,U,*\n;' | sfdisk /dev/"$2"
+  mkfs.fat -F32 /dev/"$2"1
+  mkfs.btrfs /dev/"$2"2
+  mount /dev/"$2"2 /mnt
+  # create subvolumes for "/ etc home root opt usr/local srv tmp var":
+  btrfs subvolume create /mnt/0
+  btrfs subvolume create /mnt/etc
+  btrfs subvolume create /mnt/home
+  btrfs subvoulme create /mnt/root
+  btrfs subvolume create /mnt/opt
+  btrfs subvolume create /mnt/local
+  btrfs subvolume create /mnt/srv
+  btrfs subvolume create /mnt/tmp
+  btrfs subvolume create /mnt/var
+  umount /mnt
+  exit
+fi
+
+umount -Rq /mnt
+
+mount -o subvol=0 /dev/"$1"2 /mnt
+mkdir /mnt/etc
+mkdir /mnt/home
+mkdir /mnt/root
+mkdir /mnt/opt
+mkdir -p /mnt/usr/local
+mkdir /mnt/srv
+mkdir /mnt/tmp
+mkdir /mnt/var
+mkdir /mnt/subvols
+mkdir -p /mnt/boot/efi
+mount -o subvol=etc /dev/"$1"2 /mnt/etc
+mount -o subvol=home /dev/"$1"2 /mnt/home
+mount -o subvol=root /dev/"$1"2 /mnt/root
+mount -o subvol=opt /dev/"$1"2 /mnt/opt
+mount -o subvol=local /dev/"$1"2 /mnt/usr/local
+mount -o subvol=srv /dev/"$1"2 /mnt/srv
+mount -o subvol=tmp /dev/"$1"2 /mnt/tmp
+mount -o subvol=var /dev/"$1"2 /mnt/var
+mount /dev/"$1"2 /mnt/subvols
+mount /dev/"$1"1 /mnt/boot/efi
+
+# bootloader
+# rEFInd;
+# U-boot "/boot/extlinux/extlinux.conf"
+#   mark the partition bootable (via GPT legacy_bios_bootable attribute)
+#   https://github.com/u-boot/u-boot/blob/master/doc/README.distro
+#   https://developer.toradex.com/knowledge-base/distro-boot-linux
+#   https://wiki.alpinelinux.org/wiki/Alpine_on_ARM
+#   https://www.denx.de/wiki/view/DULG/LinuxFDTBlob
+# in addition, for "x86*" systems install "syslinux";
+# and for "ppc64le" systems "/boot/syslinux/syslinux.cfg";
+# and for "s390x", use "zipl" in "s390-tools" package;
+
+setup-interfaces -a
+# start the networking
+/etc/init.d/networking --quiet start >/dev/null
+# setup up dns if no dhcp was configured
+grep '^iface.*dhcp' /etc/network/interfaces > /dev/null || setup-dns
+
+ver='edge'
+if [ "$2" = 'stable' ]; then
+  ver='latest-stable'
+fi
+echo 'https://dl-cdn.alpinelinux.org/alpine/$ver/main
+https://dl-cdn.alpinelinux.org/alpine/$ver/community' > /mnt/etc/apk/repositories
+cp /mnt/etc/apk/repositories /etc/apk/repositories
+apk update
+
+# lsblk font-noto elogind sway alacritty xorg-server-xwayland
+pacstrap /mnt base grub intel-ucode amd-ucode linux linux-firmware \
+  btrfs-progs e2fsprogs dosfstools udisks2 reflector networkmanager pipewire-pulse pipewire-alsa \
+  openssh curl ttf-hack noto-fonts materia-gtk-theme nano man-db unzip \
+  gnome-shell gdm gvfs libgtop gst-plugins-{base,good,bad} gst-libav gnome-terminal
+genfstab -U /mnt >> /mnt/etc/fstab
+
+cp ./alp /mnt/usr/local/bin/
+chmod +x /mnt/usr/local/bin/alp
+mkdir -p /mnt/usr/local/lib/systemd/system
+echo '[Unit]
+Description=automatic update
+After=network-online.target
+[Service]
+ExecStart=/usr/local/bin/alp autoupdate
+Nice=19
+KillMode=process
+KillSignal=SIGINT' > /mnt/usr/local/lib/systemd/system/autoupdate.service
+echo '[Unit]
+Description=automatic update timer
+[Timer]
+OnBootSec=5min
+OnUnitInactiveSec=24h
+RandomizedDelaySec=5min
+[Install]
+WantedBy=timers.target' > /mnt/usr/local/lib/systemd/system/autoupdate.timer
+
+echo '#!/bin/sh
+case "$1" in
+  poweroff) poweroff ;;
+  reboot) reboot ;;
+  suspend) echo mem > /sys/power/state ;;
+  *) echo "usage: system poweroff/reboot/suspend"
+esac
+' > /mnt/usr/local/bin/system
+chmod +x /mnt/usr/local/bin/system
+
+echo '
+polkit.addRule(function(action, subject) {
+  var subjectIsAdmin = subject.local && subject.active && subject.isInGroup("wheel");
+  if (
+    action.id == "org.freedesktop.policykit.exec" &&
+    action.lookup("program") == "/usr/local/bin/arch" &&
+    subjectIsAdmin
+  ) {
+    return polkit.Result.YES;
+  }
+});' > /mnt/etc/polkit-1/rules.d/49-nopassword.rules
+
+mkdir -p /mnt/etc/skel/.local/share/applications
+printf '[Desktop Entry]\nNoDisplay=true' |
+tee /mnt/etc/skel/.local/share/applications/ \
+{avahi-discover,bssh,bvnc,qv4l2,qvidcap,lstopo,nm-connection-editor,org.gnome.Extensions}.desktop > /dev/null
+
+mkdir -p /mnt/etc/fonts
+echo '<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <selectfont>
+    <rejectfont>
+      <pattern><patelt name="family"><string>NotoNastaliqUrdu</string></patelt></pattern>
+      <pattern><patelt name="family"><string>NotoKufiArabic</string></patelt></pattern>
+      <pattern><patelt name="family"><string>NotoNaskhArabic</string></patelt></pattern>
+      <pattern><patelt name="family"><string>NotoNaskhArabicUI</string></patelt></pattern>
+    </rejectfont>
+  </selectfont>
+  <alias>
+    <family>serif</family>
+    <prefer><family>NotoSerif</family></prefer>
+  </alias>
+  <alias>
+    <family>sans-serif</family>
+    <prefer><family>NotoSans</family></prefer>
+  </alias>
+  <alias>
+    <family>sans</family>
+    <prefer><family>NotoSans</family></prefer>
+  </alias>
+  <alias>
+    <family>monospace</family>
+    <prefer><family>Hack</family></prefer>
+  </alias>
+</fontconfig>' > /mnt/etc/fonts/local.conf
+
+echo "gsettings set org.gnome.desktop.interface gtk-theme 'Materia-light-compact'
+gsettings set org.gnome.desktop.interface font-name 'sans 10.5'
+gsettings set org.gnome.desktop.interface monospace-font-name 'monospace 10.5'
+gsettings set org.gnome.desktop.interface document-font-name 'sans 10.5'
+gsettings set org.gnome.desktop.interface overlay-scrolling false
+gsettings set org.gnome.desktop.interface cursor-blink-timeout 1000
+sway" > /mnt/etc/skel/.profile
+
+mkdir -p /mnt/etc/skel/.config/gtk-3.0
+mkdir -p /mnt/etc/skel/.config/gtk-4.0
+echo 'scrollbar {
+  margin: 3px;
+  border: 3px;
+  border-radius: 3px;
+  border-color: #ffffff;
+  background-color: #bbbbbb;
+}
+scrollbar.top scrollbar.bottom scrollbar.left scrollbar.right {
+  border-bottom: 3px;
+  border-top: 3px;
+  border-right: 3px;
+  border-left: 3px;
+}
+scrollbar slider {
+  margin: 0px;
+  border: 0px;
+  border-radius: 3px;
+  background-color: #777777;
+  min-width: 6px;
+  min-height: 6px;
+}' > /mnt/etc/skel/.config/gtk-3.0/gtk.css
+cp /mnt/etc/skel/.config/gtk-3.0/gtk.css /mnt/etc/skel/.config/gtk-4.0/
+
+pacman --noconfirm -S
+
+# fstrim.timer
+# reflector.timer
+# autoupdate.timer
+# systemd-timesyncd
+# NetworkManager
+
+ln -s /mnt/etc/init.d/wpa_supplicant /mnt/etc/runlevels/boot/
+
+cp ./codev /mnt/usr/local/bin/
+chmod +x /mnt/usr/local/bin/codev
+mkdir -p /mnt/usr/local/lib/systemd/system
+echo '
+[Unit]
+Description=automatic backup
+[Service]
+ExecStart=/usr/local/bin/codev backup
+Nice=19
+KillMode=process
+KillSignal=SIGINT' > /mnt/usr/local/lib/systemd/system/autobackup.service
+echo '
+[Unit]
+Description=automatic backup timer
+[Timer]
+OnUnitInactiveSec=1h
+RandomizedDelaySec=5min
+[Install]
+WantedBy=timers.target' > /mnt/usr/local/lib/systemd/system/autobackup.timer
+
+echo 'agetty_options="--autologin root --noclear"' > /mnt/etc/conf.d/agetty.autologin
+
+echo 'setup-timezone
+while ! passwd ; do
+	echo "try again"
+done
+read -p "choose a username: " username
+adduser $username
+while ! passwd user1; do
+  echo "try again"
+done
+
+rm /etc/conf.d/agetty.autologin
+rm /root/.profile' > /mnt/root/.profile
+
+umount -R /mnt
+
+echo 'installation completed successfully!'
+echo 'enter "reboot", to reboot'
