@@ -3,21 +3,17 @@ using Fedora Linux we can easily setup a Linux based operating system
 
 download and extract the Fedora image
 find the device you want to put the Fedora installer on (on Linux use "lsblk")
-make two partitions on the device; on Linux, run this as root (assuming the device is "sdx"):
-; eject -M /dev/sdx || eject /dev/sdx
-;
-partition 1 -> VFAT
-partition 2 -> BTRFS
-label partition 2
-move files to partition 2
-install rEFInd on partition 1
-inst.ks=hd:LABEL=... -> rEFInd
-; eject /dev/sdx
+for x86_64 and aarch64:
+format with VFAT
+label it
+move files
+create a systemd boot config file
+  inst.ks=hd:LABEL=...
 
 ; curl https://damoonsaghian/Comshell/archive/master.tar.gz | tar -xz
 ; cd Comshell/fedora
 ensure that the files aren't malicious
-copy files to partition 2
+copy files to the installation medium
 
 ".data/sway.png"
 
