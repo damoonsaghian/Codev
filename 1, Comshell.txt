@@ -33,8 +33,8 @@ for compatibility with other applications, we may still need a mouse,
   plus these extra keys which can be put in the middle of the keyboard:
 , arrow keys, "page up", "page down", "home", "end", "tab"
 , "alt", "ctrl", "shift"
-, punctuations
-also we can have a row of function keys, plus the "delete" key, at the top
+and a row of punctuations on top
+also we can have another row for function keys, plus the "delete" key
 
 = Comshell
 Comshell is a unified computing environment, utilizing command based user interface

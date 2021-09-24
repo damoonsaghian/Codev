@@ -1,0 +1,55 @@
+using Fedora Linux we can easily setup a Linux based operating system
+
+
+download and extract the Fedora image
+find the device you want to put the Fedora installer on (on Linux use "lsblk")
+make two partitions on the device; on Linux, run this as root (assuming the device is "sdx"):
+; eject -M /dev/sdx || eject /dev/sdx
+;
+partition 1 -> VFAT
+partition 2 -> BTRFS
+label partition 2
+move files to partition 2
+install rEFInd on partition 1
+inst.ks=hd:LABEL=... -> rEFInd
+; eject /dev/sdx
+
+; curl https://damoonsaghian/Comshell/archive/master.tar.gz | tar -xz
+; cd Comshell/fedora
+ensure that the files aren't malicious
+copy files to partition 2
+
+".data/sway.png"
+
+in the installed system, you can see the list of projects
+here you can power off, reboot, logout, suspend, or lock the system,
+  from the applications list, just by typing those commands
+each project opens in its own workspace
+close the project
+hide floating windows
+
+to install packages: "fpm add package-names"
+to remove packages: "fpm del package-names"
+"fpm" uses and BTRFS snapshots to manage packages in such a way that
+  changes to "/usr" and "/boot" would be atomic, and does not interfere with the running system
+as a result when you install an application, or update the system using "fpm",
+  the system must be restarted for it to take effect
+removing packages is done live though (otherwise managing "/etc" would be complicated)
+all of this means that we can have reliable automatic updates
+
+to connect to a WIFI network:
+; nmcli dev wifi
+; nmcli --ask dev wifi con <ssid>
+to disconnect from a WIFI network:
+; nmcli con down id <ssid>
+
+you can set "user1" for automatic login (run as root):
+; echo 'agetty_options="--autologin <username> --noclear"' > /etc/conf.d/agetty.autologin
+but to protect the computer from physical attacks, you have to disable automatic login,
+  and lock the session when you leave the computer
+in addition you have to:
+, somehow prevent tampering with hardware
+, protect boot firmware by a password
+, disable changing the boot device
+these can make physical attacks more difficult, but keep in mind that
+  physical access to a computer is root access, given enough time and resources
