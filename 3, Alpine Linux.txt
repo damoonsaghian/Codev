@@ -1,0 +1,50 @@
+using Alpine Linux Linux we can easily setup a Linux based operating system
+anything which needs a kernel based operating system can use Alpine:
+, it supports a wide range of processor architectures
+, it's suitable for systems with limited resources
+, the stable releases provide a security proven operating system for servers
+
+; curl https://damoonsaghian/Comshell/archive/master.tar.gz | tar -xz
+; cd Comshell/alpine
+ensure that the files aren't malicious
+
+find the device you want to install Alpine Linux on:
+; fdisk -l
+prepare the disk (note that the content of the disk will be deleted):
+; instalp format sdx
+now install Alpine Linux on it:
+; instalp sdx
+if the installation gets interrupted, just run the last command again (no need to reformat the disk)
+
+after rebooting to the installed system, it will ask for root password and a user account
+logout of root, and login as the user you provided
+
+".data/sway.png"
+
+in the installed system, you can see the list of projects
+here you can also power off, reboot, logout, suspend, or lock the system, by typing those commands
+each project opens in its own workspace
+to close the project
+to hide floating windows
+
+to install packages: "alp add package-names"
+to remove packages: "alp del package-names"
+"alp" uses "apk" and BTRFS snapshots to manage packages in such a way that
+  changes to "/usr" and "/boot" would be atomic, and does not interfere with the running system
+as a result when you install an application, or update the system using "alp",
+  the system must be restarted for it to take effect
+removing packages is done live though (otherwise managing "/etc" would be complicated)
+all of this means that we can have reliable automatic updates
+
+to connect to a WIFI network:
+
+you can set "user1" for automatic login (run as root):
+; echo 'agetty_options="--autologin <username> --noclear"' > /etc/conf.d/agetty.autologin
+but to protect the computer from physical attacks, you have to disable automatic login,
+  and lock the session when you leave the computer
+in addition you have to:
+, somehow prevent tampering with hardware
+, protect boot firmware by a password
+, disable changing the boot device
+these can make physical attacks more difficult, but keep in mind that
+  physical access to a computer is root access, given enough time and resources
