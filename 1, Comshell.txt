@@ -43,6 +43,8 @@ project directories reside in directories named "projects" or "projects.*",
   inside home directory or mounted disks
 list of all projects will appear in a floating layer, at the center of screen
 each group of projects (which are in the same directory) will be shown in separate tabs
+here you can open a terminal to do system administration,
+  and to power off, reboot, logout, suspend, or lock the system
 
 in a project view, the list of files of a project will be displayed in the left side'bar
 opened files are indicated by a line below them
