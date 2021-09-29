@@ -28,7 +28,7 @@ current problems of Alpine:
 , in "busybox-initscripts" use "mdevd" instead of "mdev"
   "https://skarnet.org/software/mdevd/"
 , all of these must be fixed in "mkinitfs" too
-  "https://pkgs.alpinelinux.org/package/edge/main/x86_64/mkinitfs"
+  "https://gitlab.alpinelinux.org/alpine/mkinitfs"
   "https://github.com/illiliti/tinyramfs"
 
 to install Alpine, boot to a live Alpine system (using a disk image or netboot), then:
