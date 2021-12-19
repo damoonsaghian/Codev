@@ -1,0 +1,18 @@
+interavtive notebook instead of interactive shell
+
+https://github.com/emacs-mirror/emacs
+
+https://packages.debian.org/sid/elpa-epl
+https://github.com/cask/epl/blob/master/epl.el
+
+https://github.com/Alexander-Miller/treemacs
+
+https://www.emacswiki.org/emacs/ImageDired
+if the directory has ".g" suffix -> image-dired
+image-dired show thumbnails for videos and directories and open them in the floating layer
+
+https://github.com/hrs/engine-mode
+
+https://packages.debian.org/sid/elpa-bongo
+
+https://packages.debian.org/sid/elpa-htmlize
