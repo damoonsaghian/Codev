@@ -46,18 +46,16 @@ this mess of a design cries out for hidden and quite sophisticated backdoors
 on X86 architectures we can have a GPU with open source driver
 but the default boot firmware on nearly all systems are closed source
 flashing a CoreBoot based boot firmware is possible, but there still will be closed source parts (Intel FSP)
-regardless there is no easy way to get rid of Intel ME (or AMD PSP)
-though there are some hacks to disable (but not completely remove) Intel ME:
+regardless there is no easy way to get rid of Intel ME (or AMD PSP),
+  though there are some hacks to disable (but not completely remove) it:
   "https://puri.sm/posts/deep-dive-into-intel-me-disablement/"
 
 ARM architecture is closed source too, but we can have a GPU with open source driver (Qualcomm/Adreno)
 the most used boot firmware is the open source implementation of UEFI called EDK2
-flashing LinuxBoot as a UEFI DXE, or flashing a CoreBoot based boot firmware is possible
 ARM TrustZone can host an open source operating system too, apparently:
   "https://news.ycombinator.com/item?id=17783357"
 
 open source CPU: RISC-V, Power ISA
-no adequate hardware available yet
 
 one read'only boot firmware, plus a writable one
 , interrupted flashing does not brick the device
@@ -69,5 +67,5 @@ programs usually do not run directly on computer hardware
 instead they run on a more sophisticated software machine (a virtual machine) called the kernel
 in theory we can live without a kernel (an idea sometimes called a library operating system),
   and it can be usefull for some use cases (like IoT devices),
-  but an kernal based operating system makes developing and testing programs, much easier
+  but a kernel based operating system makes developing and testing programs, much easier
 Linux is a highly developed, constantly evolving, open'source kernel
