@@ -26,6 +26,8 @@ EOF
 # Grub password
 # https://superuser.com/questions/488275/grub-2-password-protection-in-debian
 
+# timezone
+
 # sid
 # contrib and non-free
 
@@ -38,6 +40,7 @@ apt-get install intel-ucode amd-ucode \
 # udisks2 dosfstools e2fsprogs btrfs-progs btrfs-progs btrfsmaintenance
 # pipewire-pulse policykit-1 lua5.3 lua-lgi
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
+# unzip
 # emacs-gtk elpa-treemacs
 
 systemctl enable systemd-networkd
@@ -71,6 +74,15 @@ chmod +x /usr/local/bin/autologin
 
 cp ./apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
+
+echo '
+# open a Wayland window demanding the root password (not the user password)
+# https://stackoverflow.com/questions/18035093/given-a-linux-username-and-a-password-how-can-i-test-if-it-is-a-valid-account
+' > /usr/local/bin/sudo
+chmod u+s,+x /usr/local/bin/sudo
+
+# lock root login
+usermod -s /usr/sbin/nologin root
 
 cp ./format /usr/local/bin/
 chmod +x /usr/local/bin/format
@@ -119,12 +131,11 @@ WantedBy=timers.target' > /usr/local/lib/systemd/system/autobackup.timer
 systemctl enable autobackup.timer
 
 mkdir -p /etc/polkit-1/localauthority/50-local.d
-echo '
+echo '[udisks]
 # 1, mount internal devices without asking for password
 #   however, Linux system partitions can not be arbitrarily mounted/unmounted,
 #     because of "org.freedesktop.udisks2.filesystem-fstab"
 # 2, read/write disk images without asking for password (for non-system devices)
-[udisks]
 Identity=unix-user:*
 Action=org.freedesktop.udisks2.filesystem-mount-system;org.freedesktop.udisks2.open-device
 ResultActive=yes
@@ -170,6 +181,4 @@ echo '<?xml version="1.0"?>
 # https://wiki.archlinux.org/title/SDDM
 #   https://packages.debian.org/sid/sddm
 
-# "F1" is grabbed by kernel and runs a script which:
-# , changes TTY and asks for root password
-# , after exit changes the TTY back
+# lock screen when keyboard/headset is disconnected
