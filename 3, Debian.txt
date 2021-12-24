@@ -1,19 +1,24 @@
-using Debian we can easily setup a Linux based operating system
+with Debian we can easily setup a Linux based operating system
 anything which needs a kernel'based operating system can use Debian:
 , it supports a wide range of processor architectures
 , it's suitable for systems with limited resources
 , the stable releases provide a security proven system for servers
 
-during Debian installtion:
-, choose BTRFS to format the disk
-, uncheck all tasks to install a minimal system
+the following instructions show how to prepare a Debian installation media,
+  in a Unix'like operating system, with "curl", "udisks2" and "xorriso" packages
+if you don't have a Unix'like operating system installed, you can use Debian live image,
+  or any other distro's live image
 
-after booting to the installed minimal system, login as root
-download the files of this project, then:
-; cd Comshell/linux
-ensure that the files there aren't malicious, then:
-; sh comup.sh
-; reboot
+first download the files of this project, then:
+; cd Comshell/debian
+ensure that the files there aren't malicious
+insert a USB storage device (at least 700MB), find the device associated to the USB memory using "lsblk"
+now assuming the device is "sdx", and the CPU architecture is "amd64":
+; sh mkdi.sh amd64 sdx
+
+now just boot to the USB storage device
+it will ask for root password, a user account (provide a password which differs from root password),
+  and the target device (if there is more than one device), and then installs Debian on it
 
 ".data/sway.png"
 
@@ -25,16 +30,25 @@ to connect to a wireless LAN:
 to disconnect wireless LAN:
 ; wlan disconnect
 
-to install packages: "pkexec apm install package-names"
-to remove packages: "pkexec apm remove package-names"
+note that you can't login as root, root password is used only for "sudo"
+it's not the traditional "sudo" though
+when you run "sudo", it opens a Wayland window demanding the root password
+to see why, look at these:
+"https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
+"https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
+
+to install packages (run as root):
+; sudo apm install package-names
+to remove packages (run as root):
+; sudo apm remove package-names
 "apm" (atomic package manager) uses "apt" and BTRFS snapshots to manage packages in such a way that
   changes on the file'system would be atomic, and does not interfere with the running system
 as a result when you add/remove/update packages using "apm",
   the system must be restarted for it to take effect
 all of this means that we can have reliable automatic updates
 
-you can set current user for automatic login:
-; pkexec autologin enable
+you can set current user for automatic login (run as root):
+; sudo autologin enable
 but to protect the computer from physical attacks, you have to disable automatic login ("sudo autologin disable"),
   and lock the session when you leave the computer
 in addition you must:
