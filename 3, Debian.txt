@@ -4,12 +4,12 @@ anything which needs a kernel'based operating system can use Debian:
 , it's suitable for systems with limited resources
 , the stable releases provide a security proven system for servers
 
-the following instructions show how to prepare a Debian installation media,
-  in a Unix'like operating system, with "curl", "udisks2" and "xorriso" packages
+the following instructions show how to prepare a Debian installation media, in a Unix'like operating system
 if you don't have a Unix'like operating system installed, you can use Debian live image,
   or any other distro's live image
 
-first download the files of this project, then:
+first make sure that these packages are installed: curl udisks2 xorriso
+download the files of this project, then:
 ; cd Comshell/debian
 ensure that the files there aren't malicious
 insert a USB storage device (at least 700MB), find the device associated to the USB memory using "lsblk"
@@ -17,8 +17,11 @@ now assuming the device is "sdx", and the CPU architecture is "amd64":
 ; sh mkdi.sh amd64 sdx
 
 now just boot to the USB storage device
-it will ask for root password, a user account (provide a password which differs from root password),
-  and the target device (if there is more than one device), and then installs Debian on it
+it will ask for:
+, a root password, and a user account (provide different passwords for user and root)
+, confirmation for auto'detected time'zone
+, the network configuration (if it's not a simple DHCP wired connection)
+, the target device (if there is more than one device), and then installs Debian on it
 
 ".data/sway.png"
 
@@ -30,9 +33,10 @@ to connect to a wireless LAN:
 to disconnect wireless LAN:
 ; wlan disconnect
 
-note that you can't login as root, root password is used only for "sudo"
+note that you can't login as root, root password you provided during installation, is used only for "sudo"
 it's not the traditional "sudo" though
 when you run "sudo", it opens a Wayland window demanding the root password
+never type your user's password anywhere except at the login prompt (and make sure that it's not fake)
 to see why, look at these:
 "https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
 "https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
@@ -47,8 +51,8 @@ as a result when you add/remove/update packages using "apm",
   the system must be restarted for it to take effect
 all of this means that we can have reliable automatic updates
 
-you can set current user for automatic login (run as root):
-; sudo autologin enable
+you can set a user for automatic login (run as root):
+; sudo autologin enable <user>
 but to protect the computer from physical attacks, you have to disable automatic login ("sudo autologin disable"),
   and lock the session when you leave the computer
 in addition you must:
