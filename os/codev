@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 new () {
   # remote_host username project_name
