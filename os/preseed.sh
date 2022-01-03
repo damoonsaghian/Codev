@@ -37,6 +37,7 @@ apt-get install intel-ucode amd-ucode \
   sway alacritty xorg-server-xwayland
 
 # firmware-linux
+# kbd
 # udisks2 dosfstools e2fsprogs btrfs-progs btrfs-progs btrfsmaintenance
 # pipewire-pulse policykit-1 lua5.3 lua-lgi
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
@@ -74,7 +75,10 @@ autologin enable <user>"
 ' > /usr/local/bin/autologin
 chmod +x /usr/local/bin/autologin
 
-echo '# if a user session is already running, switch to it, unlock it, and exit
+# run this before creating user in "preseed.cfg"
+echo '[[ -f ~/.profile ]] && . ~/.profile
+
+# if a user session is already running, switch to it, unlock it, and exit
 loginctl show-user "$USER" --value --property=Sessions | {
   read current_session previous_session rest
   previous_tty=$(loginctl show-session $previous_session --value --property=TTY)
@@ -87,7 +91,9 @@ loginctl show-user "$USER" --value --property=Sessions | {
     exit
   fi
 }
-' > /etc/profile.d/session-manager.sh
+
+exec sway
+' > /etc/skel/.bash_profile
 
 echo '#!/bin/sh
 # the next available virtual terminal
@@ -95,9 +101,13 @@ navt=$(fgconsole --next-available)
 systemctl start getty@tty"$navt".service
 chvt $navt
 ' > /usr/local/bin/navt
-chmod +x /usr/local/bin/navt
+chmod u+s,+x /usr/local/bin/navt
 
 # when keyboard/headset is disconnected, lock session, run "navt"
+
+# run this before creating user in "preseed.cfg"
+mkdir -p /etc/skel/.config/sway
+cp sway.cfg /etc/skel/.config/sway/config
 
 echo '
 # open a Wayland window demanding the sudo password (not the user password)
@@ -117,7 +127,7 @@ passwd -l root
 cp ./format /usr/local/bin/
 chmod +x /usr/local/bin/format
 
-cp ./apm /usr/local/bin/
+cp apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
 
 mkdir -p /usr/local/lib/systemd/system
