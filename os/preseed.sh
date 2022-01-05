@@ -109,18 +109,19 @@ chmod u+s,+x /usr/local/bin/navt
 mkdir -p /etc/skel/.config/sway
 cp sway.cfg /etc/skel/.config/sway/config
 
-echo '
-# open a Wayland window demanding the sudo password (not the user password)
+# create a system user named "su" with a password equal to root's password
+useradd --system --password $(getent shadow root | cut -d: -f2) su
+echo '#!/bin/sh
+# in Wayland open a window demanding the password of "su" user
+# in tty demand the password at the command line
 # https://unix.stackexchange.com/questions/329878/check-users-password-with-a-shell-script
 # https://unix.stackexchange.com/questions/21705/how-to-check-password-with-linux
 # https://askubuntu.com/questions/611580/how-to-check-the-password-entered-is-a-valid-password-for-this-user
 ' > /usr/local/bin/sudo
-chgrp sudo /usr/local/bin/sudo
+chgrp root /usr/local/bin/sudo
 chmod u+s,ug+x /usr/local/bin/sudo
-
-# create a user named "sudo" with a password equal to the root password
-# lock its shell
-usermod -s /usr/sbin/nologin sudo
+# add the first user to root group
+usermod -aG root $(id -nu 1000)
 # lock root
 passwd -l root
 
