@@ -68,7 +68,9 @@ cd ..; cd ..
 
 # regenerate md5sum.txt
 
-xorriso -dev .cache/os/debian-*-"$1"-netinst.iso -overwrite on \
+[ -f .cache/os/debian-modified-"$1"-netinst.iso ] && rm .cache/os/debian-modified-"$1"-netinst.iso
+xorriso -indev .cache/os/debian-*-"$1"-netinst.iso -outdev .cache/os/debian-modified-"$1"-netinst.iso \
+  -overwrite on \
   -map .cache/os/initrd.gz "$initrd" \
   -map .cache/os/initrd-gtk.gz "$initrd_gtk" \
   -map .cache/os/firmware/ /firmware \
@@ -79,7 +81,7 @@ xorriso -dev .cache/os/debian-*-"$1"-netinst.iso -overwrite on \
 # unmount all partitions on the device
 umount /dev/"$2"?*
 
-sh sd write /dev/"$2" .cache/os/debian-*-"$1"-netinst.iso
+sh sd write /dev/"$2" .cache/os/debian-modified-"$1"-netinst.iso
 
 umount /dev/"$2"?*
 echo 'Debian installation media created successfully'
