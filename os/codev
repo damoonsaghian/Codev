@@ -23,7 +23,6 @@ new () {
   # https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.sh
   # https://github.com/hashbang/shell-server/blob/master/ansible/tasks/packages/main.yml
   # https://github.com/hashbang
-  # make a homepage
 }
 
 push () {
@@ -46,6 +45,9 @@ push () {
   # remove the lock file
   # delete those remote files which are not in index file
   # snapshot the ".cache/codev/remote" into ".cache/codev/pristine"
+
+  # create an html web'page (named "name-of-the-project.html"), showing the files in the project
+  #   it can also be used to download the whole project using "wget -r"
 }
 
 pull () {
@@ -70,7 +72,6 @@ pull () {
   # https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff
   # file tree diff
   # https://stackoverflow.com/questions/776854/how-do-i-compare-two-source-trees-in-linux
-  # https://github.com/dandavison/delta
   # https://github.com/dandavison/delta
   # https://github.com/so-fancy/diff-so-fancy
   # https://diffoscope.org/

@@ -38,10 +38,10 @@ apt-get install intel-ucode amd-ucode \
 
 # firmware-linux
 # kbd
-# udisks2 dosfstools e2fsprogs btrfs-progs btrfs-progs btrfsmaintenance
+# udisks2 xorriso dosfstools e2fsprogs btrfs-progs btrfs-progs btrfsmaintenance
+# wget unzip
 # pipewire-pulse policykit-1 lua5.3 lua-lgi
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
-# unzip
 # emacs-gtk elpa-treemacs
 
 systemctl enable systemd-networkd
@@ -126,7 +126,7 @@ usermod -aG root $(id -nu 1000)
 passwd -l root
 
 cp ./format /usr/local/bin/
-chmod +x /usr/local/bin/format
+chmod +x /usr/local/bin/sd
 
 cp apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
