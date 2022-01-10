@@ -8,12 +8,12 @@ the following instructions show how to prepare a Debian installation media, in a
 if you don't have a Unix'like operating system installed,
   you can use Debian's (or any other distro's) live image
 
-first make sure that these packages are installed: wget udisks2 xorriso
+first make sure that these packages are installed: wget gzip cpio xorriso udisks2
 download the files of this project:
 ; wget -r -np comshell-project-web-page-url
 ; cd */Comshell/os/
 ensure that the files there aren't malicious
-insert a USB storage device (at least 700MB), find the device associated to the USB memory using "lsblk"
+insert a USB storage device (at least 700MB), find the device using "lsblk"
 now assuming the device is "sdx", and the CPU architecture is "amd64":
 ; sh mkdi.sh amd64 sdx
 
