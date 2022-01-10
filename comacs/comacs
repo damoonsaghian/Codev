@@ -18,3 +18,5 @@ https://github.com/hrs/engine-mode
 https://packages.debian.org/sid/elpa-bongo
 
 https://packages.debian.org/sid/elpa-htmlize
+
+unzip libarchive
