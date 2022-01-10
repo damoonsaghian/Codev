@@ -39,7 +39,7 @@ apt-get install intel-ucode amd-ucode \
 # firmware-linux
 # kbd
 # udisks2 xorriso dosfstools e2fsprogs btrfs-progs btrfs-progs btrfsmaintenance
-# wget unzip
+# wget
 # pipewire-pulse policykit-1 lua5.3 lua-lgi
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
 # emacs-gtk elpa-treemacs

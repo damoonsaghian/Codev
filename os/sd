@@ -12,8 +12,8 @@
 # https://www.computerworld.com/article/2821652/unix-tip--reading-and-writing-with-file-descriptors.html
 # the set of file descriptors open in a process can be accessed under the path /proc/PID/fd/,
 #   where PID is the process identifier
-
-# mount (including iso images)
+# unmount all partitions on the device (if there is any mounted partition):
+# umount /dev/"$2"?* && true
 
 # https://www.freedesktop.org/wiki/Software/dbus/
 # https://dbus.freedesktop.org/doc/dbus-tutorial.html

@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/sh -e
 
 # https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
 
 # exit if "/usr/local/bin/apm" has more than one instances
 if [ $(pgrep -c /usr/local/bin/apm) -gt 1 ]; then
   echo 'another instance is running;'
-  exit
+  exit 1
 fi
 
 # remove orphan lock
@@ -18,7 +18,7 @@ batteryIsEmpty() {
 connectionIsMetered() {
 	nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
 }
-[ "$1" = "autoupdate" ] && [ $(batteryIsEmpty) -o $(connectionIsMetered) ] && exit
+[ "$1" = "autoupdate" ] && [ $(batteryIsEmpty) -o $(connectionIsMetered) ] && exit 0
 
 
 [ -d /subvols/1 ] && btrfs subvolume delete /subvols/1
@@ -28,7 +28,7 @@ if [ "$1" != "autoupdate" ] && [ "$1" != "update" ] && [ "$1" != "add" ] && [ "$
   apm install package_names
   apm remove package_names
   apm update'
-  exit
+  exit 1
 fi
 
 set -e
