@@ -21,6 +21,7 @@ else
 fi
 
 # extract "initrd.gz" from the iso file
+rm -r install* && true
 xorriso -osirrox on -indev debian-*-"$1"-netinst.iso -extract_l / ./ '/install*/initrd.gz'
 xorriso -osirrox on -indev debian-*-"$1"-netinst.iso -extract_l / ./ '/install*/gtk/initrd.gz'
 # add "preseed.cfg" to "initrd.gz"
@@ -35,16 +36,24 @@ echo ../../../preseed.cfg | cpio -H newc -o -A -F initrd
 gzip initrd
 cd ../..
 
-# download and extract firmwares
+# create a new "md5sum.txt" file, according to the new initrd files
+[ -f md5sum.txt ] && rm md5sum.txt
+xorriso -osirrox on -indev debian-*-"$1"-netinst.iso -cpx /md5sum.txt md5sum.txt
+# remove the lines corresponding to the initrd files
+grep -v "initrd.gz" md5sum.txt > tmpfile && mv tmpfile md5sum.txt
+# add the md5sum of the new initrd files
+md5sum ./install*/initrd.gz ./install*/gtk/initrd.gz >> md5sum.txt
+
+# download and extract firmware archive
 [ -f SHA512SUMS ] && rm SHA512SUMS
 wget https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/SHA512SUMS
 if [ -f firmware.tar.gz ] && sha512sum --check --status --ignore-missing SHA512SUMS; then
-  echo "using priviously downloaded firmwares"
+  echo "using priviously downloaded firmware archive"
 else
   [ -f firmware.tar.gz ] && rm firmware.tar.gz
   wget https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.tar.gz
   sha512sum --check --status --ignore-missing SHA512SUMS || {
-    echo "verifying the checksum of the downloaded firmwares failed; try again"
+    echo "verifying the checksum of the downloaded firmware archive failed; try again"
     exit 1
   }
 fi
@@ -55,16 +64,13 @@ tar -xzf ../firmware.tar.gz
 [ -d firmware ] && { mv firmware/* .; rmdir firmware }
 cd ..
 
-# regenerate md5sum.txt
-
 # generate the modified iso file
 [ -f debian-modified-"$1"-netinst.iso ] && rm debian-modified-"$1"-netinst.iso
 xorriso -indev debian-*-"$1"-netinst.iso -outdev debian-modified-"$1"-netinst.iso \
   -overwrite on -pathspecs off -cd / \
-  -add install*/initrd.gz install*/gtk/initrd.gz firmware \
+  -add install*/initrd.gz install*/gtk/initrd.gz md5sum.txt firmware \
   -map .. /comshell/os/ \
-  -map ../../comacs/ /comshell/comacs/ \
-  -commit_eject all
+  -map ../../comacs/ /comshell/comacs/
 
 sh ../sd write /dev/"$2" debian-modified-"$1"-netinst.iso
 echo 'Debian installation media created successfully'
