@@ -1,33 +1,30 @@
-collaborative development without the need to keep it's whole history (as is done in version control systems)
+collaborative development
 
-we will have three BTRFS snapshots in a project's ".data/codev/" directory:
-, pristine
-, indexed
-, remote
+flaws of version control systems:
+, doubles the storage (working directory, local repository)
+, needs to keep the whole history if the project, in order to collaborate with others
 
-files will be synced up/down to/from the the remote from/to ".data/codev/indexed"
-there is no directory tree here, instead we have an index file
-"project-path/.data/codev/indexed/index"
-entries are separated with empty lines
-each entry has 3 lines:
+we will have three directories in a project's ".data/codev/" directory, containing hash'named files:
+, indexed: hard'links to the files in the project
+, remote: files downloaded from remote
+, pristine: the original files which where reflinked (or copied, if the filesystem does not support reflinks)
+  into the project directory
+
+for syncing we use an index file, and rename all files to their MD5 hash
+entries in the index file are separated with empty lines
+each entry has 2 lines:
+, MD5 hash
 , path
-, modification time
-, hash
 
-create a remote repository:
-; codev new
+initialize a remote host:
+; codev init remote-host user
+
+create a remote repository from the current project directory:
+; codev create remote-host
 
 ; codev pull
 the shown diff will be based on the working directory, pristine and remote
 after merging:
 ; codev push
 
-Codev also automatically backs up all the projects in those directories containing a ".backup-paths" file
-to run it manually:
-; codev backup
-
-add or remove users that can push
-; codev add username1 username2 ...
-; codev remove username1 username2 ...
-
-files in ".cache" directory will not be synced
+codev only acts on projects residing in non-removable BTRFS'formated disks

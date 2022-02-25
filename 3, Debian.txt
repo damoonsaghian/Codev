@@ -29,11 +29,6 @@ it will ask for:
 after login to the installed system you will see the main window displaying your projects
 here you can also run shell commands
 
-to connect to a wireless LAN:
-; wlan
-to disconnect wireless LAN:
-; wlan disconnect
-
 note that you can't login as root, root password you provided during installation, is used only for "sudo"
 it's not the traditional "sudo" though
 when you run "sudo", it opens a Wayland window demanding a password (which differs from the user's password)
@@ -42,6 +37,19 @@ never type the user's password anywhere except at the login prompt
 to see why, take a look at these:
 "https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
 "https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
+
+to connect to a wireless LAN:
+; sudo net wlan
+to forget a previously configured wireless network:
+; sudo net wlan forget
+
+to block/unblock a radio device (wlan wwan bluetooth nfc):
+; sudo rfkill block/unblock device-type
+
+to pair with a Bluetooth device:
+; sudo bt
+to disconnect a Bluetooth device:
+; sudo bt disconnect
 
 to install packages:
 ; sudo apm install package-names

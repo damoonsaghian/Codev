@@ -65,13 +65,11 @@ modes (normal mode and insert mode) must be visually distinctive
 press "esc" or "tab" to go to normal mode
 in normal mode we can:
 , press "enter" to go to insert mode
-, move the cursor to the next or previous word
-, move the cursor to the next or previous lines or table cells
-, move the cursor to the next or previous paragraph
+, move cursor to the beginning of an expression by entering enough of it
+  after pressing "enter" the entered words remains until the next action, in case you want to continue the search
 , start and end selection, then copy or cut
 , paste
 , undo
-, find
 
 , navigation: move, search
 , selection
