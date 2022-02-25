@@ -1,5 +1,12 @@
 #!/bin/sh
 # storage device manipulation program, using udisks2 dbus interface
+# https://www.freedesktop.org/wiki/Software/dbus/
+# https://dbus.freedesktop.org/doc/dbus-tutorial.html
+
+# internal extra disks: format with BTRFS, and after mounting, create a directory named after the current user
+# removable disks: format with FAT32
+
+# http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Filesystem.html#gdbus-method-org-freedesktop-UDisks2-Filesystem.Mount
 
 # partition format
 # http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.Format
@@ -14,6 +21,3 @@
 #   where PID is the process identifier
 # unmount all partitions on the device (if there is any mounted partition):
 # umount /dev/"$2"?* && true
-
-# https://www.freedesktop.org/wiki/Software/dbus/
-# https://dbus.freedesktop.org/doc/dbus-tutorial.html

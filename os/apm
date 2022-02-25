@@ -2,6 +2,10 @@
 
 # https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
 
+# show a status icon indicating:
+# , running update
+# , system needs to reboot
+
 # exit if "/usr/local/bin/apm" has more than one instances
 if [ $(pgrep -c /usr/local/bin/apm) -gt 1 ]; then
   echo 'another instance is running;'

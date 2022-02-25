@@ -1,31 +1,213 @@
-#!/bin/sh -e
+#!/bin/sh
 
-new () {
-  # remote_host username project_name
+# first implement single user push
+# then implement site generator
+# then implement pull
+# then implement pull requests (via email user@hashbang.sh)
+# then see if users can login to servers other than their own one, then implement multi user push
+# https://superuser.com/questions/1610105/suppress-home-directory-check-while-sshing-to-remote-host-for-user-without-home
 
-  # https://hackertarget.com/ssh-examples-tunnels/
-  # https://phoenixnap.com/kb/ssh-to-connect-to-remote-server-linux-or-windows
-  # https://www.geeksforgeeks.org/ssh-command-in-linux-with-examples/
-  # https://linuxize.com/post/using-the-ssh-config-file/
-  # https://www.digitalocean.com/community/tutorials/how-to-configure-custom-connection-options-for-your-ssh-client
-  # https://man.archlinux.org/listing/openssh
-
-  # if there is no user associated to the host in "~/.ssh/config"
-  #   ; ssh username@remote_host
-  #   project_path: "/home/user_name/public_html/project_name"
-  #   "remote_host:project_path" will be kept in "project_path/.data/codev/remote"
-  #   printf "Host $remote_host\n  User $username\n" > ~/.ssh/config
-  # if there is no SSH keys, create a key pair
-  # copy the public key to the server:
-  # https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server
-  # create a user on "hashbang.sh"
-  # https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.html
-  # https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.sh
-  # https://github.com/hashbang/shell-server/blob/master/ansible/tasks/packages/main.yml
-  # https://github.com/hashbang
+hbar() {
+  printf -- ' %72s\n' ' ' | tr ' ' '-'
 }
 
-push () {
+# this function can be called with two parameters:
+# first is obligatory, it's the question posed
+# second parameter is optional, it's the default answer, and can be either Y or N
+ask() {
+	while true; do
+		prompt=""
+		default=""
+
+		if [ "${2}" = "Y" ]; then
+			prompt="Y/n"
+			default=Y
+		elif [ "${2}" = "N" ]; then
+			prompt="y/N"
+			default=N
+		else
+			prompt="y/n"
+			default=
+		fi
+
+		# ask the question
+		echo ""
+		printf "%s [%s] " "$1" "$prompt"
+		read -r REPLY
+
+		# default?
+		if [ -z "$REPLY" ]; then
+			REPLY=$default
+		fi
+
+		# check if the reply is valid
+		case "$REPLY" in
+			Y*|y*) return 0 ;;
+			N*|n*) return 1 ;;
+		esac
+
+	done
+	echo " "
+}
+
+set_ssh_public_key() {
+  for keytype in id_ed25519 id_ecdsa id_rsa id_dsa; do
+    if [ -e ~/.ssh/${keytype}.pub ] && [ -e ~/.ssh/${keytype} ]; then
+      if ask "  found a public key in \"~/.ssh/${keytype}.pub\"; use this key?" Y; then
+        private_keyfile="${HOME}/.ssh/${keytype}"
+        public_key="$(cat ~/.ssh/${keytype}.pub)"
+        break
+      fi
+    fi
+  done
+
+  if [ -z "$public_key" ]; then
+	  echo "  no SSH key for login to server found, attempting to generate one"
+	  while true; do
+	  	echo ""
+	  	printf "  path to new or existing connection key (~/.ssh/id_rsa): "
+	  	read -r private_keyfile
+	  	if [ -z "$private_keyfile" ]; then
+	  		private_keyfile="$HOME/.ssh/id_rsa"
+	  	fi
+	  	private_keyfile=$(echo "$private_keyfile" | sed "s@~@$HOME@")
+	  	echo ""
+	  	if [ ! -e "$private_keyfile" ] && [ ! -e "$private_keyfile.pub" ]; then
+	  		if ask "  do you want to generate a new key?" Y; then
+	  			if [ -e "$private_keyfile" ]; then
+	  				if ask "  file exists: $private_keyfile; delete?" Y; then
+	  					rm "$private_keyfile"
+	  					if [ -e "${private_keyfile}.pub" ]; then
+	  						rm "${private_keyfile}.pub"
+	  					fi
+	  				else
+	  					continue
+	  				fi
+	  			fi
+	  			if makekey "${private_keyfile}"; then
+	  				break
+	  			fi
+	  		fi
+	  	elif [ ! -e "$private_keyfile" ] && [ -e "${private_keyfile}.pub" ]; then
+	  		if ask "  found public keyfile, missing private; do you wish to continue?" N; then
+	  			echo "  using public key ${private_keyfile}.pub"
+	  			break
+	  		else
+	  			echo "  resetting"
+	  		fi
+	  	elif [ ! -e "${private_keyfile}.pub" ]; then
+	  		echo "  unable to find public key ${private_keyfile}.pub"
+	  	else
+	  		echo "  using public key ${private_keyfile}.pub"
+	  		break
+	  	fi
+	  done
+	  public_key=$(cat "${private_keyfile}.pub")
+  fi
+}
+
+init() {
+  remote_host=$1
+  user=$2
+
+  printf "\nHost $remote_host\n  User $user\n" >> ~/.ssh/config
+
+  { echo "$user" | grep -E "^[a-z][a-z0-9]{0,30}$" >/dev/null; } || {
+  	echo "\"$user\" is not a valid username"
+    echo "a valid username must:"
+    echo ", be between between 1 and 31 characters long"
+    echo ", consist of only 0-9 and a-z (lowercase only)"
+    echo ", begin with a letter"
+  	exit 1
+  }
+
+  ssh "$user"@"$remote_host" && return
+
+  # if there is no SSH keys, create a key pair
+  ssh-keygen
+
+  # create a user in one of "hashbang.sh" servers
+  # https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.sh
+
+  # gnupg ssh
+  # https://wiki.archlinux.org/title/GnuPG#SSH_agent
+  # https://incenp.org/notes/2015/gnupg-for-ssh-authentication.html
+  # https://opensource.com/article/19/4/gpg-subkeys-ssh
+  # https://gist.github.com/mcattarinussi/834fc4b641ff4572018d0c665e5a94d3
+  #
+  # https://moser-isi.ethz.ch/gpg.html
+  # https://www.gnupg.org/documentation/manuals/gnupg/
+
+	echo
+  echo " please choose a server to create your account on"
+  echo
+  hbar
+  printf -- '  %-1s | %-4s | %-36s | %-8s | %-8s\n' \
+  	"#" "Host" "Location" "Users" "Latency"
+  hbar
+	wget --quiet -O- --header 'Accept:text/plain' https://hashbang.sh/server/stats |
+	while IFS="|" read -r host _ location current_users max_users _; do
+	  host=$(echo "$host" | cut -d. -f1)
+	  latency=$(ping -c 1 "${host}.hashbang.sh" | grep -oP ".*time=\K\d+ ms")
+	  n=$((n+1))
+	  printf -- '  %-1s | %-4s | %-36s | %8s | %-8s\n' \
+	  	"$n" \
+	  	"$host" \
+	  	"$location" \
+	  	"$current_users/$max_users" \
+	  	"$latency"
+  done
+	hbar
+
+	echo
+  while true; do
+  	printf ' Enter Number 1-%i : ' "$n"
+  	read -r choice
+  	number=$(echo "$choice" | awk '/[^0-9]/ { print "no" }')
+  	if [ "$number" != "no" ] && \
+  	   [ "$choice" -ge 1 ] && \
+  	   [ "$choice" -le $n ]; then
+  		break;
+  	fi
+  done
+  host=$(head -n "$choice" "$host_data" | tail -n1 | cut -d \| -f1)
+
+  pulic_key=$(cat ~/.ssh/id_rsa.pub)
+  host=de1.hashbang.sh
+  wget --post-data="{\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}" \
+    --header='Content-Type: application/json' https://hashbang.sh/user/create
+}
+
+update_key() {
+  remote_host=$1
+  user=$2
+}
+
+create () {
+  remote_host=$1
+  user=$2
+  project_name=
+
+  # "remote_host:~/public_html/project_name" will be kept in "project_path/.data/codev/remote"
+
+  # add the project's website to "~/public_html/index.html"
+
+  # create a directory for pull requests, and set it's permissions
+  # setfacl -m "other:rw" dir
+}
+
+delete() {
+  remote_host=
+  user=
+
+  # remove project
+  # remove the project's website from "~/public_html/index.html"
+}
+
+push() {
+  remote_host=
+  user=
+
   # if a file named "lock" exists at the remote, and it's younger than 20 seconds, exit
   # if the index file in remote is not the same as ".cache/codev/indexed/index", exit
   #   because it means that someone else has already pushed to the remote before you,
@@ -48,10 +230,18 @@ push () {
 
   # create an html web'page (named "name-of-the-project.html"), showing the files in the project
   #   it can also be used to download the whole project using "wget -r"
+
+  # create an suid script which clears project directory from any file not mensioned in the index file,
+  #   and generates the index.html and the symlinks in the "~/public_html/project_name"
+
+  # ".cache" directory will not be synced to remote
 }
 
-pull () {
-  # download the index file from the public_html directory of the remote, into ".cache/codev/indexed"
+pull() {
+  remote_host=
+  user=
+
+  # download the index file from the public_html directory of the remote, into ".cache/codev/index"
   # sync down the files mentioned in the index file (using CURL)
   # snapshot ".cache/codev/indexed" to ".cache/codev/temp"
   # delete the index file and ".cache/codev/tmp/.cache/"
@@ -80,17 +270,46 @@ pull () {
   # https://git-scm.com/docs/git-diff
 }
 
-backup () {}
+backup() {
+  # if $1 is init, ask the user to select disks to store backups
 
-add_user () {}
+  # a disk with the file ".codev-backup/.uuid" matching "~/.config/codev/backup-uuid"
+  # "~/.config/codev/backup" keeps backup paths for projects
 
-remove_user () {}
+  # do not follow mount points when making backups
+
+  # backup will include ".cache" directory
+}
+
+# add or remove a user that can push
+# ; codev add username
+# ; codev remove username
+add_user() {
+  remote_host=
+  user=
+  username=$1
+  # run this through ssh
+  setfacl -m  u:"$username":rw "$project_path"
+}
+remove_user() {
+  remote_host=
+  user=
+  username=$1
+  # run this through ssh
+  setfacl -x  u:"$username":rw "$project_path"
+}
+
+if [ $0 != "init" ] && [ $0 != "pull" ] && [ $0 != "backup" ] && [ ! -f ~/.config/codev ]; then
+  echo 'first run "codev init <remote-host> <user>"'
+fi
 
 case "$1" in
-  new) new;;
-  push) push;;
-  pull) pull;;
-  backup) backup;;
-  add) add_user;;
-  remove) remove_user;;
+  init) shift; init "$@";;
+  create) shift; create "$@";;
+  delete) shift; delete "$@";;
+  push) shift; push "$@";;
+  pull) shift; pull "$@";;
+  backup) shift; backup "$@";;
+  add) shift; add_user "$@";;
+  remove) shift; remove_user "$@";;
 esac

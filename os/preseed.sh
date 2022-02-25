@@ -31,32 +31,77 @@ EOF
 # sid
 # contrib and non-free
 
-apt-get install intel-ucode amd-ucode \
-  iwd pipewire-alsa \
-  openssh curl materia-gtk-theme unzip gst-plugins-{base,good,bad} gst-libav \
-  sway alacritty xorg-server-xwayland
-
-# firmware-linux
-# kbd
-# udisks2 xorriso dosfstools e2fsprogs btrfs-progs btrfs-progs btrfsmaintenance
-# wget
-# pipewire-pulse policykit-1 lua5.3 lua-lgi
+# udev kbd acl
+# udisks2 gir1.2-udisks-2.0 xorriso dosfstools btrfs-progs btrfsmaintenance
+# iwd wireless-regdb modemmanager usb-modeswitch pppoe rfkill iputils-ping wget openssh-client
+# wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth bluez
+#   ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/99-pipewire-default.conf && true
+#   https://salsa.debian.org/utopia-team/pipewire/-/blob/debian/master/debian/pipewire-audio-client-libraries.links
+#   https://salsa.debian.org/utopia-team/pipewire/-/blob/debian/master/debian/pipewire-audio-client-libraries.install
+# policykit-1 lua5.3 lua-lgi
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
 # emacs-gtk elpa-treemacs
 
+# materia-gtk-theme unzip gst-plugins-{base,good,bad} gst-libav sway alacritty xorg-server-xwayland
+# gir packages
+
+echo '[Match]
+Type=ether
+Name=! veth*
+[Network]
+DHCP=yes
+IPv6PrivacyExtensions=yes
+[DHCPv4]
+RouteMetric=100
+[IPv6AcceptRA]
+RouteMetric=100
+' > /etc/systemd/network/20-wired.network
+echo '[Match]
+Type=wlan
+[Network]
+DHCP=yes
+IPv6PrivacyExtensions=yes
+IgnoreCarrierLoss=3s
+[DHCPv4]
+RouteMetric=600
+[IPv6AcceptRA]
+RouteMetric=600
+' > /etc/systemd/network/20-wireless.network
+echo '[Match]
+Type=wwan
+[Network]
+DHCP=yes
+IPv6PrivacyExtensions=yes
+IgnoreCarrierLoss=3s
+[DHCPv4]
+RouteMetric=700
+[IPv6AcceptRA]
+RouteMetric=700
+' > /etc/systemd/network/20-wwan.network
 systemctl enable systemd-networkd
+ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+systemctl enable systemd-resolved
+systemctl enable iwd
+
+cp net /usr/local/bin/net
 
 echo '#!/bin/sh
 if [ "$1" = "disconnect" ]; then
-  iwctl station wlan0 disconnect
+  bluetoothctl paired-devices
+  echo -n "select a device (enter the MAC address): "; read mac_address
+  bluetoothctl disconnect "$mac_address"
+  bluetoothctl untrust "$mac_address"
   exit
 fi
-iwctl station wlan0 scan
-iwctl station wlan0 get-networks
-echo -n "select a network: "; read ssid
-iwctl station wlan0 connect "$ssid"
-' > /usr/local/bin/wlan
-chmod +x /usr/local/bin/wlan
+bluetoothctl scan on
+echo -n "select a device (enter the MAC address): "; read mac_address
+if [ bluetoothctl --agent -- pair "$mac_address" ]; then
+  bluetoothctl trust "$mac_address"
+  bluetoothctl connect "$mac_address"
+else
+  bluetoothctl untrust "$mac_address"
+fi
+' > /usr/local/bin/bt
 
 echo '#!/bin/sh
 if [ $1 = disable ]; then
@@ -107,7 +152,7 @@ chmod u+s,+x /usr/local/bin/navt
 
 # run this before creating user in "preseed.cfg"
 mkdir -p /etc/skel/.config/sway
-cp sway.cfg /etc/skel/.config/sway/config
+cp sway /etc/skel/.config/sway/config
 
 # create a system user named "su" with a password equal to root's password
 useradd --system --password $(getent shadow root | cut -d: -f2) su
@@ -130,6 +175,10 @@ chmod +x /usr/local/bin/sd
 
 cp apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
+
+cp fwi /usr/local/bin/
+chmod +x /usr/local/bin/fwi
+fwi
 
 mkdir -p /usr/local/lib/systemd/system
 echo '[Unit]
@@ -173,6 +222,8 @@ RandomizedDelaySec=5min
 [Install]
 WantedBy=timers.target' > /usr/local/lib/systemd/system/autobackup.timer
 systemctl enable autobackup.timer
+
+# also when a disk is inserted run "codev backup"
 
 mkdir -p /etc/polkit-1/localauthority/50-local.d
 echo '[udisks]
