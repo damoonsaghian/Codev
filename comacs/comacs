@@ -4,8 +4,15 @@ interavtive notebook instead of interactive shell
 
 https://github.com/emacs-mirror/emacs
 
+https://github.com/jkitchin/emacs-modules
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Modules.html
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Writing-Dynamic-Modules.html
+
 https://packages.debian.org/sid/elpa-epl
 https://github.com/cask/epl/blob/master/epl.el
+https://github.com/raxod502/straight.el
+
+https://github.com/meow-edit/meow
 
 https://github.com/Alexander-Miller/treemacs
 
@@ -13,10 +20,37 @@ https://www.emacswiki.org/emacs/ImageDired
 if the directory has ".g" suffix -> image-dired
 image-dired show thumbnails for videos and directories and open them in the floating layer
 
-https://github.com/hrs/engine-mode
+voice control:
+https://www.reddit.com/r/emacs/comments/kwb9yg/have_you_ever_used_speech_recognition_software_to/
+https://github.com/MycroftAI/mycroft-core
+https://kalliope-project.github.io/
+https://gitlab.com/jezra/blather
+https://github.com/Ratfink/kaylee
+http://www.cb1.com/~john/computing/emacs/handsfree/voice.html
+https://github.com/jcaw/voicemacs
+https://github.com/justin-roche/serenade-mode
+https://github.com/jgarvin/mandimus
+https://www.emacswiki.org/emacs/SpeechToText
 
 https://packages.debian.org/sid/elpa-bongo
 
+https://www.gnu.org/software/emacs/manual//html_node/calc/Embedded-Mode.html
+
+https://packages.debian.org/elpa-bash-completion
+
 https://packages.debian.org/sid/elpa-htmlize
 
-unzip libarchive
+https://github.com/hrs/engine-mode
+
+https://www.gnu.org/software/emacs/manual/html_mono/calc.html
+
+speech to text:
+https://github.com/kaldi-asr/kaldi
+http://julius.osdn.jp/en_index.php
+https://github.com/alphacep/vosk-api
+https://github.com/mozilla/DeepSpeech
+
+https://en.wikipedia.org/wiki/Emacspeak
+
+bsdtar (libarchive-tools) (zip, iso, ...)
+bsdtar -xf file
