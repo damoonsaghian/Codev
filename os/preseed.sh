@@ -16,23 +16,17 @@ ln --symbolic --force -t / /0/lib64
 ln --symbolic --force -t / /0/sbin
 ln --symbolic --force -t / /0/usr
 
-chroot /0 /usr/bin/sh << EOF
-# if this is a UEFI system, uninstall GRUB (if it's installed),
-#   create a "startup.nsh" file: https://wiki.archlinux.org/title/EFISTUB#Using_a_startup.nsh_script
-#   and download the EFI driver for BTRFS: https://efi.akeo.ie/
-# otherwise regenerate GRUB, set GRUB password
-EOF
-
-# Grub password
-# https://superuser.com/questions/488275/grub-2-password-protection-in-debian
+# U-boot "/boot/extlinux/extlinux.conf"
+# Petitboot "/boot/syslinux/syslinux.cfg"
+# for BIOS'based "x86*" systems install non'UEFI syslinux
 
 # timezone
 
 # sid
 # contrib and non-free
 
-# udev kbd acl
-# udisks2 gir1.2-udisks-2.0 xorriso dosfstools btrfs-progs btrfsmaintenance
+# udev kbd acl dosfstools btrfs-progs btrfsmaintenance
+# udisks2 libarchive-tools wget
 # iwd wireless-regdb modemmanager usb-modeswitch pppoe rfkill iputils-ping wget openssh-client
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth bluez
 #   ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/99-pipewire-default.conf && true
@@ -42,7 +36,7 @@ EOF
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
 # emacs-gtk elpa-treemacs
 
-# materia-gtk-theme unzip gst-plugins-{base,good,bad} gst-libav sway alacritty xorg-server-xwayland
+# materia-gtk-theme gst-plugins-{base,good,bad} gst-libav sway alacritty xorg-server-xwayland
 # gir packages
 
 echo '[Match]
