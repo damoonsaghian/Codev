@@ -8,14 +8,17 @@ the following instructions show how to prepare a Debian installation media, in a
 if you don't have a Unix'like operating system installed,
   you can use Debian's (or any other distro's) live image
 
-first make sure that these packages are installed: wget gzip cpio xorriso udisks2
+first make sure that these packages are installed: wget libarchive-tools udisks2
+for installation on BIOS systems, we also need: syslinux syslinux-common
 download the files of this project:
 ; wget -r -np comshell-project-web-page-url
 ; cd */Comshell/os/
 ensure that the files there aren't malicious
 insert a USB storage device (at least 700MB), find the device using "lsblk"
 now assuming the device is "sdx", and the CPU architecture is "amd64":
-; sh mkdi.sh amd64 sdx
+; sh mkdi.sh sdx amd64
+for installation on a BIOS system:
+; sh mkdi.sh sdx amd64 bios
 
 now just boot to the USB storage device
 it will ask for:
@@ -29,11 +32,14 @@ it will ask for:
 after login to the installed system you will see the main window displaying your projects
 here you can also run shell commands
 
-note that you can't login as root, root password you provided during installation, is used only for "sudo"
+note that you can't login as root, root password provided during installation, is used only for "sudo"
 it's not the traditional "sudo" though
-when you run "sudo", it opens a Wayland window demanding a password (which differs from the user's password)
+when you run "sudo", it opens a Wayland window demanding a password,
+  which is the root password provided during installation, and not the user's password
 never type the user's password anywhere except at the login prompt
   (and make sure that it's not fake, by disconnecting and reconnecting your keyboard)
+this means that if a malicious program steals your password (eg by faking the password entry window),
+  it still can't run programs as root (cause only "sudo" can)
 to see why, take a look at these:
 "https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
 "https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
@@ -43,13 +49,13 @@ to connect to a wireless LAN:
 to forget a previously configured wireless network:
 ; sudo net wlan forget
 
-to block/unblock a radio device (wlan wwan bluetooth nfc):
-; sudo rfkill block/unblock device-type
-
 to pair with a Bluetooth device:
 ; sudo bt
 to disconnect a Bluetooth device:
 ; sudo bt disconnect
+
+to block/unblock a radio device (wlan wwan bluetooth nfc all):
+; sudo rfkill block/unblock device-type
 
 to install packages:
 ; sudo apm install package-names
