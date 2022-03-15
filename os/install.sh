@@ -16,9 +16,27 @@ ln --symbolic --force -t / /0/lib64
 ln --symbolic --force -t / /0/sbin
 ln --symbolic --force -t / /0/usr
 
-# U-boot "/extlinux/extlinux.conf"
-# Petitboot "/syslinux/syslinux.cfg"
-# for BIOS'based "x86*" systems install non'UEFI syslinux
+# for U-boot based ARM systems which need flash-kernel, implementing atomic upgrade is complicated
+# furthermore, for old ARMel systems which need the kernel and initrd to be flashed in their ROM,
+#   implementing atomic upgrade is impossible
+# MIPS systems are not supported for a similar reason too
+# also s390x is not supported because ZIPL only understands datablocks (not the filesystem),
+#   and thus must be rewritten everytime kernel/initrd is updated
+
+# for U-boot based systems which support "generic distro configuration":
+#   remove flash-kernel, make a generic bootscr, and put it in boot partition
+# https://source.denx.de/u-boot/u-boot/-/blob/master/doc/develop/distro.rst
+# libubootenv-tool
+# https://salsa.debian.org/installer-team/flash-kernel/-/blob/master/bootscript/arm64/bootscr.uboot-generic
+# in bootscr first try to load "vmlinuz.trans" and "initrd.trans"
+# before upgrading create these symlinks: vmlinuz.trans initrd.trans
+
+# if EFI, remove Grub then unified kernel image using systemd linux stub
+# https://wiki.archlinux.org/title/Unified_kernel_image
+# https://systemd.io/BOOT_LOADER_SPECIFICATION/#type-2-efi-unified-kernel-images
+# https://wiki.debian.org/EFIStub
+
+# otherwise disable Grub upgrade, and lock Grub
 
 # timezone
 
@@ -28,7 +46,7 @@ ln --symbolic --force -t / /0/usr
 # udev kbd acl dosfstools btrfs-progs btrfsmaintenance
 # iwd wireless-regdb modemmanager usb-modeswitch pppoe rfkill iputils-ping wget openssh-client
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth bluez
-#   ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/99-pipewire-default.conf && true
+#   ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/99-pipewire-default.conf || true
 #   https://salsa.debian.org/utopia-team/pipewire/-/blob/debian/master/debian/pipewire-audio-client-libraries.links
 #   https://salsa.debian.org/utopia-team/pipewire/-/blob/debian/master/debian/pipewire-audio-client-libraries.install
 # policykit-1 lua5.3 lua-lgi

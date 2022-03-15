@@ -21,6 +21,7 @@
 # https://hg.sr.ht/~scoopta/rootbar
 # https://codeberg.org/dnkl/yambar
 # https://github.com/Alexays/Waybar
+# libgtop
 
 # https://man.archlinux.org/man/core/systemd/logind.conf.5.en
 #   IdleAction
