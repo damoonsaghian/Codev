@@ -17,7 +17,7 @@ during installation:
 , select BTRFS for the root partition
 , deselect all tasks, to install a minimal system
 
-after booting to the installed system, and login:
+after booting to the installed system, and login, first install "wget":
 ; sudo apt install wget
 download the files of this project:
 ; wget -r -np comshell-project-web-page-url
@@ -25,7 +25,7 @@ download the files of this project:
 ensure that the files there aren't malicious
 ; sudo sh install.sh
 
-".data/sway.png"
+".data/comacs.png"
 
 after login to the new system you will see the main window displaying your projects
 here you can also run shell commands
