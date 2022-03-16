@@ -33,8 +33,10 @@ ln --symbolic --force -t / /0/usr
 
 # if EFI, remove Grub then unified kernel image using systemd linux stub
 # https://wiki.archlinux.org/title/Unified_kernel_image
+# https://man.archlinux.org/man/systemd-stub.7
 # https://systemd.io/BOOT_LOADER_SPECIFICATION/#type-2-efi-unified-kernel-images
 # https://wiki.debian.org/EFIStub
+# /EFI/BOOT/BOOTx64.EFI BOOTIA32.EFI
 
 # otherwise disable Grub upgrade, and lock Grub
 
