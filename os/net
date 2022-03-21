@@ -44,5 +44,5 @@ wlan () {
 # https://github.com/dfskoll/rp-pppoe/blob/master/doc/HOW-TO-CONNECT
 
 case "$1" in
-  wlan) shift; wlan "$@";;
-esac 
+  wlan) shift; wlan "$@" ;;
+esac

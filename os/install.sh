@@ -1,5 +1,7 @@
 set -e
 
+cd "$(dirname "$0")"
+
 btrfs subvolume create /0
 btrfs subvolume snapshot / /0
 
@@ -46,17 +48,18 @@ ln --symbolic --force -t / /0/usr
 # contrib and non-free
 
 # udev kbd acl dosfstools btrfs-progs btrfsmaintenance
-# iwd wireless-regdb modemmanager usb-modeswitch pppoe rfkill iputils-ping wget openssh-client
+# iwd wireless-regdb modemmanager usb-modeswitch pppoe rfkill
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth bluez
 #   ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/99-pipewire-default.conf || true
 #   https://salsa.debian.org/utopia-team/pipewire/-/blob/debian/master/debian/pipewire-audio-client-libraries.links
 #   https://salsa.debian.org/utopia-team/pipewire/-/blob/debian/master/debian/pipewire-audio-client-libraries.install
 # policykit-1 lua5.3 lua-lgi
+# sway xwayland iputils-ping
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
-# gvfs wget
+# gvfs openssh-client
 # emacs-gtk elpa-treemacs
 
-# materia-gtk-theme gst-plugins-{base,good,bad} gst-libav sway alacritty xorg-server-xwayland
+# materia-gtk-theme gst-plugins-{base,good,bad} gst-libav
 # gir packages
 
 echo '[Match]

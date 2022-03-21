@@ -1,110 +1,4 @@
-#!/bin/sh
-
-# first implement single user push
-# then implement site generator
-# then implement pull
-# then implement pull requests (via email user@hashbang.sh)
-# then see if users can login to servers other than their own one, then implement multi user push
-# https://superuser.com/questions/1610105/suppress-home-directory-check-while-sshing-to-remote-host-for-user-without-home
-
-hbar() {
-  printf -- ' %72s\n' ' ' | tr ' ' '-'
-}
-
-# this function can be called with two parameters:
-# first is obligatory, it's the question posed
-# second parameter is optional, it's the default answer, and can be either Y or N
-ask() {
-	while true; do
-		prompt=""
-		default=""
-
-		if [ "${2}" = "Y" ]; then
-			prompt="Y/n"
-			default=Y
-		elif [ "${2}" = "N" ]; then
-			prompt="y/N"
-			default=N
-		else
-			prompt="y/n"
-			default=
-		fi
-
-		# ask the question
-		echo ""
-		printf "%s [%s] " "$1" "$prompt"
-		read -r REPLY
-
-		# default?
-		if [ -z "$REPLY" ]; then
-			REPLY=$default
-		fi
-
-		# check if the reply is valid
-		case "$REPLY" in
-			Y*|y*) return 0 ;;
-			N*|n*) return 1 ;;
-		esac
-
-	done
-	echo " "
-}
-
-set_ssh_public_key() {
-  for keytype in id_ed25519 id_ecdsa id_rsa id_dsa; do
-    if [ -e ~/.ssh/${keytype}.pub ] && [ -e ~/.ssh/${keytype} ]; then
-      if ask "  found a public key in \"~/.ssh/${keytype}.pub\"; use this key?" Y; then
-        private_keyfile="${HOME}/.ssh/${keytype}"
-        public_key="$(cat ~/.ssh/${keytype}.pub)"
-        break
-      fi
-    fi
-  done
-
-  if [ -z "$public_key" ]; then
-	  echo "  no SSH key for login to server found, attempting to generate one"
-	  while true; do
-	  	echo ""
-	  	printf "  path to new or existing connection key (~/.ssh/id_rsa): "
-	  	read -r private_keyfile
-	  	if [ -z "$private_keyfile" ]; then
-	  		private_keyfile="$HOME/.ssh/id_rsa"
-	  	fi
-	  	private_keyfile=$(echo "$private_keyfile" | sed "s@~@$HOME@")
-	  	echo ""
-	  	if [ ! -e "$private_keyfile" ] && [ ! -e "$private_keyfile.pub" ]; then
-	  		if ask "  do you want to generate a new key?" Y; then
-	  			if [ -e "$private_keyfile" ]; then
-	  				if ask "  file exists: $private_keyfile; delete?" Y; then
-	  					rm "$private_keyfile"
-	  					if [ -e "${private_keyfile}.pub" ]; then
-	  						rm "${private_keyfile}.pub"
-	  					fi
-	  				else
-	  					continue
-	  				fi
-	  			fi
-	  			if makekey "${private_keyfile}"; then
-	  				break
-	  			fi
-	  		fi
-	  	elif [ ! -e "$private_keyfile" ] && [ -e "${private_keyfile}.pub" ]; then
-	  		if ask "  found public keyfile, missing private; do you wish to continue?" N; then
-	  			echo "  using public key ${private_keyfile}.pub"
-	  			break
-	  		else
-	  			echo "  resetting"
-	  		fi
-	  	elif [ ! -e "${private_keyfile}.pub" ]; then
-	  		echo "  unable to find public key ${private_keyfile}.pub"
-	  	else
-	  		echo "  using public key ${private_keyfile}.pub"
-	  		break
-	  	fi
-	  done
-	  public_key=$(cat "${private_keyfile}.pub")
-  fi
-}
+#!/bin/sh -e
 
 init() {
   remote_host=$1
@@ -164,9 +58,7 @@ init() {
   	printf ' Enter Number 1-%i : ' "$n"
   	read -r choice
   	number=$(echo "$choice" | awk '/[^0-9]/ { print "no" }')
-  	if [ "$number" != "no" ] && \
-  	   [ "$choice" -ge 1 ] && \
-  	   [ "$choice" -le $n ]; then
+  	if [ "$number" != "no" ] && [ "$choice" -ge 1 ] && [ "$choice" -le $n ]; then
   		break;
   	fi
   done
@@ -179,95 +71,24 @@ init() {
 }
 
 update_key() {
-  remote_host=$1
-  user=$2
 }
 
 create () {
-  remote_host=$1
-  user=$2
-  project_name=
-
-  # "remote_host:~/public_html/project_name" will be kept in "project_path/.data/codev/remote"
-
-  # add the project's website to "~/public_html/index.html"
-
-  # create a directory for pull requests, and set it's permissions
-  # setfacl -m "other:rw" dir
+  remote_host=
 }
 
 delete() {
-  remote_host=
-  user=
-
   # remove project
-  # remove the project's website from "~/public_html/index.html"
+  # remove the project's website from "~/Public/index.html"
 }
 
 push() {
-  remote_host=
-  user=
-
-  # if a file named "lock" exists at the remote, and it's younger than 20 seconds, exit
-  # if the index file in remote is not the same as ".cache/codev/indexed/index", exit
-  #   because it means that someone else has already pushed to the remote before you,
-  #   and you must pull and merge it before pushing
-  # snapshot ".cache/codev/remote" into ".cache/codev/temp"
-  # flatten the paths of all files in ".cache/codev/temp" using their hashes for the file names
-  #   if the file's modification time is the same as the one in the index file ".cache/codev/indexed/index",
-  #   take the hash from the index file, otherwise calculate the hash and add the file to the index file
-  # move ".cache/codev/temp" to ".cache/codev/indexed"
-  # sync up ".cache/codev/indexed" to the public_html directory of the remote (using SFTP),
-  #   except the index file, and without deleting any file at the remote
-  # create a file named "lock" in the remote
-  # if index file in remote is not the same as the one in ".cache/codev/indexed", exit
-  #   because it means that someone else has already pushed to the remote before you,
-  #   and you must pull it before pushing
-  # send ".cache/codev/indexed/index" to the remote
-  # remove the lock file
-  # delete those remote files which are not in index file
-  # snapshot the ".cache/codev/remote" into ".cache/codev/pristine"
-
-  # create an html web'page (named "name-of-the-project.html"), showing the files in the project
-  #   it can also be used to download the whole project using "wget -r"
-
-  # create an suid script which clears project directory from any file not mensioned in the index file,
-  #   and generates the index.html and the symlinks in the "~/public_html/project_name"
-
+  git push
   # ".cache" directory will not be synced to remote
 }
 
 pull() {
-  remote_host=
-  user=
-
-  # download the index file from the public_html directory of the remote, into ".cache/codev/index"
-  # sync down the files mentioned in the index file (using CURL)
-  # snapshot ".cache/codev/indexed" to ".cache/codev/temp"
-  # delete the index file and ".cache/codev/tmp/.cache/"
-  # rename the files in ".cache/codev/temp" based on the index file ".cache/codev/indexed/index"
-  # move ".cache/codev/temp" to ".cache/codev/remote"
-  # show the diff based on the working directory, pristine and remote
-  # merge the remote into the working directory
-  # snapshot the working directory into ".cache/codev/remote"
-
-  # https://curl.se/
-  # https://curl.se/docs/
-  # https://curl.se/docs/manpage.html
-  # https://curl.se/docs/manual.html
-  # https://curlie.io/
-  # https://github.com/jakubroztocil/httpie
-
-  # https://www.gnu.org/software/diffutils/manual/html_mono/diff.html
-  # https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff
-  # file tree diff
-  # https://stackoverflow.com/questions/776854/how-do-i-compare-two-source-trees-in-linux
-  # https://github.com/dandavison/delta
-  # https://github.com/so-fancy/diff-so-fancy
-  # https://diffoscope.org/
-  # https://github.com/MightyCreak/diffuse
-  # http://meldmerge.org/
-  # https://git-scm.com/docs/git-diff
+  git lfs pull
 }
 
 backup() {
@@ -285,31 +106,19 @@ backup() {
 # ; codev add username
 # ; codev remove username
 add_user() {
-  remote_host=
-  user=
   username=$1
-  # run this through ssh
-  setfacl -m  u:"$username":rw "$project_path"
 }
 remove_user() {
-  remote_host=
-  user=
   username=$1
-  # run this through ssh
-  setfacl -x  u:"$username":rw "$project_path"
 }
 
-if [ $0 != "init" ] && [ $0 != "pull" ] && [ $0 != "backup" ] && [ ! -f ~/.config/codev ]; then
-  echo 'first run "codev init <remote-host> <user>"'
-fi
-
 case "$1" in
-  init) shift; init "$@";;
-  create) shift; create "$@";;
-  delete) shift; delete "$@";;
-  push) shift; push "$@";;
-  pull) shift; pull "$@";;
-  backup) shift; backup "$@";;
-  add) shift; add_user "$@";;
-  remove) shift; remove_user "$@";;
+  init) shift; init "$@" ;;
+  create) shift; create "$@" ;;
+  delete) shift; delete "$@" ;;
+  push) shift; push "$@" ;;
+  pull) shift; pull "$@" ;;
+  backup) shift; backup "$@" ;;
+  add) shift; add_user "$@" ;;
+  remove) shift; remove_user "$@" ;;
 esac

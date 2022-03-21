@@ -64,10 +64,10 @@ chroot /subvols/1 /usr/bin/sh << EOF
 set -e
 apt-get update
 case "$1" in
-remove) apt-get purge -- ${@:2};;
-install) apt-get install --no-install-recommends -- ${@:2};;
-update) apt-get dist-upgrade;;
-autoupdate) apt-get dist-upgrade --yes;;
+remove) apt-get purge -- ${@:2} ;;
+install) apt-get install --no-install-recommends -- ${@:2} ;;
+update) apt-get dist-upgrade ;;
+autoupdate) apt-get dist-upgrade --yes ;;
 esac
 apt-get autoremove --yes
 apt-get autoclean --yes
