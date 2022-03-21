@@ -17,7 +17,7 @@ during installation:
 , select BTRFS for the root partition
 , deselect all tasks, to install a minimal system
 
-after booting to the installed system, and login, first install "wget":
+after booting to the installed system, first install "wget":
 ; sudo apt install wget
 download the files of this project:
 ; mkdir comshell; cd comshell
@@ -25,8 +25,7 @@ download the files of this project:
 ensure that the downloaded files aren't malicious
 ; sudo sh os/install.sh
 
-after login to the new system you will see Comshell, or in its absence, Comacs which
-  is a prototype implementation of Comshell, using Emacs
+after rebooting to the new system, you will see Comshell
 
 note that you can't login as root, root password provided during installation, is used only for "sudo"
 it's not the traditional "sudo" though
@@ -39,6 +38,17 @@ this means that if a malicious program steals your password (eg by faking the pa
 to see why, take a look at these:
 "https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
 "https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
+
+you can set a user for automatic login:
+; sudo autologin enable <user>
+but to protect the computer from physical attacks, you have to disable automatic login ("sudo autologin disable"),
+  and lock the session when you leave the computer
+in addition you must:
+, somehow prevent tampering with hardware
+, protect boot firmware by a password
+, disable changing the boot device
+these can make physical attacks more difficult, but keep in mind that
+  physical access to a computer is root access, given enough time and resources
 
 to connect to a wireless LAN:
 ; sudo net wlan
@@ -63,26 +73,15 @@ as a result when you add/remove/update packages using "apm",
   the system must be restarted for it to take effect
 all of this means that we can have reliable automatic updates
 
-you can set a user for automatic login:
-; sudo autologin enable <user>
-but to protect the computer from physical attacks, you have to disable automatic login ("sudo autologin disable"),
-  and lock the session when you leave the computer
-in addition you must:
-, somehow prevent tampering with hardware
-, protect boot firmware by a password
-, disable changing the boot device
-these can make physical attacks more difficult, but keep in mind that
-  physical access to a computer is root access, given enough time and resources
-
 version control systems:
 , double the storage: working directory, local repository
-, the whole design, and specially the mechanism of pull requests makes any history modification complicated
+, the whole design, and specially the mechanism of pull requests makes it difficult to modify history
   so in practice, the whole history must be kept, even if not needed
 to initialize an account:
 ; codev init host user
-create a remote repository from the current project directory:
-; codev create gitlab-host
 pull:
 ; codev pull
 each push automatically pulls and merges, and depending on the user, does a push or a pull request:
 ; codev push
+push to a new host, or for the first time:
+; codev push host
