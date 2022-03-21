@@ -79,9 +79,11 @@ version control systems:
   so in practice, the whole history must be kept, even if not needed
 to initialize an account:
 ; codev init host user
+clone:
+; codev clone repo
 pull:
 ; codev pull
-each push automatically pulls and merges, and depending on the user, does a push or a pull request:
+each push automatically pulls and merges, then depending on the user, does a push or a pull request:
 ; codev push
-push to a new host, or for the first time:
-; codev push host
+push for the first time:
+; codev push repo
