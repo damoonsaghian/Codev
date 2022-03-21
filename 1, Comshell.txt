@@ -39,6 +39,8 @@ also we can have another row for function keys, plus the "delete" key
 = Comshell
 Comshell is a unified computing environment, utilizing command based user interface
 
+".data/comshell.png"
+
 project directories reside in directories named "projects" or "projects.*",
   inside home directory or mounted disks
 list of all projects will appear in a floating layer, at the center of screen

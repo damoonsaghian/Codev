@@ -20,15 +20,13 @@ during installation:
 after booting to the installed system, and login, first install "wget":
 ; sudo apt install wget
 download the files of this project:
-; wget -r -np comshell-project-web-page-url
-; cd */Comshell/os/
-ensure that the files there aren't malicious
-; sudo sh install.sh
+; mkdir comshell; cd comshell
+; wget -r -np -nd https://hashbang.sh/~damoon-saghian/Comshell/
+ensure that the downloaded files aren't malicious
+; sudo sh os/install.sh
 
-".data/comacs.png"
-
-after login to the new system you will see the main window displaying your projects
-here you can also run shell commands
+after login to the new system you will see Comshell, or in its absence, Comacs which
+  is a prototype implementation of Comshell, using Emacs
 
 note that you can't login as root, root password provided during installation, is used only for "sudo"
 it's not the traditional "sudo" though
@@ -75,3 +73,16 @@ in addition you must:
 , disable changing the boot device
 these can make physical attacks more difficult, but keep in mind that
   physical access to a computer is root access, given enough time and resources
+
+version control systems:
+, double the storage: working directory, local repository
+, the whole design, and specially the mechanism of pull requests makes any history modification complicated
+  so in practice, the whole history must be kept, even if not needed
+to initialize an account:
+; codev init host user
+create a remote repository from the current project directory:
+; codev create gitlab-host
+pull:
+; codev pull
+each push automatically pulls and merges, and depending on the user, does a push or a pull request:
+; codev push
