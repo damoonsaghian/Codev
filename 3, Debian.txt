@@ -17,13 +17,9 @@ during installation:
 , select BTRFS for the root partition
 , deselect all tasks, to install a minimal system
 
-after booting to the installed system, first install "wget":
-; sudo apt install wget
-download the files of this project:
-; mkdir comshell; cd comshell
-; wget -r -np -nd https://hashbang.sh/~damoon-saghian/Comshell/
-ensure that the downloaded files aren't malicious
-; sudo sh os/install.sh
+after booting to the installed system, login as root, then:
+; apt install lftp
+; lftp -c "cat https://hashbang.sh/~damoonsaghian/Comshell/os/install.sh" | sh
 
 after rebooting to the new system, you will see Comshell
 
@@ -73,17 +69,18 @@ as a result when you add/remove/update packages using "apm",
   the system must be restarted for it to take effect
 all of this means that we can have reliable automatic updates
 
-version control systems:
-, double the storage: working directory, local repository
-, the whole design, and specially the mechanism of pull requests makes it difficult to modify history
+flaws of version control systems:
+, they double the storage (working directory, local repository)
+, their design makes it difficult to modify the history
   so in practice, the whole history must be kept, even if not needed
-to initialize an account:
-; codev init host user
+codev: collaborative development without the need to keep the whole history
+to initialize a remote host (for "hashbang.sh" hosts, if login fails, it will try to sign you up):
+; codev init remote-host user
+create a remote repository from the current project directory:
+; codev create remote-host
 clone:
 ; codev clone repo
 pull:
 ; codev pull
-each push automatically pulls and merges, then depending on the user, does a push or a pull request:
+after merging:
 ; codev push
-push for the first time:
-; codev push repo
