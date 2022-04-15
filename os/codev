@@ -1,5 +1,132 @@
 #!/bin/sh -e
 
+# first implement single user push
+# then implement site generator
+# then implement pull
+# then implement push and pull requests
+# https://superuser.com/questions/1610105/suppress-home-directory-check-while-sshing-to-remote-host-for-user-without-home
+# https://askubuntu.com/questions/1252704/sftp-how-to-set-permission-to-multiple-users
+
+# codev only acts on projects residing in non-removable BTRFS'formated disks
+
+# for syncing we use an index file, and rename all files to their MD5 hash
+# each line in the index file: hash path
+
+# xattr: hash, hash'time
+# if hash'time is younger than mtime, it means that hash is valid
+
+# we will have three directories in a project's ".data/codev/" directory, containing hash'named files:
+# , indexed: reflinks to the files in the project
+# , remote: files downloaded from remote
+# , pristine: the original files which where reflinked into the project directory
+
+# diff will be based on the working directory, pristine and remote
+
+# pull requests contain 2 index files: changed and pristine
+
+# atomic operations in the server: make directories of hardlinks, mv directory
+
+# ssh user@host "command"
+
+hbar() {
+  printf -- ' %72s\n' ' ' | tr ' ' '-'
+}
+
+# this function can be called with two parameters:
+# first is obligatory, it's the question posed
+# second parameter is optional, it's the default answer, and can be either Y or N
+ask() {
+	while true; do
+		prompt=""
+		default=""
+
+		if [ "${2}" = "Y" ]; then
+			prompt="Y/n"
+			default=Y
+		elif [ "${2}" = "N" ]; then
+			prompt="y/N"
+			default=N
+		else
+			prompt="y/n"
+			default=
+		fi
+
+		# ask the question
+		echo ""
+		printf "%s [%s] " "$1" "$prompt"
+		read -r REPLY
+
+		# default?
+		if [ -z "$REPLY" ]; then
+			REPLY=$default
+		fi
+
+		# check if the reply is valid
+		case "$REPLY" in
+			Y*|y*) return 0 ;;
+			N*|n*) return 1 ;;
+		esac
+
+	done
+	echo " "
+}
+
+set_ssh_public_key() {
+  for keytype in id_ed25519 id_ecdsa id_rsa id_dsa; do
+    if [ -e ~/.ssh/${keytype}.pub ] && [ -e ~/.ssh/${keytype} ]; then
+      if ask "  found a public key in \"~/.ssh/${keytype}.pub\"; use this key?" Y; then
+        private_keyfile="${HOME}/.ssh/${keytype}"
+        public_key="$(cat ~/.ssh/${keytype}.pub)"
+        break
+      fi
+    fi
+  done
+
+  if [ -z "$public_key" ]; then
+	  echo "  no SSH key for login to server found, attempting to generate one"
+	  while true; do
+	  	echo ""
+	  	printf "  path to new or existing connection key (~/.ssh/id_rsa): "
+	  	read -r private_keyfile
+	  	if [ -z "$private_keyfile" ]; then
+	  		private_keyfile="$HOME/.ssh/id_rsa"
+	  	fi
+	  	private_keyfile=$(echo "$private_keyfile" | sed "s@~@$HOME@")
+	  	echo ""
+	  	if [ ! -e "$private_keyfile" ] && [ ! -e "$private_keyfile.pub" ]; then
+	  		if ask "  do you want to generate a new key?" Y; then
+	  			if [ -e "$private_keyfile" ]; then
+	  				if ask "  file exists: $private_keyfile; delete?" Y; then
+	  					rm "$private_keyfile"
+	  					if [ -e "${private_keyfile}.pub" ]; then
+	  						rm "${private_keyfile}.pub"
+	  					fi
+	  				else
+	  					continue
+	  				fi
+	  			fi
+	  			if makekey "${private_keyfile}"; then
+	  				break
+	  			fi
+	  		fi
+	  	elif [ ! -e "$private_keyfile" ] && [ -e "${private_keyfile}.pub" ]; then
+	  		if ask "  found public keyfile, missing private; do you wish to continue?" N; then
+	  			echo "  using public key ${private_keyfile}.pub"
+	  			break
+	  		else
+	  			echo "  resetting"
+	  		fi
+	  	elif [ ! -e "${private_keyfile}.pub" ]; then
+	  		echo "  unable to find public key ${private_keyfile}.pub"
+	  	else
+	  		echo "  using public key ${private_keyfile}.pub"
+	  		break
+	  	fi
+	  done
+	  public_key=$(cat "${private_keyfile}.pub")
+  fi
+}
+
 init() {
   remote_host=$1
   user=$2
@@ -25,12 +152,16 @@ init() {
 
   # gnupg ssh
   # https://wiki.archlinux.org/title/GnuPG#SSH_agent
-  # https://incenp.org/notes/2015/gnupg-for-ssh-authentication.html
   # https://opensource.com/article/19/4/gpg-subkeys-ssh
   # https://gist.github.com/mcattarinussi/834fc4b641ff4572018d0c665e5a94d3
   #
   # https://moser-isi.ethz.ch/gpg.html
   # https://www.gnupg.org/documentation/manuals/gnupg/
+  # create a gnupg master key if there is none
+  # create a gnupg authentication key
+  # config gnupg as an ssh agent
+  # use it to signup on hashbang.sh
+  # gpg --send-key KEYNAME
 
 	echo
   echo " please choose a server to create your account on"
@@ -39,7 +170,7 @@ init() {
   printf -- '  %-1s | %-4s | %-36s | %-8s | %-8s\n' \
   	"#" "Host" "Location" "Users" "Latency"
   hbar
-	wget --quiet -O- --header 'Accept:text/plain' https://hashbang.sh/server/stats |
+  lftp -c "set http:accept text/plain; cat https://hashbang.sh/server/stats" |
 	while IFS="|" read -r host _ location current_users max_users _; do
 	  host=$(echo "$host" | cut -d. -f1)
 	  latency=$(ping -c 1 "${host}.hashbang.sh" | grep -oP ".*time=\K\d+ ms")
@@ -66,29 +197,100 @@ init() {
 
   pulic_key=$(cat ~/.ssh/id_rsa.pub)
   host=de1.hashbang.sh
+  lftp -c "open https://hashbang.sh;
+    set http:post-content-type application/json;
+    quote post /user/create {\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}"
   wget --post-data="{\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}" \
     --header='Content-Type: application/json' https://hashbang.sh/user/create
 }
 
 update_key() {
+  remote_host=$1
+  user=$2
 }
 
 create () {
-  remote_host=
+  remote_host=$1
+  user=$2
+  project_name=
+
+  # "remote_host:~/Public/project_name" will be kept in "project_path/.data/codev/remote"
+
+  # add the project's website to "~/Public/index.html"
+
+  # create a directory for pull requests, and set it's permissions
+  # setfacl -m "other:rw" dir
 }
 
 delete() {
+  remote_host=
+  user=
+
   # remove project
   # remove the project's website from "~/Public/index.html"
 }
 
 push() {
-  git push
+  remote_host=
+  user=
+
+  # if a file named "lock" exists at the remote, and it's younger than 20 seconds, exit
+  # if the index file in remote is not the same as ".cache/codev/indexed/index", exit
+  #   because it means that someone else has already pushed to the remote before you,
+  #   and you must pull and merge it before pushing
+  # snapshot ".cache/codev/remote" into ".cache/codev/temp"
+  # flatten the paths of all files in ".cache/codev/temp" using their hashes for the file names
+  #   if the file's modification time is the same as the one in the index file ".cache/codev/indexed/index",
+  #   take the hash from the index file, otherwise calculate the hash and add the file to the index file
+  # move ".cache/codev/temp" to ".cache/codev/indexed"
+  # sync up ".cache/codev/indexed" to the "~/Public" directory of the remote (using SFTP),
+  #   except the index file, and without deleting any file at the remote
+  # https://manpages.debian.org/bullseye/openssh-client/sftp.1.en.html
+  # https://man.archlinux.org/listing/openssh
+  # create a file named "lock" in the remote
+  # if index file in remote is not the same as the one in ".cache/codev/indexed", exit
+  #   because it means that someone else has already pushed to the remote before you,
+  #   and you must pull it before pushing
+  # send ".cache/codev/indexed/index" to the remote
+  # remove the lock file
+  # delete those remote files which are not in index file
+  # snapshot the ".cache/codev/remote" into ".cache/codev/pristine"
+
+  # create an html web'page (named "name-of-the-project.html"), showing the files in the project
+
+  # create an suid script which clears project directory from any file not mensioned in the index file,
+  #   and generates the index.html and the hard'links in the "~/Public/project_name"
+  # https://nanoc.app/about/
+  # https://github.com/nanoc/nanoc
+  # https://docs.antora.org/
+
   # ".cache" directory will not be synced to remote
 }
 
 pull() {
-  git lfs pull
+  remote_host=
+  user=
+
+  # download the index file from the "~/Public" directory of the remote, into ".cache/codev/index"
+  # sync down the files mentioned in the index file (lftp -e "pget -c ...")
+  # snapshot ".cache/codev/indexed" to ".cache/codev/temp"
+  # delete the index file and ".cache/codev/tmp/.cache/"
+  # rename the files in ".cache/codev/temp" based on the index file ".cache/codev/indexed/index"
+  # move ".cache/codev/temp" to ".cache/codev/remote"
+  # show the diff based on the working directory, pristine and remote
+  # merge the remote into the working directory
+  # snapshot the working directory into ".cache/codev/remote"
+
+  # https://www.gnu.org/software/diffutils/manual/html_mono/diff.html
+  # https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff
+  # file tree diff
+  # https://stackoverflow.com/questions/776854/how-do-i-compare-two-source-trees-in-linux
+  # https://github.com/dandavison/delta
+  # https://github.com/so-fancy/diff-so-fancy
+  # https://diffoscope.org/
+  # https://github.com/MightyCreak/diffuse
+  # http://meldmerge.org/
+  # https://git-scm.com/docs/git-diff
 }
 
 backup() {
@@ -106,11 +308,23 @@ backup() {
 # ; codev add username
 # ; codev remove username
 add_user() {
+  remote_host=
+  user=
   username=$1
+  # run this through ssh
+  setfacl -m  u:"$username":rw "$project_path"
 }
 remove_user() {
+  remote_host=
+  user=
   username=$1
+  # run this through ssh
+  setfacl -x  u:"$username":rw "$project_path"
 }
+
+if [ $0 != "init" ] && [ $0 != "pull" ] && [ $0 != "backup" ] && [ ! -f ~/.config/codev ]; then
+  echo 'first run "codev init <remote-host> <user>"'
+fi
 
 case "$1" in
   init) shift; init "$@" ;;

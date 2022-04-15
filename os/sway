@@ -33,3 +33,10 @@
 # https://gitlab.com/wef/dotfiles/-/blob/master/bin/mylock
 
 # https://git.sr.ht/~brocellous/wlrctl
+
+# for non'Emacs windows, Sway captures "esc"; use "ctl-esc" instead
+
+# https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/.config/sway
+https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/custom_statusbar
+# https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/custom_statusbar
+# https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/batpct

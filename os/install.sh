@@ -2,6 +2,8 @@ set -e
 
 cd "$(dirname "$0")"
 
+comshell_url="https://hashbang.sh/~damoonsaghian/Comshell/"
+
 btrfs subvolume create /0
 btrfs subvolume snapshot / /0
 
@@ -22,7 +24,7 @@ ln --symbolic --force -t / /0/usr
 # furthermore, for old ARMel systems which need the kernel and initrd to be flashed in their ROM,
 #   implementing atomic upgrade is impossible
 # MIPS systems are not supported for a similar reason too
-# also s390x is not supported because ZIPL only understands datablocks (not the filesystem),
+# also s390x is not supported because ZIPL only understands data'blocks (not the filesystem),
 #   and thus must be rewritten everytime kernel/initrd is updated
 
 # for U-boot based systems which support "generic distro configuration":
@@ -41,13 +43,25 @@ ln --symbolic --force -t / /0/usr
 # /EFI/BOOT/BOOTx64.EFI BOOTIA32.EFI
 
 # otherwise disable Grub upgrade, and lock Grub
+# printf '\nGRUB_TIMEOUT=0\nGRUB_DISABLE_OS_PROBER=true\n' >> /mnt/etc/default/grub
+# disable menu editing and other admin operations in Grub:
+# printf '#! /bin/sh\nset superusers=""\nset menuentry_id_option="--unrestricted $menuentry_id_option"\n' >
+#   /mnt/etc/grub.d/09_user
+# chmod +x /mnt/etc/grub.d/09_user
+# update-grub
+# after upgrade: grub-mkconfig
+
+# Debian ppc64el can read btrfs /boot, cause it uses 64kB page size, just like Petitboot
+
+# grub and bootfirmware updates need special care
 
 # timezone
 
 # sid
 # contrib and non-free
+# no recommends
 
-# udev kbd acl dosfstools btrfs-progs btrfsmaintenance
+# udev kbd acl attr dosfstools btrfs-progs btrfsmaintenance
 # iwd wireless-regdb modemmanager usb-modeswitch pppoe rfkill
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth bluez
 #   ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/99-pipewire-default.conf || true
@@ -56,7 +70,10 @@ ln --symbolic --force -t / /0/usr
 # policykit-1 lua5.3 lua-lgi
 # sway xwayland iputils-ping
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
-# gvfs openssh-client
+# gvfs openssh-client gnupg lftp
+# why lftp:
+# , curl and wget: no status file, no preallocation
+# , aria2: no http POST
 # emacs-gtk elpa-treemacs
 
 # materia-gtk-theme gst-plugins-{base,good,bad} gst-libav
@@ -100,7 +117,8 @@ ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 systemctl enable systemd-resolved
 systemctl enable iwd
 
-cp net /usr/local/bin/net
+lftp -c "cat $comshell_url/os/net" > /usr/local/bin/net
+chmod +x /usr/local/bin/net
 
 echo '#!/bin/sh
 if [ "$1" = "disconnect" ]; then
@@ -137,7 +155,6 @@ autologin enable <user>"
 ' > /usr/local/bin/autologin
 chmod +x /usr/local/bin/autologin
 
-# run this before creating user in "preseed.cfg"
 echo '[[ -f ~/.profile ]] && . ~/.profile
 
 # if a user session is already running, switch to it, unlock it, and exit
@@ -167,9 +184,8 @@ chmod u+s,+x /usr/local/bin/navt
 
 # when keyboard/headset is disconnected, lock session, run "navt"
 
-# run this before creating user in "preseed.cfg"
 mkdir -p /etc/skel/.config/sway
-cp sway /etc/skel/.config/sway/config
+lftp -c "cat $comshell_url/os/sway" > /etc/skel/.config/sway/config
 
 # create a system user named "su" with a password equal to root's password
 useradd --system --password $(getent shadow root | cut -d: -f2) su
@@ -187,13 +203,13 @@ usermod -aG root $(id -nu 1000)
 # lock root
 passwd -l root
 
-cp ./format /usr/local/bin/
+lftp -c "cat $comshell_url/os/sd" > /usr/local/bin/sd
 chmod +x /usr/local/bin/sd
 
-cp apm /usr/local/bin/
+lftp -c "cat $comshell_url/os/apm" > /usr/local/bin/apm
 chmod +x /usr/local/bin/apm
 
-cp fwi /usr/local/bin/
+lftp -c "cat $comshell_url/os/fwi" > /usr/local/bin/fwi
 chmod +x /usr/local/bin/fwi
 fwi
 
@@ -218,7 +234,9 @@ WantedBy=timers.target
 ' > /usr/local/lib/systemd/system/autoupdate.timer
 systemctl enable autoupdate.timer
 
-cp ./codev /usr/local/bin/
+# comup.sh -> update the files in an installed system
+
+lftp -c "cat $comshell_url/os/codev" > /usr/local/bin/codev
 chmod +x /usr/local/bin/codev
 
 mkdir -p /usr/local/lib/systemd/system
@@ -253,6 +271,10 @@ Action=org.freedesktop.udisks2.filesystem-mount-system;org.freedesktop.udisks2.o
 ResultActive=yes
 ' > /etc/polkit-1/localauthority/50-local.d/50-nopasswd.pkla
 
+# despite using BTRFS, in-place writing is needed in two situations:
+# , in-place first write for preallocated space (apparently supported by BTRFS, isn't it?)
+# , databases (eg the one used in Webkit): chattr +C ...
+
 mkdir -p /etc/fonts
 echo '<?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
@@ -284,4 +306,4 @@ echo '<?xml version="1.0"?>
   </alias>
 </fontconfig>' > /etc/fonts/local.conf
 
-echo 'installation completed successfully; enter "reboot" to see it'
+echo 'installation completed successfully; enter "reboot" to boot into the new system'
