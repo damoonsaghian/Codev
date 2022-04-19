@@ -70,11 +70,12 @@ ln --symbolic --force -t / /0/usr
 # policykit-1 lua5.3 lua-lgi
 # sway xwayland iputils-ping
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
-# gvfs openssh-client gnupg lftp
+# gvfs openssh-client gnupg ca-certificates lftp
 # why lftp:
 # , curl and wget: no status file, no preallocation
 # , aria2: no http POST
-# emacs-gtk elpa-treemacs
+# lftp 4.9.3 or 4.9.2-2 must fix this bug: https://github.com/lavv17/lftp/issues/641
+# emacs-gtk elpa-treemacs webkit2gtk
 
 # materia-gtk-theme gst-plugins-{base,good,bad} gst-libav
 # gir packages
@@ -273,7 +274,12 @@ ResultActive=yes
 
 # despite using BTRFS, in-place writing is needed in two situations:
 # , in-place first write for preallocated space (apparently supported by BTRFS, isn't it?)
-# , databases (eg the one used in Webkit): chattr +C ...
+#   https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
+#   https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
+#   https://www.reddit.com/r/btrfs/comments/s8vidr/comment/hwrsdbk/?utm_source=share&utm_medium=web2x&context=3
+# , virtual machines and databases (eg the one used in Webkit): chattr +C ...
+#   generally it's done automatically by the program itself
+#   apparently Webkit uses SQLite in WAL mode
 
 mkdir -p /etc/fonts
 echo '<?xml version="1.0"?>

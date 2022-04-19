@@ -200,8 +200,6 @@ init() {
   lftp -c "open https://hashbang.sh;
     set http:post-content-type application/json;
     quote post /user/create {\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}"
-  wget --post-data="{\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}" \
-    --header='Content-Type: application/json' https://hashbang.sh/user/create
 }
 
 update_key() {
@@ -272,7 +270,8 @@ pull() {
   user=
 
   # download the index file from the "~/Public" directory of the remote, into ".cache/codev/index"
-  # sync down the files mentioned in the index file (lftp -e "pget -c ...")
+  # sync down the files mentioned in the index file (lftp -c "pget -c ...")
+  # https://lftp.yar.ru/lftp-man.html
   # snapshot ".cache/codev/indexed" to ".cache/codev/temp"
   # delete the index file and ".cache/codev/tmp/.cache/"
   # rename the files in ".cache/codev/temp" based on the index file ".cache/codev/indexed/index"
