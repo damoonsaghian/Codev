@@ -20,6 +20,8 @@ https://www.emacswiki.org/emacs/ImageDired
 if the directory has ".g" suffix -> image-dired
 image-dired show thumbnails for videos and directories and open them in the floating layer
 
+create a project group -> ask user for the disk
+
 https://www.gnu.org/software/emacs/manual/html_node/tramp/Archive-file-names.html
 
 voice control:
@@ -45,6 +47,10 @@ https://packages.debian.org/sid/elpa-htmlize
 https://github.com/hrs/engine-mode
 
 https://www.gnu.org/software/emacs/manual/html_mono/calc.html
+
+orgmode
+https://asciidoc-py.github.io/index.html
+https://asciidoc-py.github.io/userguide.html#_tables
 
 speech to text:
 https://github.com/kaldi-asr/kaldi
