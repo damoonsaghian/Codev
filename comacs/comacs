@@ -2,6 +2,9 @@ a Comshell prototype created on top of Emacs
 
 interavtive notebook instead of interactive shell
 
+enter -> creates a new line
+the break point is determined based on the sentence
+
 https://github.com/emacs-mirror/emacs
 
 https://github.com/jkitchin/emacs-modules
@@ -51,6 +54,17 @@ https://www.gnu.org/software/emacs/manual/html_mono/calc.html
 orgmode
 https://asciidoc-py.github.io/index.html
 https://asciidoc-py.github.io/userguide.html#_tables
+
+https://en.wikipedia.org/wiki/Gnus
+https://wiki.archlinux.org/title/Fdm
+https://wiki.archlinux.org/title/Isync
+https://wiki.archlinux.org/title/Alpine
+https://wiki.archlinux.org/title/Msmtp
+https://wiki.archlinux.org/title/Mutt
+https://wiki.archlinux.org/title/Nmh
+https://wiki.archlinux.org/title/Notmuch
+https://wiki.archlinux.org/title/S-nail
+fetchmail
 
 speech to text:
 https://github.com/kaldi-asr/kaldi
