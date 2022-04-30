@@ -70,7 +70,11 @@ ln --symbolic --force -t / /0/usr
 # policykit-1 lua5.3 lua-lgi
 # sway xwayland iputils-ping
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
-# gvfs openssh-client gnupg ca-certificates lftp
+# gvfs openssh-client lftp
+# "ca-certificates" is installed as recommended dependency of "apt" during installation
+#   why "ca-certificates" depends on "openssl"?
+#   https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=600493
+#   https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=407550
 # why lftp:
 # , curl and wget: no status file, no preallocation
 # , aria2: no http POST

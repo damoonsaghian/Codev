@@ -1,12 +1,5 @@
 #!/bin/sh -e
 
-# first implement single user push
-# then implement site generator
-# then implement pull
-# then implement push and pull requests
-# https://superuser.com/questions/1610105/suppress-home-directory-check-while-sshing-to-remote-host-for-user-without-home
-# https://askubuntu.com/questions/1252704/sftp-how-to-set-permission-to-multiple-users
-
 # codev only acts on projects residing in non-removable BTRFS'formated disks
 
 # for syncing we use an index file, and rename all files to their MD5 hash
@@ -14,6 +7,8 @@
 
 # xattr: hash, hash'time
 # if hash'time is younger than mtime, it means that hash is valid
+# https://man7.org/linux/man-pages/man1/getfattr.1.html
+# https://man7.org/linux/man-pages/man1/setfattr.1.html
 
 # we will have three directories in a project's ".data/codev/" directory, containing hash'named files:
 # , indexed: reflinks to the files in the project
@@ -25,6 +20,16 @@
 # pull requests contain 2 index files: changed and pristine
 
 # atomic operations in the server: make directories of hardlinks, mv directory
+
+# short public key (ed25519) as identity
+
+# keep all host which you have sent your public key
+# if your (password protected) private key is compromised, send a revoke and replace request to all hosts
+# https://www.linuxjournal.com/content/ssh-key-rotation-posix-shell-sunset-nears-elderly-keys
+# https://tailscale.com/blog/rotate-ssh-keys/
+# https://askubuntu.com/questions/1042739/how-to-replace-the-ssh-private-public-key-pair
+
+# openssh + opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key
 
 # ssh user@host "command"
 
@@ -145,23 +150,11 @@ init() {
   ssh "$user"@"$remote_host" && return
 
   # if there is no SSH keys, create a key pair
-  ssh-keygen
+  # ssh-keygen -t ed25519
+  # openssh key format: ssh-ed25519 ...
 
   # create a user in one of "hashbang.sh" servers
   # https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.sh
-
-  # gnupg ssh
-  # https://wiki.archlinux.org/title/GnuPG#SSH_agent
-  # https://opensource.com/article/19/4/gpg-subkeys-ssh
-  # https://gist.github.com/mcattarinussi/834fc4b641ff4572018d0c665e5a94d3
-  #
-  # https://moser-isi.ethz.ch/gpg.html
-  # https://www.gnupg.org/documentation/manuals/gnupg/
-  # create a gnupg master key if there is none
-  # create a gnupg authentication key
-  # config gnupg as an ssh agent
-  # use it to signup on hashbang.sh
-  # gpg --send-key KEYNAME
 
 	echo
   echo " please choose a server to create your account on"
@@ -232,6 +225,22 @@ push() {
   remote_host=
   user=
 
+  # project owner pushes
+  # others send emails
+  # post'mail script does push/pull'request, then sends a reply that says it's accepted or not
+  #   sender waits for reply
+  # linux run script when email is received:
+  #   procmail can execute custom script for specific email eg based on sender, subject and size
+  #   https://unix.stackexchange.com/questions/178396/run-script-on-receipt-of-email
+  #   https://unix.stackexchange.com/questions/76768/creating-an-email-that-can-trigger-a-script
+  #   https://stackoverflow.com/questions/5709846/run-linux-script-on-received-emails
+  #   https://serverfault.com/questions/261191/how-to-run-a-script-when-a-mail-arrives-in-mail-server-debian
+  # procmail: ~/Mail/new
+  # hashbang email (postfix) is secure, because: "smtp_tls_security_level = secure"
+  # https://github.com/smimp/smimp_spec/blob/master/smimp_specification.md
+
+  # https://www.agwa.name/blog/post/ssh_signatures
+
   # if a file named "lock" exists at the remote, and it's younger than 20 seconds, exit
   # if the index file in remote is not the same as ".cache/codev/indexed/index", exit
   #   because it means that someone else has already pushed to the remote before you,
@@ -255,12 +264,14 @@ push() {
   # snapshot the ".cache/codev/remote" into ".cache/codev/pristine"
 
   # create an html web'page (named "name-of-the-project.html"), showing the files in the project
-
-  # create an suid script which clears project directory from any file not mensioned in the index file,
-  #   and generates the index.html and the hard'links in the "~/Public/project_name"
+  # create hard'links in the "~/Public/project_name"
   # https://nanoc.app/about/
   # https://github.com/nanoc/nanoc
   # https://docs.antora.org/
+
+  # we can keep a directory tree made from the history of specific chanes made by pusshers,
+  #   and requests made by pull-requests, a history that shows who has done what
+  # it can be used, for example, to track down backdoors introduced in the code
 
   # ".cache" directory will not be synced to remote
 }
@@ -279,6 +290,11 @@ pull() {
   # show the diff based on the working directory, pristine and remote
   # merge the remote into the working directory
   # snapshot the working directory into ".cache/codev/remote"
+
+  # the set of public keys in the project are trusted on first download
+  # subsequent downloads are checked to be signed by previous keys
+  # https: good for trust on first download
+  # public key signing: for subsequent downloads
 
   # https://www.gnu.org/software/diffutils/manual/html_mono/diff.html
   # https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff
