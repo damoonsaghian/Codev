@@ -18,8 +18,8 @@ during installation:
 , deselect all tasks, to install a minimal system
 
 after booting to the installed system, login as root, then:
-; apt install lftp
-; lftp -c "cat https://hashbang.sh/~damoonsaghian/Comshell/os/install.sh" | sh
+; apt install wget2
+; wget2 -q -O - https://hashbang.sh/~damoonsaghian/Comshell/os/install.sh" | sh
 
 after rebooting to the new system, you will see Comshell
 
