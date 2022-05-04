@@ -21,20 +21,20 @@
 
 # atomic operations in the server: make directories of hardlinks, mv directory
 
-# short public key (ed25519) as identity
-
-# keep all host which you have sent your public key
-# if your (password protected) private key is compromised, send a revoke and replace request to all hosts
-# https://www.linuxjournal.com/content/ssh-key-rotation-posix-shell-sunset-nears-elderly-keys
-# https://tailscale.com/blog/rotate-ssh-keys/
-# https://askubuntu.com/questions/1042739/how-to-replace-the-ssh-private-public-key-pair
-
 # openssh + opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key
 
 # ssh user@host "command"
 
 hbar() {
   printf -- ' %72s\n' ' ' | tr ' ' '-'
+}
+
+time_cmd() {
+  local cmd="$1"
+  start_time=$(date +%s%3N)
+	$cmd &>/dev/null
+	end_time=$(date +%s%3N)
+  return $(( end_time - start_time ))
 }
 
 # this function can be called with two parameters:
@@ -90,13 +90,8 @@ set_ssh_public_key() {
   if [ -z "$public_key" ]; then
 	  echo "  no SSH key for login to server found, attempting to generate one"
 	  while true; do
-	  	echo ""
-	  	printf "  path to new or existing connection key (~/.ssh/id_rsa): "
-	  	read -r private_keyfile
-	  	if [ -z "$private_keyfile" ]; then
-	  		private_keyfile="$HOME/.ssh/id_rsa"
-	  	fi
-	  	private_keyfile=$(echo "$private_keyfile" | sed "s@~@$HOME@")
+  		private_keyfile="$HOME/.ssh/id_ed25519"
+
 	  	echo ""
 	  	if [ ! -e "$private_keyfile" ] && [ ! -e "$private_keyfile.pub" ]; then
 	  		if ask "  do you want to generate a new key?" Y; then
@@ -138,7 +133,7 @@ init() {
 
   printf "\nHost $remote_host\n  User $user\n" >> ~/.ssh/config
 
-  { echo "$user" | grep -E "^[a-z][a-z0-9]{0,30}$" >/dev/null; } || {
+  { echo "$user" | sed -n "/^[a-z][a-z0-9]{0,30}$/!{q1}"; } || {
   	echo "\"$user\" is not a valid username"
     echo "a valid username must:"
     echo ", be between between 1 and 31 characters long"
@@ -156,6 +151,12 @@ init() {
   # create a user in one of "hashbang.sh" servers
   # https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.sh
 
+  # delete the public key after sending it to the server (it can be regenerated form the private key)
+
+  # for ssh man'in'the'middle attack in impossible
+  # even if server's private key is compromised, it remains secure as long as the user's private key is safe
+  # https://www.gremwell.com/ssh-mitm-public-key-authentication
+
 	echo
   echo " please choose a server to create your account on"
   echo
@@ -163,10 +164,10 @@ init() {
   printf -- '  %-1s | %-4s | %-36s | %-8s | %-8s\n' \
   	"#" "Host" "Location" "Users" "Latency"
   hbar
-  lftp -c "set http:accept text/plain; cat https://hashbang.sh/server/stats" |
+  wget2 -q -O - --header 'Accept:text/plain' https://hashbang.sh/server/stats |
 	while IFS="|" read -r host _ location current_users max_users _; do
 	  host=$(echo "$host" | cut -d. -f1)
-	  latency=$(ping -c 1 "${host}.hashbang.sh" | grep -oP ".*time=\K\d+ ms")
+	  latency=$(time_cmd "wget2 -q -O /dev/null \"${host}.hashbang.sh\"")
 	  n=$((n+1))
 	  printf -- '  %-1s | %-4s | %-36s | %8s | %-8s\n' \
 	  	"$n" \
@@ -181,18 +182,19 @@ init() {
   while true; do
   	printf ' Enter Number 1-%i : ' "$n"
   	read -r choice
-  	number=$(echo "$choice" | awk '/[^0-9]/ { print "no" }')
+    case "$choice" in
+      ''|*[!0-9]*) number="no";;
+    esac
   	if [ "$number" != "no" ] && [ "$choice" -ge 1 ] && [ "$choice" -le $n ]; then
   		break;
   	fi
   done
   host=$(head -n "$choice" "$host_data" | tail -n1 | cut -d \| -f1)
 
-  pulic_key=$(cat ~/.ssh/id_rsa.pub)
+  pulic_key=$(cat ~/.ssh/id_ed25519.pub)
   host=de1.hashbang.sh
-  lftp -c "open https://hashbang.sh;
-    set http:post-content-type application/json;
-    quote post /user/create {\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}"
+  wget2 --post-data="{\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}" \
+    --header='Content-Type: application/json' https://hashbang.sh/user/create
 }
 
 update_key() {
@@ -208,9 +210,6 @@ create () {
   # "remote_host:~/Public/project_name" will be kept in "project_path/.data/codev/remote"
 
   # add the project's website to "~/Public/index.html"
-
-  # create a directory for pull requests, and set it's permissions
-  # setfacl -m "other:rw" dir
 }
 
 delete() {
@@ -225,11 +224,12 @@ push() {
   remote_host=
   user=
 
-  # project owner pushes
-  # others send emails
+  # project owner pushes; others send emails
+  # ssh to connect to your server; connect to others using email
+
   # post'mail script does push/pull'request, then sends a reply that says it's accepted or not
   #   sender waits for reply
-  # linux run script when email is received:
+  # run script when email is received:
   #   procmail can execute custom script for specific email eg based on sender, subject and size
   #   https://unix.stackexchange.com/questions/178396/run-script-on-receipt-of-email
   #   https://unix.stackexchange.com/questions/76768/creating-an-email-that-can-trigger-a-script
@@ -237,9 +237,36 @@ push() {
   #   https://serverfault.com/questions/261191/how-to-run-a-script-when-a-mail-arrives-in-mail-server-debian
   # procmail: ~/Mail/new
   # hashbang email (postfix) is secure, because: "smtp_tls_security_level = secure"
-  # https://github.com/smimp/smimp_spec/blob/master/smimp_specification.md
+
+  # emails are sign by a key corresponding to the destination email
+  # keep all emails which you have sent your public key
+  # if your (password protected) private keys are compromised, send a revoke and replace request to all
+  # the new public key, must be signed by the user’s previous private key
+  #   this provides a chain from the initial user creation record to current
+  # https://www.linuxjournal.com/content/ssh-key-rotation-posix-shell-sunset-nears-elderly-keys
+  # https://tailscale.com/blog/rotate-ssh-keys/
+  # https://askubuntu.com/questions/1042739/how-to-replace-the-ssh-private-public-key-pair
+
+  # , separate keys for each mutual relation
+  # , update keys frequently
+  # this means that an attacker must, for each individual, record all communications,
+  #   and break a chain of public keys, because only the first public keys are transfered unencrypted
 
   # https://www.agwa.name/blog/post/ssh_signatures
+
+  # emails are put on the Public directory, encrypted by email key (which is not password protected)
+  # clients read Public directory at first, then wait for Websub notifications
+  # https://indieweb.org/WebSub
+  # https://en.wikipedia.org/wiki/WebSub
+  # https://ably.com/topic/websub
+  # https://blog.andrewshell.org/what-is-rsscloud/
+  # https://websubhub.com/
+  # http://phubb.cweiske.de/
+
+  # private emails are encrypted by paired keys
+  # to open it at the destination, we need the (password protected) private key
+
+  # caertificates from institutions can be signed and transfered between pairs, using email
 
   # if a file named "lock" exists at the remote, and it's younger than 20 seconds, exit
   # if the index file in remote is not the same as ".cache/codev/indexed/index", exit
@@ -269,7 +296,7 @@ push() {
   # https://github.com/nanoc/nanoc
   # https://docs.antora.org/
 
-  # we can keep a directory tree made from the history of specific chanes made by pusshers,
+  # we can keep a directory tree made from the history of specific changes made by pushers,
   #   and requests made by pull-requests, a history that shows who has done what
   # it can be used, for example, to track down backdoors introduced in the code
 
@@ -281,8 +308,7 @@ pull() {
   user=
 
   # download the index file from the "~/Public" directory of the remote, into ".cache/codev/index"
-  # sync down the files mentioned in the index file (lftp -c "pget -c ...")
-  # https://lftp.yar.ru/lftp-man.html
+  # sync down the files mentioned in the index file (wget2 -c ...)
   # snapshot ".cache/codev/indexed" to ".cache/codev/temp"
   # delete the index file and ".cache/codev/tmp/.cache/"
   # rename the files in ".cache/codev/temp" based on the index file ".cache/codev/indexed/index"
@@ -291,7 +317,7 @@ pull() {
   # merge the remote into the working directory
   # snapshot the working directory into ".cache/codev/remote"
 
-  # the set of public keys in the project are trusted on first download
+  # site's public key is trusted on first download
   # subsequent downloads are checked to be signed by previous keys
   # https: good for trust on first download
   # public key signing: for subsequent downloads
@@ -326,15 +352,11 @@ add_user() {
   remote_host=
   user=
   username=$1
-  # run this through ssh
-  setfacl -m  u:"$username":rw "$project_path"
 }
 remove_user() {
   remote_host=
   user=
   username=$1
-  # run this through ssh
-  setfacl -x  u:"$username":rw "$project_path"
 }
 
 if [ $0 != "init" ] && [ $0 != "pull" ] && [ $0 != "backup" ] && [ ! -f ~/.config/codev ]; then

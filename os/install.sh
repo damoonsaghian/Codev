@@ -68,17 +68,13 @@ ln --symbolic --force -t / /0/usr
 #   https://salsa.debian.org/utopia-team/pipewire/-/blob/debian/master/debian/pipewire-audio-client-libraries.links
 #   https://salsa.debian.org/utopia-team/pipewire/-/blob/debian/master/debian/pipewire-audio-client-libraries.install
 # policykit-1 lua5.3 lua-lgi
-# sway xwayland iputils-ping
+# sway xwayland
 # fonts-clear-sans fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
-# gvfs openssh-client lftp
+# gvfs openssh-client wget2
 # "ca-certificates" is installed as recommended dependency of "apt" during installation
-#   why "ca-certificates" depends on "openssl"?
+#   but why "ca-certificates" depends on "openssl"?
 #   https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=600493
 #   https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=407550
-# why lftp:
-# , curl and wget: no status file, no preallocation
-# , aria2: no http POST
-# lftp 4.9.3 or 4.9.2-2 must fix this bug: https://github.com/lavv17/lftp/issues/641
 # emacs-gtk elpa-treemacs webkit2gtk
 
 # materia-gtk-theme gst-plugins-{base,good,bad} gst-libav
@@ -122,7 +118,7 @@ ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 systemctl enable systemd-resolved
 systemctl enable iwd
 
-lftp -c "cat $comshell_url/os/net" > /usr/local/bin/net
+wget2 -q -O /usr/local/bin/net "$comshell_url/os/net"
 chmod +x /usr/local/bin/net
 
 echo '#!/bin/sh
@@ -190,7 +186,7 @@ chmod u+s,+x /usr/local/bin/navt
 # when keyboard/headset is disconnected, lock session, run "navt"
 
 mkdir -p /etc/skel/.config/sway
-lftp -c "cat $comshell_url/os/sway" > /etc/skel/.config/sway/config
+wget2 -q -O /etc/skel/.config/sway/config "$comshell_url/os/sway"
 
 # create a system user named "su" with a password equal to root's password
 useradd --system --password $(getent shadow root | cut -d: -f2) su
@@ -208,13 +204,13 @@ usermod -aG root $(id -nu 1000)
 # lock root
 passwd -l root
 
-lftp -c "cat $comshell_url/os/sd" > /usr/local/bin/sd
+wget2 -q -O /usr/local/bin/sd "$comshell_url/os/sd"
 chmod +x /usr/local/bin/sd
 
-lftp -c "cat $comshell_url/os/apm" > /usr/local/bin/apm
+wget2 -q -O /usr/local/bin/apm "$comshell_url/os/apm"
 chmod +x /usr/local/bin/apm
 
-lftp -c "cat $comshell_url/os/fwi" > /usr/local/bin/fwi
+wget2 -q -O /usr/local/bin/fwi "$comshell_url/os/fwi"
 chmod +x /usr/local/bin/fwi
 fwi
 
@@ -241,7 +237,7 @@ systemctl enable autoupdate.timer
 
 # comup.sh -> update the files in an installed system
 
-lftp -c "cat $comshell_url/os/codev" > /usr/local/bin/codev
+wget2 -q -O /usr/local/bin/codev "$comshell_url/os/codev"
 chmod +x /usr/local/bin/codev
 
 mkdir -p /usr/local/lib/systemd/system
@@ -276,14 +272,9 @@ Action=org.freedesktop.udisks2.filesystem-mount-system;org.freedesktop.udisks2.o
 ResultActive=yes
 ' > /etc/polkit-1/localauthority/50-local.d/50-nopasswd.pkla
 
-# despite using BTRFS, in-place writing is needed in two situations:
-# , in-place first write for preallocated space (apparently supported by BTRFS, isn't it?)
-#   https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
-#   https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
-#   https://www.reddit.com/r/btrfs/comments/s8vidr/comment/hwrsdbk/?utm_source=share&utm_medium=web2x&context=3
-# , virtual machines and databases (eg the one used in Webkit): chattr +C ...
-#   generally it's done automatically by the program itself
-#   apparently Webkit uses SQLite in WAL mode
+# despite using BTRFS, in-place writing is needed in two situations: databases and torrnets
+# generally it's done automatically by the program itself, otherwise use "chattr +C ..."
+# apparently Webkit uses SQLite in WAL mode
 
 mkdir -p /etc/fonts
 echo '<?xml version="1.0"?>
