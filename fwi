@@ -1,0 +1,4 @@
+#!/bin/sh -e
+
+# find and install required firmwares
+# https://salsa.debian.org/debian/isenkram

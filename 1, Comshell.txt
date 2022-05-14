@@ -45,12 +45,9 @@ project directories reside in directories named "projects" or "projects.*",
   inside home directory or mounted disks
 list of all projects will appear in a floating layer, at the center of screen
 each group of projects (which are in the same directory) will be shown in separate tabs
-here you can open a terminal to do system administration,
-  and to power off, reboot, logout, suspend, or lock the system
 
 in a project view, the list of files of a project will be displayed in the left side'bar
-opened files are indicated by a line below them
-multiple views of a file are indicated by sections in this line
+opened files are slightly highlighted
 files and directories with names starting with a dot, will be hidden
 ".cache" directory inside a project is for files we don't want to share or backup
 
@@ -67,8 +64,7 @@ modes (normal mode and insert mode) must be visually distinctive
 press "esc" or "tab" to go to normal mode
 in normal mode we can:
 , press "enter" to go to insert mode
-, move cursor to the beginning of an expression by entering enough of it
-  after pressing "enter" the entered words remains until the next action, in case you want to continue the search
+, next/previous word, line, paragraph, section (righ/left middle row keys)
 , start and end selection, then copy or cut
 , paste
 , undo

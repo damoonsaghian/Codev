@@ -19,9 +19,17 @@ during installation:
 
 after booting to the installed system, login as root, then:
 ; apt install wget2
-; wget2 -q -O - https://hashbang.sh/~damoonsaghian/Comshell/os/install.sh" | sh
+; cd $(mktemp -d)
+; wget2 https://hashbang.sh/~damoonsaghian/Comshell/{apm,codev,fwi,init.el,install.sh,net,sd,sway.conf}
+check that the downloaded files are not malicious (use "less file-name"), then:
+; sh install.sh
 
 after rebooting to the new system, you will see Comshell
+press "," to open command entry
+system commands: poweroff, reboot, logout, suspend, lock
+in command entry:
+, press "space" to to have a bash shell command line
+, press "," to activate the application launcher
 
 note that you can't login as root, root password provided during installation, is used only for "sudo"
 it's not the traditional "sudo" though
@@ -45,6 +53,8 @@ in addition you must:
 , disable changing the boot device
 these can make physical attacks more difficult, but keep in mind that
   physical access to a computer is root access, given enough time and resources
+
+to switch users, disconnected and reconnect your keyboard
 
 to connect to a wireless LAN:
 ; sudo net wlan
