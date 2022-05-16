@@ -20,7 +20,7 @@ during installation:
 after booting to the installed system, login as root, then:
 ; apt install wget2
 ; cd $(mktemp -d)
-; wget2 https://hashbang.sh/~damoonsaghian/Comshell/{apm,codev,fwi,init.el,install.sh,net,sd,sway.conf}
+; wget2 https://hashbang.sh/~damoonsaghian/Comshell/{apm,codev,fwi,init.el,install.sh,luakit.lua,net,sd,sway.conf}
 check that the downloaded files are not malicious (use "less file-name"), then:
 ; sh install.sh
 

@@ -71,7 +71,7 @@ ln --symbolic --force -t / /0/usr
 # fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
 # openssh-client wget2 attr
 # luakit gstreamer1.0-libav
-# emacs-gtk elpa-treemacs heif-gdk-pixbuf mpv
+# emacs-gtk elpa-treemacs elpa-pdf-tools heif-gdk-pixbuf libarchive-tools mpv
 
 # mono'space fonts:
 #   wide characters are forced to squeeze
@@ -205,9 +205,7 @@ if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/navt-vt)" ]; the
 fi
 ' > /etc/profile.d/login-manager.sh
 
-cp ./sway /usr/local/share/sway.conf
-
-cp ./init.el ./fl.lua /usr/local/share/comacs/
+cp ./sway.conf ./emacs.el ./luakit.lua /usr/local/share/
 
 # create a system user named "su" with a password equal to root's password
 useradd --system --password $(getent shadow root | cut -d: -f2) su

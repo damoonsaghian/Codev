@@ -19,6 +19,8 @@
 
 # pull requests contain 2 index files: changed and pristine
 
+# branches: multiple index files
+
 # atomic operations in the server: make directories of hardlinks, mv directory
 
 # openssh + opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key
@@ -353,6 +355,10 @@ backup() {
 
   # backup will include ".cache" directory
 }
+
+import_backup() {}
+
+# backup (encrypted) private keys, plus public keys of trusted pairs
 
 # add or remove a user that can push
 # ; codev add username
