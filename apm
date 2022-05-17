@@ -69,7 +69,7 @@ install) apt-get install --no-install-recommends -- ${@:2} ;;
 update) apt-get dist-upgrade ;;
 autoupdate) apt-get dist-upgrade --yes ;;
 esac
-apt-get autoremove --yes
+apt-get autoremove --purge --yes
 apt-get autoclean --yes
 EOF
 

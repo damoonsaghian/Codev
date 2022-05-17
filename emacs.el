@@ -103,3 +103,12 @@
 ; sleep 3; grim .data/...
 ; show countdown in status'bar
 ; insert the image path in buffer
+
+; WYSIWYG formula or diagram editor
+; cursor movement represents the movement inside the tree
+; we can create an external program which integrates with emacs
+;   https://github.com/mathquill/mathquill
+;   https://cortexjs.io/mathlive/
+; inline editor can be implemented using svg
+;   https://lifeofpenguin.blogspot.com/2021/11/formula-editor-in-gnu-emacs.html
+;   https://gitlab.com/atamariya/emacs/-/blob/dev/lisp/formula.el
