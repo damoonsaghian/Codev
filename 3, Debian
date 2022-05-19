@@ -1,0 +1,97 @@
+with Debian we can easily setup a Linux based operating system
+anything which needs a kernel'based operating system can use Debian:
+, it supports a wide range of processor architectures
+, it's suitable for systems with limited resources
+, the stable releases provide a security proven system for servers
+
+first write a Debian installation image (iso-cd) on a USB storage device
+  "https://cdimage.debian.org/debian-cd/current/"
+installation on some systems may need non'free firmwares
+for "amd64" and "i386" architectures there are installation images which include non'free firmwares:
+  "https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/"
+for other architectures you may need another USB storage containing the non'free firmwares
+  "https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/"
+
+during installation:
+, provide different passwords for root and user
+, select BTRFS for the root partition
+, deselect all tasks, to install a minimal system
+
+after booting to the installed system, login as root, then:
+; apt install wget2
+; cd $(mktemp -d)
+; export url=https://hashbang.sh/~damoon-saghian/Comshell/
+; wget2 "$url"{apm,codev,fwi,init.el,install.sh,luakit.lua,net,sd,sway.conf}
+check that the downloaded files are not malicious (use "less file-name"), then:
+; sh install.sh
+
+after rebooting to the new system, you will see Comshell
+press "," to open command entry
+system commands: poweroff, reboot, logout, suspend, lock
+in command entry:
+, press "space" to to have a bash shell command line
+, press "," to activate the application launcher
+
+note that you can't login as root, root password provided during installation, is used only for "sudo"
+it's not the traditional "sudo" though
+when you run "sudo", it opens a Wayland window demanding a password,
+  which is the root password provided during installation, and not the user's password
+never type the user's password anywhere except at the login prompt
+  (and make sure that it's not fake, by disconnecting and reconnecting your keyboard)
+this means that if a malicious program steals your password (eg by faking the password entry window),
+  it still can't run programs as root (cause only "sudo" can)
+to see why, take a look at these:
+"https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
+"https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
+
+you can set a user for automatic login:
+; sudo autologin enable <user>
+but to protect the computer from physical attacks, you have to disable automatic login ("sudo autologin disable"),
+  and lock the session when you leave the computer
+in addition you must:
+, somehow prevent tampering with hardware
+, protect boot firmware by a password
+, disable changing the boot device
+these can make physical attacks more difficult, but keep in mind that
+  physical access to a computer is root access, given enough time and resources
+
+to switch users, disconnected and reconnect your keyboard
+
+to connect to a wireless LAN:
+; sudo net wlan
+to forget a previously configured wireless network:
+; sudo net wlan forget
+
+to pair with a Bluetooth device:
+; sudo bt
+to disconnect a Bluetooth device:
+; sudo bt disconnect
+
+to block/unblock a radio device (wlan wwan bluetooth nfc all):
+; sudo rfkill block/unblock device-type
+
+to install packages:
+; sudo apm install package-names
+to remove packages:
+; sudo apm remove package-names
+"apm" (atomic package manager) uses "apt" and BTRFS snapshots to manage packages in such a way that
+  changes on the file'system would be atomic, and does not interfere with the running system
+as a result when you add/remove/update packages using "apm",
+  the system must be restarted for it to take effect
+all of this means that we can have reliable automatic updates
+
+flaws of version control systems:
+, they double the storage (working directory, local repository)
+, their design makes it difficult to modify the history
+  so in practice, the whole history must be kept, even if not needed
+codev: collaborative development without the need to keep the whole history
+to initialize a remote host (for "hashbang.sh" hosts, if login fails, it will try to sign you up):
+; codev init remote-host user
+create a remote repository from the current project directory:
+; codev create remote-host
+clone:
+; codev clone repo
+pull:
+; codev pull
+after merging:
+; codev push

@@ -207,6 +207,14 @@ fi
 
 cp ./sway.conf ./emacs.el ./luakit.lua /usr/local/share/
 
+# https://mpv.io/manual/stable/
+# https://github.com/mpv-player/mpv/wiki/User-Scripts
+# https://github.com/occivink/mpv-scripts
+# https://gitlab.com/lvml/mpv-plugin-excerpt
+# https://github.com/TheAMM/mpv_crop_script
+# https://gist.github.com/Zehkul/25ea7ae77b30af959be0
+# https://github.com/rossy/mpv-repl
+
 # create a system user named "su" with a password equal to root's password
 useradd --system --password $(getent shadow root | cut -d: -f2) su
 echo '#!/bin/sh

@@ -112,3 +112,8 @@
 ; inline editor can be implemented using svg
 ;   https://lifeofpenguin.blogspot.com/2021/11/formula-editor-in-gnu-emacs.html
 ;   https://gitlab.com/atamariya/emacs/-/blob/dev/lisp/formula.el
+
+; default directory for shell, copy, move, ... -> project directory
+
+; dired modeline: emacs wiki.org -> Dired Get File Size
+; show number and size of marked files
