@@ -1,0 +1,76 @@
+#!/bin/sh -e
+
+# https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
+
+# show a status icon indicating:
+# , running update
+# , system needs to reboot
+
+# exit if "/usr/local/bin/apm" has more than one instances
+if [ $(pgrep -c /usr/local/bin/apm) -gt 1 ]; then
+  echo 'another instance is running;'
+  exit 1
+fi
+
+# remove orphan lock
+[ -f /var/lib/pacman/db.lck ] && [ $(pgrep -c /usr/local/bin/arch) = 0 ] && rm /var/lib/pacman/db.lck
+
+batteryIsEmpty() {
+  local capacity="/sys/class/power_supply/BAT1/capacity"
+	[ -f "${capacity}" ] && [ "$(cat "${capacity}")" -le 20 ]
+}
+connectionIsMetered() {
+	nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
+}
+[ "$1" = "autoupdate" ] && [ $(batteryIsEmpty) -o $(connectionIsMetered) ] && exit 0
+
+
+[ -d /subvols/1 ] && btrfs subvolume delete /subvols/1
+
+if [ "$1" != "autoupdate" ] && [ "$1" != "update" ] && [ "$1" != "add" ] && [ "$1" != "del" ]; then
+  echo 'usage:
+  apm install package_names
+  apm remove package_names
+  apm update'
+  exit 1
+fi
+
+set -e
+
+# create a snapshot of "/subvols/0" in "/subvols/1"
+btrfs subvolume snapshot /subvols/0 /subvols/1
+
+mount --bind /etc /subvols/1/etc
+mount --bind /home /subvols/1/home
+mount --bind /root /subvols/1/root
+mount --bind /opt /subvols/1/opt
+mount --bind /usr/local /subvols/1/usr/local
+mount --bind /srv /subvols/1/srv
+mount --bind /tmp /subvols/1/tmp
+mount --bind /var /subvols/1/var
+mount --bind /boot/efi /subvols/1/boot/efi
+
+mount --bind /etc /0/etc
+mount --bind /home /0/home
+mount --bind /root /0/root
+mount --bind /opt /0/opt
+mount --bind / /0/usr/local
+mount --bind /srv /0/srv
+mount --bind /tmp /0/tmp
+mount --bind /var /0/var
+mount --bind /boot/efi /0/boot/efi
+
+chroot /subvols/1 /usr/bin/sh << EOF
+set -e
+apt-get update
+case "$1" in
+remove) apt-get purge -- ${@:2} ;;
+install) apt-get install --no-install-recommends -- ${@:2} ;;
+update) apt-get dist-upgrade ;;
+autoupdate) apt-get dist-upgrade --yes ;;
+esac
+apt-get autoremove --purge --yes
+apt-get autoclean --yes
+EOF
+
+mv /subvols/1 /subvols/0
