@@ -20,17 +20,15 @@ during installation:
 after booting to the installed system, login as root, then:
 ; apt install wget2
 ; cd $(mktemp -d)
-; export url=https://hashbang.sh/~damoon-saghian/Comshell/
-; wget2 "$url"{apm,codev,fwi,init.el,install.sh,luakit.lua,net,sd,sway.conf}
+; wget2 -r -np -nd https://hashbang.sh/~damoonsaghian/Comshell/
 check that the downloaded files are not malicious (use "less file-name"), then:
 ; sh install.sh
 
 after rebooting to the new system, you will see Comshell
-press "," to open command entry
+press "," to open a bash shell command line
 system commands: poweroff, reboot, logout, suspend, lock
-in command entry:
-, press "space" to to have a bash shell command line
-, press "," to activate the application launcher
+in bash press "," to activate the application launcher
+in application launcher press "," to show the windows of all opened applications
 
 note that you can't login as root, root password provided during installation, is used only for "sudo"
 it's not the traditional "sudo" though
@@ -80,11 +78,13 @@ as a result when you add/remove/update packages using "apm",
   the system must be restarted for it to take effect
 all of this means that we can have reliable automatic updates
 
+= codev
+collaborative development without the need to keep the whole history
 flaws of version control systems:
 , they double the storage (working directory, local repository)
 , their design makes it difficult to modify the history
   so in practice, the whole history must be kept, even if not needed
-codev: collaborative development without the need to keep the whole history
+
 to initialize a remote host (for "hashbang.sh" hosts, if login fails, it will try to sign you up):
 ; codev init remote-host user
 create a remote repository from the current project directory:

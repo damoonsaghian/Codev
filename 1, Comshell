@@ -47,9 +47,13 @@ list of all projects will appear in a floating layer, at the center of screen
 each group of projects (which are in the same directory) will be shown in separate tabs
 
 in a project view, the list of files of a project will be displayed in the left side'bar
-opened files are slightly highlighted
+opened files will be slightly highlighted
 files and directories with names starting with a dot, will be hidden
 ".cache" directory inside a project is for files we don't want to share or backup
+
+each opened file will have a side'bar at right showing its sections
+there we can create new view corresponding to a section
+sections with views will be slightly highlighted
 
 text files will be opened in a text editor
 directories with ".g" suffixes, will be opened in a gallery view
@@ -65,6 +69,9 @@ press "esc" or "tab" to go to normal mode
 in normal mode we can:
 , press "enter" to go to insert mode
 , next/previous word, line, paragraph, section (righ/left middle row keys)
+, next/previous file (ask for confirmation)
+, next/previous section view, opened file
+, go to the list of files to open a new view
 , start and end selection, then copy or cut
 , paste
 , undo
@@ -76,3 +83,7 @@ in normal mode we can:
 double space:
 , at the beginning of line: indent
 , otherwise: complete (auto'completion does not disappear with only one space)
+
+for implementing Comshell, it seems that the best tool at hand is PyGObject
+Lua LGI is good too, and actually better, if all we need is libraries based on GObject
+but Python is more suitable, if we want a simple unified interface for almost anything
