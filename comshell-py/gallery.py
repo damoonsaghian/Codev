@@ -16,6 +16,8 @@ from gi.repository import Gtk, Gdk, Gio, GLib, Gst
 # libgdk-pixbuf2.0-bin (thumbnailer)
 # gdk-pixbuf-thumbnailer -s 128 %u %o
 
+# gtk_application_inhibit gtk_application_uninhibit
+
 class Gallery:
   container
   file_icon

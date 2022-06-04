@@ -15,6 +15,10 @@ from gi.repository import Gtk, Gdk, Gio, GLib, GtkSource
 # https://gitlab.gnome.org/GNOME/meld/-/tree/master/meld
 # https://github.com/MightyCreak/diffuse
 
+# highlight paragraph and line when moving
+
+# slightly dim unfocused pannels
+
 # indentation guides:
 # https://raw.githubusercontent.com/daa84/neovim-gtk/master/screenshots/neovimgtk-screen.png
 
