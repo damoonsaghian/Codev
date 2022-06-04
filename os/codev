@@ -265,8 +265,8 @@ push() {
 
   # https://www.agwa.name/blog/post/ssh_signatures
 
-  # emails are put on the Public directory, encrypted by email key (which is not password protected)
-  # clients read Public directory at first, then wait for Websub notifications
+  # emails are put on the Public directory, inside a directory with a random name, only known to the receiver
+  # the receiver's client reads the directory at first, then wait for Websub notifications
   # https://indieweb.org/WebSub
   # https://en.wikipedia.org/wiki/WebSub
   # https://ably.com/topic/websub
