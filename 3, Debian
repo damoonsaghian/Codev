@@ -25,11 +25,13 @@ it will ask for:
 , the target device (if there is more than one device), and then installs Debian on it
 
 after reboot, you will see Comshell
-press "," to open a bash shell command line
+press "tab+enter" to open the application launcher
+the first character in application launcher:
+, space: switch between the first application (usually Comshell) and the prior application
+, backspace: close the current application
+, enter: open terminal
+
 system commands: poweroff, reboot, logout, suspend, lock
-in bash press "," to activate the application launcher
-in application launcher press "," to bring up all opened applications
-to hide applications press "," two times without delay
 
 to switch users, disconnected and reconnect your keyboard, or run "su user'name"
 "su" without user'name switches to root
@@ -59,8 +61,10 @@ to do:
 Bluetooth is actually a right choice only for personal devices like headsets
 it perfectly makes sense to pair theme per user
 since keyboards are used for login, they are paired globally
-still, because of the login mechanism mentioned above, even pairing of keyboards doesn't need root access
+still, even pairing of keyboards doesn't need root access,
+  because when a keyboard is connected, others are disabled
 "https://www.freedesktop.org/wiki/Software/systemd/multiseat/"
+keyboards must have USB connection, in addition to Bluetooth
 
 to block/unblock a radio device (wlan wwan bluetooth nfc all):
 ; rf block/unblock device-type
