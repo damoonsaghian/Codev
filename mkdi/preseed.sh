@@ -68,10 +68,11 @@ ln --symbolic --force -t / /0/usr
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth
 #   https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
 # kbd is needed for its chvt
-# sway swayidle swaylock grim xwayland
+# sway swayidle swaylock waybar wofi grim xwayland
+# foot tmux
 # fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji materia-gtk-theme
 # openssh-client wget2 gpg attr
-# installing gpg  prevents wget2 to install the whole of gnupg as a dependency
+# installing gpg prevents wget2 to install the whole of gnupg as a dependency
 # libarchive-tools
 # libgtk-4-media-gstreamer gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav heif-gdk-pixbuf
 # python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18
@@ -223,6 +224,49 @@ chmod u+s,+x /usr/local/bin/su
 # , others can't access your session using another keyboard
 
 cp ./sway.conf /usr/local/share/
+
+echo 'font=monospace:size=10.5
+dpi-aware=no
+initial-window-size-chars=120x55
+pad=0x0 center
+[scrollback]
+indicator-position=none
+[cursor]
+blink=yes
+[colors]
+# alpha=1.0
+background=f8f8f8
+foreground=2A2B32
+selection-foreground=f8f8f8
+selection-background=2A2B32
+regular0=20201d  # black
+regular1=d73737  # red
+regular2=60ac39  # green
+regular3=cfb017  # yellow
+regular4=6684e1  # blue
+regular5=b854d4  # magenta
+regular6=1fad83  # cyan
+regular7=fefbec  # white
+bright0=7d7a68
+bright1=d73737
+bright2=60ac39
+bright3=cfb017
+bright4=6684e1
+bright5=b854d4
+bright6=1fad83
+bright7=fefbec
+' > /usr/local/share/foot.ini
+
+# https://github.com/tmux/tmux/wiki
+# https://wiki.archlinux.org/title/Tmux
+# https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/
+# use copy-mode to find the privious character
+#   copy-pipe-and-cancel [<command>] [<prefix>]
+# and then:
+# , double space -> completion
+# , comma + character -> punctuations
+# http://man.openbsd.org/OpenBSD-current/man1/tmux.1#send-keys
+# https://github.com/tmux/tmux/wiki/Advanced-Use#basics-of-scripting
 
 cp ./sd /usr/local/bin/sd
 chmod +x /usr/local/bin/sd
