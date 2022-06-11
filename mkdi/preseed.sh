@@ -68,7 +68,7 @@ ln --symbolic --force -t / /0/usr
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth
 #   https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
 # kbd is needed for its chvt
-# sway swayidle swaylock waybar wofi grim xwayland
+# sway swayidle swaylock wofi i3pystatus mako-notifier grim xwayland
 # foot tmux
 # fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji materia-gtk-theme
 # openssh-client wget2 gpg attr

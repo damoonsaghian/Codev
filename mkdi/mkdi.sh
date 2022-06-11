@@ -22,6 +22,10 @@ mkdir -p "$project_path"/.cache/mkdi && true
 cd "$project_path"/.cache/mkdi
 
 # download and verify Debian installation image
+# for "amd64" and "i386" architectures download the installation images which include non'free firmwares
+# cause the ucose must be send to kernel
+# see if ucode is present in "install.amd" directory
+# https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/
 rm SHA512SUMS && true
 wget https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/SHA512SUMS
 if [ -f debian-*-"$1"-netinst.iso ] && sha512sum --check --status --ignore-missing SHA512SUMS; then
