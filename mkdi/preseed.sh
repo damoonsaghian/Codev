@@ -68,7 +68,9 @@ ln --symbolic --force -t / /0/usr
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth
 #   https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
 # kbd is needed for its chvt
-# sway swayidle swaylock wofi i3pystatus mako-notifier grim xwayland
+# sway swayidle swaylock wofi grim xwayland
+# i3pystatus python3-colour python3-netifaces
+# python3-cffi python3-cairocffi
 # foot tmux
 # fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji materia-gtk-theme
 # openssh-client wget2 gpg attr
@@ -224,6 +226,10 @@ chmod u+s,+x /usr/local/bin/su
 # , others can't access your session using another keyboard
 
 cp ./sway.conf /usr/local/share/
+
+cp ./status.py /usr/local/share/
+
+cp ./swapps.py /usr/local/share/
 
 echo 'font=monospace:size=10.5
 dpi-aware=no
