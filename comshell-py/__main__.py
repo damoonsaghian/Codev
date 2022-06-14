@@ -35,6 +35,14 @@ from overview import Overview
 # show countdown in status'bar
 # insert the image path in buffer
 
+# notifications:
+# create a layer in the bottom'left corner, to print notifications, using:
+#   python3-cffi + wlroots (layer-shell) + python3-cairocffi
+# https://cffi.readthedocs.io/en/latest/
+# https://cairocffi.readthedocs.io/en/stable/
+# at startup scan email boxes of projects, and show notifications
+# during the runtime add/remove notifications
+
 Gtk.init(null)
 
 projects = Gtk.Stack()
