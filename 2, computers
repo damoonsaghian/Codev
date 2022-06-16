@@ -66,6 +66,6 @@ one read'only boot firmware, plus a writable one
 programs usually do not run directly on computer hardware
 instead they run on a more sophisticated software machine (a virtual machine) called the kernel
 in theory we can live without a kernel (an idea sometimes called a library operating system),
-  and it can be usefull for some use cases (like IoT devices),
+  and it can be useful for some use cases (like IoT devices),
   but a kernel based operating system makes developing and testing programs, much easier
 Linux is a highly developed, constantly evolving, open'source kernel

@@ -5,17 +5,15 @@ anything which needs a kernel'based operating system can use Debian:
 , the stable releases provide a security proven system for servers
 
 the following instructions show how to prepare a Debian installation media, in a Unix'like operating system
-if you don't have a Unix'like operating system installed,
+if you don't have access to an installed Unix'like operating system,
   you can use Debian's (or any other distro's) live image
-first make sure that these packages are installed: wget gzip cpio xorriso udisks2
-wget2/wget libarchive-tools udisks2
+first make sure that these packages are installed: wget2/wget libarchive-tools xorriso udisks2
 download the files of this project:
-; wget2 -r -np https://hashbang.sh/~damoonsaghian/Comshell/
-; cd */Comshell/mkdi/
-ensure that the files there aren't malicious
+; wget2 -r -np -nH --cut-dirs=1 https://hashbang.sh/~damoonsaghian/Comshell/
+ensure that the downloaded files aren't malicious
 insert a USB storage device (at least 700MB), find the device using "lsblk"
 now assuming the device is "sdx", and the CPU architecture is "amd64":
-; sh mkdi.sh amd64 sdx
+; sh Comshell/mkdi/mkdi.sh amd64 sdx
 
 now just boot to the USB storage device
 it will ask for:
@@ -25,7 +23,7 @@ it will ask for:
 , the target device (if there is more than one device), and then installs Debian on it
 
 after reboot, you will see Comshell
-press "tab+enter" to open the application launcher
+you can press "tab+enter" to open the application launcher
 the first character in application launcher:
 , space: switch between the first application (usually Comshell) and the prior application
 , backspace: close the current application
@@ -36,6 +34,7 @@ system commands: poweroff, reboot, logout, suspend, lock
 to switch users, disconnected and reconnect your keyboard, or run "su user'name"
 "su" without user'name switches to root
 running "su user'name" in root, switches immediately, without asking for password
+running "su" in root, switches immediately to the last user
 
 you can set a user for automatic login (lines starting with ";;" must be run as root):
 ;; autologin enable <user>
@@ -48,23 +47,21 @@ in addition you must:
 these can make physical attacks more difficult, but keep in mind that
   physical access to a computer is root access, given enough time and resources
 
-to connect to a wireless LAN:
-; net wlan
+to connect to WIFI:
+; net wifi
 to forget a previously configured wireless network:
-; net wlan forget
+; net wifi forget
+to setup a WIFI access'point:
+; net ap
+to setup a router:
+; net router
+to setup a modem (ADSL, cellular ...)
+; net modem
 
-to pair with a Bluetooth device:
-;; bt
+to connect a Bluetooth device:
+; bt
 to disconnect a Bluetooth device:
-;; bt disconnect
-to do:
-Bluetooth is actually a right choice only for personal devices like headsets
-it perfectly makes sense to pair theme per user
-since keyboards are used for login, they are paired globally
-still, even pairing of keyboards doesn't need root access,
-  because when a keyboard is connected, others are disabled
-"https://www.freedesktop.org/wiki/Software/systemd/multiseat/"
-keyboards must have USB connection, in addition to Bluetooth
+; bt disconnect
 
 to block/unblock a radio device (wlan wwan bluetooth nfc all):
 ; rf block/unblock device-type
@@ -84,12 +81,12 @@ collaborative development without the need to keep the whole history
 flaws of version control systems:
 , they double the storage (working directory, local repository)
 , their design makes it difficult to modify the history
-  so in practice, the whole history must be kept, even if not needed
+  so in practice, the whole history must be kept indefinitely, even if not needed
 
 to initialize a remote host (for "hashbang.sh" hosts, if login fails, it will try to sign you up):
-; codev init remote-host user
+; codev init
 create a remote repository from the current project directory:
-; codev create remote-host
+; codev create
 clone:
 ; codev clone repo
 pull:
