@@ -1,8 +1,7 @@
 #!/bin/sh -e
 
-# wlan
 # https://iwd.wiki.kernel.org/
-wlan () {
+setup_wifi () {
   if [ "$1" = "forget" ]; then
     iwctl known-networks list
     echo -n "select the network to forget: "; read ssid
@@ -24,6 +23,9 @@ wlan () {
 # https://wiki.archlinux.org/title/software_access_point
 # https://hackaday.io/project/162164/instructions?page=2
 # https://raspberrypi.stackexchange.com/questions/133403/configure-usb-wi-fi-dongle-as-stand-alone-access-point-with-systemd-networkd
+setup_access_point () {
+  echo "not yet implemented"
+}
 
 # internet sharing
 # https://dabase.com/blog/2012/Sharing_an_Internet_connection_in_Archlinux/
@@ -31,9 +33,9 @@ wlan () {
 # https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking#veth
 # https://man.archlinux.org/man/core/systemd/systemd.netdev.5.en
 # https://man.archlinux.org/man/core/systemd/systemd.network.5.en
-
-# https://en.wikipedia.org/wiki/Network_access_server
-# https://en.wikipedia.org/wiki/Captive_portal
+setup_router () {
+  echo "not yet implemented"
+}
 
 # https://wiki.archlinux.org/title/Mobile_broadband_modem
 # https://man.archlinux.org/man/extra/modemmanager/mmcli.1.en
@@ -43,6 +45,13 @@ wlan () {
 # https://wiki.archlinux.org/title/Direct_modem_connection#DSL_(PPPoE)
 # https://github.com/dfskoll/rp-pppoe/blob/master/doc/HOW-TO-CONNECT
 
+setup_modem () {
+  echo "not yet implemented"
+}
+
 case "$1" in
-  wlan) shift; wlan "$@" ;;
+  wifi) shift; setup_wifi "$@" ;;
+  ap) shift; setup_access_point "$@" ;;
+  router) shift; setup_router "$@" ;;
+  modem) shift; setup_modem "$@" ;;
 esac

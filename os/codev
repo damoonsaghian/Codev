@@ -29,6 +29,9 @@
 
 # webrtc
 
+# https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.html
+# https://github.com/hashbang/shell-server/blob/master/ansible/tasks/packages/main.yml
+
 hbar() {
   printf -- ' %72s\n' ' ' | tr ' ' '-'
 }
@@ -134,6 +137,7 @@ set_ssh_public_key() {
 init() {
   remote_host=$1
   user=$2
+  # if they are empty, ask for them
 
   printf "\nHost $remote_host\n  User $user\n" >> ~/.ssh/config
 
@@ -148,12 +152,22 @@ init() {
 
   ssh "$user"@"$remote_host" && return
 
+  # https://man.archlinux.org/listing/openssh
+  # https://man.archlinux.org/man/core/openssh/ssh.1.en
+  # https://man.archlinux.org/man/core/openssh/ssh-add.1.en
+  # https://man.archlinux.org/man/core/openssh/ssh-keygen.1.en
+  # https://wiki.archlinux.org/title/SSH_keys#ssh-agent
+
   # if there is no SSH keys, create a key pair
   # ssh-keygen -t ed25519
   # openssh key format: ssh-ed25519 ...
 
   # create a user in one of "hashbang.sh" servers
   # https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.sh
+
+  # currently, the ~/Public folder isn't exposed over HTTP by default
+  # use the `SimpleHTTPServer.service` systemd unit file (in `~/.config/systemd/user`, modify it to set port)
+  # https://github.com/hashbang/dotfiles/blob/master/hashbang/.config/systemd/user/SimpleHTTPServer%40.service
 
   # delete the public key after sending it to the server (it can be regenerated form the private key)
 
@@ -208,7 +222,8 @@ update_key() {
 
 create () {
   remote_host=$1
-  user=$2
+  # if it's empty, ask for it
+
   project_name=
 
   # "remote_host:~/Public/project_name" will be kept in "project_path/.data/codev/remote"
@@ -230,6 +245,8 @@ push() {
 
   # project owner pushes; others send emails
   # ssh to connect to your server; connect to others using email
+
+  # https://github.com/hashbang/shell-server/blob/master/ansible/tasks/mail/main.yml
 
   # post'mail script does push/pull'request, then sends a reply that says it's accepted or not
   #   sender waits for reply

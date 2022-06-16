@@ -6,15 +6,6 @@
 # , running update
 # , system needs to reboot
 
-# exit if "/usr/local/bin/apm" has more than one instances
-if [ $(pgrep -c /usr/local/bin/apm) -gt 1 ]; then
-  echo 'another instance is running;'
-  exit 1
-fi
-
-# remove orphan lock
-[ -f /var/lib/pacman/db.lck ] && [ $(pgrep -c /usr/local/bin/arch) = 0 ] && rm /var/lib/pacman/db.lck
-
 batteryIsEmpty() {
   local capacity="/sys/class/power_supply/BAT1/capacity"
 	[ -f "${capacity}" ] && [ "$(cat "${capacity}")" -le 20 ]

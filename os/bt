@@ -1,0 +1,36 @@
+#!/bin/sh
+
+echo "not yet implemented"; exit
+
+# it seems that normal users can use Bluez to connect devices globally (ie for all users)
+# is this also true for keyboards and headsets?
+# if it is, then it's a security hole
+
+# the correct usage domain for Bluetooth is personal devices like headsets
+# it perfectly makes sense to pair them per user
+# since keyboards are used for login, they must be paired globally
+# still, even pairing of keyboards doesn't need root access,
+#   because in this system, when a keyboard is connected, others are disabled
+
+# Bluetooth keyboards must have an already paired Bluetooth dongle, or an additional USB connection
+
+# install bluez package
+systemctl start bluetooth
+
+if [ "$1" = "disconnect" ]; then
+  bluetoothctl paired-devices
+  echo -n "select a device (enter the MAC address): "; read mac_address
+  bluetoothctl disconnect "$mac_address"
+  bluetoothctl untrust "$mac_address"
+  exit
+fi
+
+bluetoothctl scan on
+echo -n "select a device (enter the MAC address): "; read mac_address
+
+if [ bluetoothctl --agent -- pair "$mac_address" ]; then
+  bluetoothctl trust "$mac_address"
+  bluetoothctl connect "$mac_address"
+else
+  bluetoothctl untrust "$mac_address"
+fi
