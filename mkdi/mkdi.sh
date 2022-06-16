@@ -48,18 +48,24 @@ xorriso -osirrox on -indev debian-*-"$1"-netinst.iso -extract_l / ./ '/install*/
 rm -r "$project_path"/.cache/mkdi/initrd && true
 mkdir -p "$project_path"/.cache/mkdi/initrd
 cd "$project_path"/.cache/mkdi/initrd
-# add "preseed.cfg" to "initrd.gz"
+
+# add "preseed.cfg" to "initrd.gz", and force Debian installer to use test frontend
 initrd_path="$(dirname "$project_path"/.cache/mkdi/install*/initrd.gz)"/initrd.gz
 bsdcat "$initrd_path" | bsdcpio -i
 cp "$project_path"/os/preseed.cfg .
 cp "$project_path"/os/preseed.sh .
+echo 'export DEBIAN_FRONTEND=text
+' > ./lib/debian-installer.d/S99text-frontend
 find | bsdcpio -oz --format=newc > "$initrd_path"
 rm -r *
+
 # do the same for "gtk/initrd.gz"
 initrd_gtk_path="$(dirname "$project_path"/.cache/mkdi/install*/gtk/initrd.gz)"/initrd.gz
 bsdcat "$initrd_gtk_path" | bsdcpio -i
 cp "$project_path"/os/preseed.cfg .
 cp "$project_path"/os/preseed.sh .
+echo 'export DEBIAN_FRONTEND=text
+' > ./lib/debian-installer.d/S99text-frontend
 find | bsdcpio -oz --format=newc > "$initrd_gtk_path"
 cd "$project_path"/.cache/mkdi
 

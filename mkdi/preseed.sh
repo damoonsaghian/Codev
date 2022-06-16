@@ -1,6 +1,6 @@
 set -e
 
-cd "$(dirname "$0")"
+cd /hd-media
 
 btrfs subvolume create /0
 btrfs subvolume snapshot / /0
@@ -18,7 +18,7 @@ ln --symbolic --force -t / /0/lib64
 ln --symbolic --force -t / /0/sbin
 ln --symbolic --force -t / /0/usr
 
-# for U-boot based ARM systems which need flash-kernel, implementing atomic upgrade is complicated
+# for U-boot based ARM systems which need "flash-kernel" package, implementing atomic upgrade is complicated
 # furthermore, for old ARMel systems which need the kernel and initrd to be flashed in their ROM,
 #   implementing atomic upgrade is impossible
 # MIPS systems are not supported for a similar reason too
@@ -26,7 +26,7 @@ ln --symbolic --force -t / /0/usr
 #   and thus must be rewritten everytime kernel/initrd is updated
 
 # for U-boot based systems which support "generic distro configuration":
-#   remove flash-kernel, make a generic boot.scr, and put it in boot partition
+#   remove flash-kernel (if installed), make a generic boot.scr, and put it in boot partition
 # https://source.denx.de/u-boot/u-boot/-/blob/master/doc/develop/distro.rst
 # libubootenv-tool
 # https://salsa.debian.org/installer-team/flash-kernel/-/blob/master/bootscript/arm64/bootscr.uboot-generic
@@ -34,14 +34,17 @@ ln --symbolic --force -t / /0/usr
 # before upgrading create these symlinks: vmlinuz.trans initrd.trans
 # or just create combined images, like in UEFI
 
-# if EFI, remove Grub then unified kernel image using systemd linux stub
+# for EFI -> unified kernel image using systemd linux stub
 # https://wiki.archlinux.org/title/Unified_kernel_image
 # https://man.archlinux.org/man/systemd-stub.7
 # https://systemd.io/BOOT_LOADER_SPECIFICATION/#type-2-efi-unified-kernel-images
 # https://wiki.debian.org/EFIStub
 # /EFI/BOOT/BOOTx64.EFI BOOTIA32.EFI
 
-# otherwise disable Grub upgrade, and lock Grub
+# now we are left with BIOS and OpenFirmware
+# to have atomic upgrades for BIOS and OpenFirmware based systems,
+#   the bootloader is created once, and never updated
+# disable Grub upgrade, and lock Grub:
 # printf '\nGRUB_TIMEOUT=0\nGRUB_DISABLE_OS_PROBER=true\n' >> /mnt/etc/default/grub
 # disable menu editing and other admin operations in Grub:
 # printf '#! /bin/sh\nset superusers=""\nset menuentry_id_option="--unrestricted $menuentry_id_option"\n' >
@@ -50,10 +53,7 @@ ln --symbolic --force -t / /0/usr
 # update-grub
 # after upgrade: grub-mkconfig
 
-# to have atomic upgrades for BIOS and OpenFirmware based systems,
-#   the bootloader is created once, and never updated
-
-# grub and bootfirmware updates need special care
+# boot'firmware updates need special care
 # unless there is a read_only backup, firmware update is not a good idea
 # fwupd
 
@@ -64,7 +64,7 @@ ln --symbolic --force -t / /0/usr
 # no recommends
 
 # dosfstools exfatprogs btrfs-progs udisks2 polkitd
-# iwd wireless-regdb modemmanager usb-modeswitch pppoe rfkill bluez
+# iwd wireless-regdb modemmanager usb-modeswitch pppoe rfkill
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth
 #   https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
 # kbd is needed for its chvt
@@ -149,23 +149,7 @@ rfkill $1 $2
 ' > /usr/local/bin/rf
 chmod u+s,+x /usr/local/bin/rf
 
-echo '#!/bin/sh
-if [ "$1" = "disconnect" ]; then
-  bluetoothctl paired-devices
-  echo -n "select a device (enter the MAC address): "; read mac_address
-  bluetoothctl disconnect "$mac_address"
-  bluetoothctl untrust "$mac_address"
-  exit
-fi
-bluetoothctl scan on
-echo -n "select a device (enter the MAC address): "; read mac_address
-if [ bluetoothctl --agent -- pair "$mac_address" ]; then
-  bluetoothctl trust "$mac_address"
-  bluetoothctl connect "$mac_address"
-else
-  bluetoothctl untrust "$mac_address"
-fi
-' > /usr/local/bin/bt
+cp ./bt /usr/local/bin/
 chmod +x /usr/local/bin/bt
 
 echo '#!/bin/sh
@@ -214,8 +198,11 @@ fi
 ' > /etc/profile.d/login-manager.sh
 
 echo '#!/bin/sh
+# save current vt as the last vt
+echo "$(fgconsole)" > /tmp/su-lvt
 # [ -z "$1" ] && switches to root
 # running "su username" in root, switches immediately, without asking for password
+# running "su" in root, switches immediately to the last user
 ' > /usr/local/bin/su
 chmod u+s,+x /usr/local/bin/su
 
