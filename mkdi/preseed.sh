@@ -140,9 +140,6 @@ systemctl enable iwd
 
 cp ./net /usr/local/bin/net
 chmod +x /usr/local/bin/net
-# since only root and members of the netdev user group are allowed to interact with "iwd":
-chgrp netdev /usr/local/bin/net
-chmod g+s /usr/local/bin/net
 
 echo '#!/bin/sh
 rfkill $1 $2
@@ -258,14 +255,12 @@ bright7=fefbec
 # and then:
 # , double space -> completion
 # , comma + character -> punctuations
+# , two apostrophes + a letter -> capital letter
 # http://man.openbsd.org/OpenBSD-current/man1/tmux.1#send-keys
 # https://github.com/tmux/tmux/wiki/Advanced-Use#basics-of-scripting
 
 cp ./sd /usr/local/bin/sd
 chmod +x /usr/local/bin/sd
-
-cp ./apm /usr/local/bin/apm
-chmod +x /usr/local/bin/apm
 
 cp ./fwi /usr/local/bin/fwi
 chmod +x /usr/local/bin/fwi
@@ -273,12 +268,15 @@ chmod +x /usr/local/bin/fwi
 fwi
 # create a service to do it automatically in the future
 
+cp ./apm /usr/local/bin/apm
+chmod +x /usr/local/bin/apm
+
 mkdir -p /usr/local/lib/systemd/system
 echo '[Unit]
 Description=automatic update
 After=network-online.target
 [Service]
-ExecStart=/usr/local/bin/apm autoupdate
+ExecStart=/usr/local/bin/dpm autoupdate
 Nice=19
 KillMode=process
 KillSignal=SIGINT
@@ -339,7 +337,7 @@ ResultActive=yes
 # , virtual machines and databases (eg the one used in Webkit)
 #   COW must be disabled for these files
 #   generally it's done automatically by the program itself (eg systemd-journald)
-#   otherwise we mut do it manually: chattr +C ...
+#   otherwise we must do it manually: chattr +C ...
 #   apparently Webkit uses SQLite in WAL mode
 
 # to customize dconf default values:
