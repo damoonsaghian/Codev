@@ -51,7 +51,7 @@ regardless there is no easy way to get rid of Intel ME (or AMD PSP),
   "https://puri.sm/posts/deep-dive-into-intel-me-disablement/"
 
 ARM architecture is closed source too, but we can have a GPU with open source driver (Qualcomm/Adreno)
-the most used boot firmware is the open source implementation of UEFI called EDK2
+in most cases, boot firmwares are open source (U-Boot or EDK2)
 ARM TrustZone can host an open source operating system too, apparently:
   "https://news.ycombinator.com/item?id=17783357"
 

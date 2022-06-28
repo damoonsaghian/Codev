@@ -48,15 +48,15 @@ these can make physical attacks more difficult, but keep in mind that
   physical access to a computer is root access, given enough time and resources
 
 to connect to WIFI:
-; net wifi
+;; net wifi
 to forget a previously configured wireless network:
-; net wifi forget
+;; net wifi forget
 to setup a WIFI access'point:
-; net ap
+;; net ap
 to setup a router:
-; net router
+;; net router
 to setup a modem (ADSL, cellular ...)
-; net modem
+;; net modem
 
 to connect a Bluetooth device:
 ; bt
