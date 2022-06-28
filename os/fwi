@@ -2,3 +2,7 @@
 
 # find and install required firmwares
 # https://salsa.debian.org/debian/isenkram
+
+# boot'firmware updates need special care
+# unless there is a read_only backup, firmware update is not a good idea
+# fwupd

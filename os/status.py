@@ -29,6 +29,10 @@
 # https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/custom_statusbar
 # https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/batpct
 
+# show a status icon indicating:
+# , running update process
+# , system needs to reboot
+
 # periodically check for location and if it's not the same as the set timezone, add an additional date indicator,
 #   and if there is no file named "~/.cache/tz create it
 # if the file exists and it's older than a week then change the timezone,

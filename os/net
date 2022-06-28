@@ -4,16 +4,16 @@
 setup_wifi () {
   if [ "$1" = "forget" ]; then
     iwctl known-networks list
-    echo -n "select the network to forget: "; read ssid
+    printf "select the network to forget: "; read -r ssid
     iwctl known-networks "$ssid" forget
     exit
   fi
   iwctl device list
-  echo -n "select a device: "; read device
+  printf "select a device: "; read -r device
   rfkill unblock wlan
   iwctl station "$device" scan
   iwctl station "$device" get-networks
-  echo -n "select a network: "; read ssid
+  printf "select a network: "; read -r ssid
   iwctl station "$device" connect "$ssid"
 }
 
@@ -51,7 +51,7 @@ setup_modem () {
 
 case "$1" in
   wifi) shift; setup_wifi "$@" ;;
-  ap) shift; setup_access_point "$@" ;;
-  router) shift; setup_router "$@" ;;
-  modem) shift; setup_modem "$@" ;;
+  ap) setup_access_point ;;
+  router) setup_router ;;
+  modem) setup_modem ;;
 esac

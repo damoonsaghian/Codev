@@ -2,31 +2,26 @@
 
 # https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
 
-# show a status icon indicating:
-# , running update
-# , system needs to reboot
-
 batteryIsEmpty() {
-  local capacity="/sys/class/power_supply/BAT1/capacity"
-	[ -f "${capacity}" ] && [ "$(cat "${capacity}")" -le 20 ]
+  battery_capacity="/sys/class/power_supply/BAT1/capacity"
+	[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
 }
 connectionIsMetered() {
-	nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
+  # nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
+  # if not mobile broadband
+	true
 }
-[ "$1" = "autoupdate" ] && [ $(batteryIsEmpty) -o $(connectionIsMetered) ] && exit 0
-
+[ "$1" = "autoupdate" ] && { batteryIsEmpty || connectionIsMetered; } && exit 0
 
 [ -d /subvols/1 ] && btrfs subvolume delete /subvols/1
 
 if [ "$1" != "autoupdate" ] && [ "$1" != "update" ] && [ "$1" != "add" ] && [ "$1" != "del" ]; then
   echo 'usage:
-  apm install package_names
-  apm remove package_names
-  apm update'
+  dpm install package_names
+  dpm remove package_names
+  dpm update'
   exit 1
 fi
-
-set -e
 
 # create a snapshot of "/subvols/0" in "/subvols/1"
 btrfs subvolume snapshot /subvols/0 /subvols/1
@@ -55,10 +50,10 @@ chroot /subvols/1 /usr/bin/sh << EOF
 set -e
 apt-get update
 case "$1" in
-remove) apt-get purge -- ${@:2} ;;
-install) apt-get install --no-install-recommends -- ${@:2} ;;
-update) apt-get dist-upgrade ;;
-autoupdate) apt-get dist-upgrade --yes ;;
+  remove) shift; apt-get purge -- "$@" ;;
+  install) shift; apt-get install --no-install-recommends -- "$@" ;;
+  update) apt-get dist-upgrade ;;
+  autoupdate) apt-get dist-upgrade --yes ;;
 esac
 apt-get autoremove --purge --yes
 apt-get autoclean --yes

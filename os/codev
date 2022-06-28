@@ -37,9 +37,8 @@ hbar() {
 }
 
 time_cmd() {
-  local cmd="$1"
   start_time=$(date +%s%3N)
-	$cmd &>/dev/null
+	$1 1>/dev/null 2>&1
 	end_time=$(date +%s%3N)
   return $(( end_time - start_time ))
 }
@@ -139,7 +138,7 @@ init() {
   user=$2
   # if they are empty, ask for them
 
-  printf "\nHost $remote_host\n  User $user\n" >> ~/.ssh/config
+  printf "\nHost %s\n  User %s\n" "$remote_host" "$user" >> ~/.ssh/config
 
   { echo "$user" | sed -n "/^[a-z][a-z0-9]{0,30}$/!{q1}"; } || {
   	echo "\"$user\" is not a valid username"
@@ -182,7 +181,9 @@ init() {
   printf -- '  %-1s | %-4s | %-36s | %-8s | %-8s\n' \
   	"#" "Host" "Location" "Users" "Latency"
   hbar
-  wget2 -q -O - --header 'Accept:text/plain' https://hashbang.sh/server/stats |
+
+  host_data=$(wget2 -q -O - --header 'Accept:text/plain' https://hashbang.sh/server/stats)
+
 	while IFS="|" read -r host _ location current_users max_users _; do
 	  host=$(echo "$host" | cut -d. -f1)
 	  latency=$(time_cmd "wget2 -q -O /dev/null \"${host}.hashbang.sh\"")
@@ -193,7 +194,10 @@ init() {
 	  	"$location" \
 	  	"$current_users/$max_users" \
 	  	"$latency"
-  done
+  done <<INPUT
+$host_data
+INPUT
+
 	hbar
 
 	echo
@@ -207,7 +211,8 @@ init() {
   		break;
   	fi
   done
-  host=$(head -n "$choice" "$host_data" | tail -n1 | cut -d \| -f1)
+
+  host=$(echo "$host_data" | head -n "$choice" - | tail -n1 | cut -d \| -f1)
 
   pulic_key=$(cat ~/.ssh/id_ed25519.pub)
   host=de1.hashbang.sh
@@ -391,7 +396,7 @@ remove_user() {
   username=$1
 }
 
-if [ $0 != "init" ] && [ $0 != "pull" ] && [ $0 != "backup" ] && [ ! -f ~/.config/codev ]; then
+if [ "$0" != "init" ] && [ "$0" != "pull" ] && [ "$0" != "backup" ] && [ ! -f ~/.config/codev ]; then
   echo 'first run "codev init <remote-host> <user>"'
 fi
 
