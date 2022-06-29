@@ -18,26 +18,45 @@ ln --symbolic --force -t / /0/lib64
 ln --symbolic --force -t / /0/sbin
 ln --symbolic --force -t / /0/usr
 
-# for U-boot based ARM systems which need "flash-kernel" package, implementing atomic upgrade is complicated
-# furthermore, for old ARMel systems which need the kernel and initrd to be flashed in their ROM,
-#   implementing atomic upgrade is impossible
+# VFAT boot partition
+# separate boot partition and atomic upgrades can live together becasue Debian keeps old kernel and modules
+# before and after upgrade: regenerate extlinux.conf, flash-kernel, systemd-bootd, grub-mkconfig
+
+# U-Boot distro: /boot/extlinux/extlinux.conf
+# U-Boot: flash-kernel
+# UEFI: systemd-bootd
+# Bios and PPC (OpenFirmware, Petitboot): Grub
+
+# ARM systems which need "flash-kernel" package are two kinds:
+# , those which just need a U-Boot boot script
+# , some rare cases (mostly NAS devices) which need the kernel and initrd to be flashed in their ROM
+# implementing atomic upgrade is impossible for the second kind
+# so check if "machine_uses_flash" then report that it's not supported
+#   https://salsa.debian.org/installer-team/flash-kernel/-/blob/master/functions
 # MIPS systems are not supported for a similar reason too
-# also s390x is not supported because ZIPL only understands data'blocks (not the filesystem),
-#   and thus must be rewritten everytime kernel/initrd is updated
+# also s390x is not supported because
+#   ZIPL (the bootloader on s390x) only understands data'blocks (not the filesystem),
+#   and thus the boot partition must be rewritten everytime kernel/initrd is updated
 
-# for U-boot based systems which support "generic distro configuration":
-#   remove flash-kernel (if installed), make a generic boot.scr, and put it in boot partition
+# U-boot "generic distro configuration"
 # https://source.denx.de/u-boot/u-boot/-/blob/master/doc/develop/distro.rst
-# libubootenv-tool
-# https://salsa.debian.org/installer-team/flash-kernel/-/blob/master/bootscript/arm64/bootscr.uboot-generic
-# in bootscr first try to load "vmlinuz.trans" and "initrd.trans"
-# before upgrading create these symlinks: vmlinuz.trans initrd.trans
-# or just create combined images, like in UEFI
+# https://developer.toradex.com/linux-bsp/how-to/boot/distro-boot/
 
-# for EFI -> unified kernel image using systemd linux stub
-# https://wiki.archlinux.org/title/Unified_kernel_image
+{
+  printf "title\t\tDebian\n"
+  printf "version\t\t$(cat /etc/debian_version) ($desc)\n"
+  printf "linux\t\t$kfile\n"
+  [ -z "$ifile" ] || printf "initrd\t\t$ifile\n"
+  if [ -n "$dtb_name" ] ; then
+    printf "devicetree\t$dtbfile\n"
+  fi
+  printf "options\t\t$(get_kernel_cmdline)\n"
+  printf "linux-appendroot true\n"
+} > /boot/extlinux/extlinux.conf
+
+# for EFI -> systemd-bootd
 # https://man.archlinux.org/man/systemd-stub.7
-# https://systemd.io/BOOT_LOADER_SPECIFICATION/#type-2-efi-unified-kernel-images
+# https://systemd.io/BOOT_LOADER_SPECIFICATION/
 # https://wiki.debian.org/EFIStub
 # /EFI/BOOT/BOOTx64.EFI BOOTIA32.EFI
 
@@ -51,7 +70,6 @@ ln --symbolic --force -t / /0/usr
 #   /mnt/etc/grub.d/09_user
 # chmod +x /mnt/etc/grub.d/09_user
 # update-grub
-# after upgrade: grub-mkconfig
 
 # boot'firmware updates need special care
 # unless there is a read_only backup, firmware update is not a good idea

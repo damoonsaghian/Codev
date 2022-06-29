@@ -70,6 +70,8 @@ cd "$project_path"/.cache/mkdi; rm -r initrd
 # prepend the microcode to initrd
 # https://docs.kernel.org/x86/microcode.html#early-load-microcode
 
+# U-Boot distro: /boot/extlinux/extlinux.conf
+
 # regenerate "md5sum.txt" file
 rm md5sum.txt && true
 xorriso -osirrox on -indev "$debian_image" -cpx /md5sum.txt md5sum.txt
