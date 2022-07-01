@@ -49,8 +49,7 @@ cd "$project_path"/.cache/mkdi/initrd
 # add "preseed.cfg" to "initrd.gz", and force Debian installer to use text frontend
 initrd_path="$(dirname "$project_path"/.cache/mkdi/install*/initrd.gz)"/initrd.gz
 bsdcat "$initrd_path" | bsdcpio -i
-cp "$project_path"/os/preseed.cfg .
-cp "$project_path"/os/preseed.sh .
+cp "$project_path"/mkdi/preseed.cfg .
 echo 'export DEBIAN_FRONTEND=text
 ' > lib/debian-installer.d/S99text-frontend
 rm "$initrd_path"
@@ -59,8 +58,7 @@ rm -r ./*
 # do the same for "gtk/initrd.gz"
 initrd_gtk_path="$(dirname "$project_path"/.cache/mkdi/install*/gtk/initrd.gz)"/initrd.gz
 bsdcat "$initrd_gtk_path" | bsdcpio -i
-cp "$project_path"/os/preseed.cfg .
-cp "$project_path"/os/preseed.sh .
+cp "$project_path"/mkdi/preseed.cfg .
 echo 'export DEBIAN_FRONTEND=text
 ' > lib/debian-installer.d/S99text-frontend
 rm "$initrd_gtk_path"
@@ -105,8 +103,9 @@ cd "$project_path"/.cache/mkdi
 xorriso -indev "$debian_image" -outdev debian-modified-"$1"-netinst.iso \
   -overwrite on -pathspecs off -cd / \
   -add install*/initrd.gz install*/gtk/initrd.gz md5sum.txt firmware \
+  -map "$project_path"/mkdi/preseed.sh /comshell/preseed.sh \
   -map "$project_path"/os/ /comshell/os/ \
-  -map "$project_path"/comacs/ /comshell/comacs/
+  -map "$project_path"/comshell-py/ /comshell/comshell-py/
 
 sh "$project_path"/os/sd write /dev/"$2" debian-modified-"$1"-netinst.iso
 echo 'Debian installation media created successfully'
