@@ -1,5 +1,7 @@
 #!/bin/sh -e
 
+# https://www.debian.org/doc/manuals/apt-guide/index.en.html
+# https://www.debian.org/doc/manuals/apt-offline/index.en.html
 # https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
 
 batteryIsEmpty() {
