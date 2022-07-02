@@ -73,7 +73,19 @@ ln --symbolic --force -t / /0/usr
 # unless there is a read_only backup, firmware update is not a good idea
 # fwupd
 
-# timezone
+# automatic time'zone:
+# periodically check for location and if it's not the same as the set timezone,
+#   and it's not equal to the value in "/usr/local/share/tz-extra",
+#   overwrite the time'zone in "/usr/local/share/tz-extra"
+# timezone="$(wget -q -O- http://ip-api.com/line/?fields=timezone)"
+#
+# if the file exists and it's older than a week then change the timezone, and delete the file
+# timedatectl set-timezone "$timezone"
+#
+# networkd-dispatcher package
+# https://gitlab.com/craftyguy/networkd-dispatcher
+# https://manpages.debian.org/unstable/networkd-dispatcher/networkd-dispatcher.8.en.html
+# systemd-networkd-wait-online
 
 # install these packages (no recommends):
 # dosfstools exfatprogs btrfs-progs udisks2 polkitd
