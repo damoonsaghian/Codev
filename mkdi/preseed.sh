@@ -60,7 +60,7 @@ ln --symbolic --force -t / /0/usr
 
 # now we are left with BIOS and OpenFirmware
 # to have atomic upgrades for BIOS and OpenFirmware based systems,
-#   the bootloader is created once, and never updated
+#   the bootloader is installed once, and never updated
 # disable Grub upgrade, and lock Grub:
 # printf '\nGRUB_TIMEOUT=0\nGRUB_DISABLE_OS_PROBER=true\n' >> /mnt/etc/default/grub
 # disable menu editing and other admin operations in Grub:
@@ -69,7 +69,7 @@ ln --symbolic --force -t / /0/usr
 # chmod +x /mnt/etc/grub.d/09_user
 # update-grub
 
-# boot'firmware updates need special care
+# boot firmware updates need special care
 # unless there is a read_only backup, firmware update is not a good idea
 # fwupd
 
