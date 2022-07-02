@@ -33,10 +33,7 @@
 # , running update process
 # , system needs to reboot
 
-# periodically check for location and if it's not the same as the set timezone, add an additional date indicator,
-#   and if there is no file named "~/.cache/tz create it
-# if the file exists and it's older than a week then change the timezone,
-#   and delete the file and the additional date indicator
+# show time for extra timezone (if available) in /usr/local/share/tz-extra
 
 # backup indicator: in'progress, completed
 # update indicator checks if there is an updated subvolume
