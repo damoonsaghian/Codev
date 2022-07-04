@@ -163,7 +163,7 @@ ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 systemctl enable systemd-resolved
 systemctl enable iwd
 
-cp /mnt/comshell/os/net /usr/local/bin/
+cp /mnt/simple-cdd/os/net /usr/local/bin/
 chmod +x /usr/local/bin/net
 
 echo '#!/bin/sh
@@ -171,7 +171,7 @@ rfkill $1 $2
 ' > /usr/local/bin/rf
 chmod u+s,+x /usr/local/bin/rf
 
-cp /mnt/comshell/os/bt /usr/local/bin/
+cp /mnt/simple-cdd/os/bt /usr/local/bin/
 chmod +x /usr/local/bin/bt
 
 echo '#!/bin/sh
@@ -234,7 +234,7 @@ chmod u+s,+x /usr/local/bin/su
 # , when you want to login you are sure that it's the login screen (not a fake one created by another user)
 # , others can't access your session using another keyboard
 
-cp /mnt/comshell/os/{sway.conf,status.py,swapps.py} /usr/local/share/
+cp /mnt/simple-cdd/os/{sway.conf,status.py,swapps.py} /usr/local/share/
 
 echo 'font=monospace:size=10.5
 dpi-aware=no
@@ -280,16 +280,16 @@ bright7=fefbec
 # http://man.openbsd.org/OpenBSD-current/man1/tmux.1#send-keys
 # https://github.com/tmux/tmux/wiki/Advanced-Use#basics-of-scripting
 
-cp /mnt/comshell/os/sd /usr/local/bin/
+cp /mnt/simple-cdd/os/sd /usr/local/bin/
 chmod +x /usr/local/bin/sd
 
-cp /mnt/comshell/os/fwi /usr/local/bin/
+cp /mnt/simple-cdd/os/fwi /usr/local/bin/
 chmod +x /usr/local/bin/fwi
 # find and install required firmwares
 fwi
 # create a service to do it automatically in the future
 
-cp /mnt/comshell/os/apm /usr/local/bin/
+cp /mnt/simple-cdd/os/apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
 
 mkdir -p /usr/local/lib/systemd/system
@@ -313,7 +313,7 @@ WantedBy=timers.target
 ' > /usr/local/lib/systemd/system/autoupdate.timer
 systemctl enable autoupdate.timer
 
-cp /mnt/comshell/os/codev /usr/local/bin/
+cp /mnt/simple-cdd/os/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev
 
 mkdir -p /usr/local/lib/systemd/system
@@ -409,6 +409,6 @@ echo '<?xml version="1.0"?>
 
 # bash aliases: poweroff, reboot, logout, suspend, lock
 
-cp -r /mnt/comshell/comshell-py /usr/local/share/
+cp -r /mnt/simple-cdd/comshell-py /usr/local/share/
 
 echo 'installation completed successfully; enter "reboot" to boot into the new system'
