@@ -4,14 +4,13 @@ anything which needs a kernel'based operating system can use Debian:
 , it's suitable for systems with limited resources
 , the stable releases provide a security proven system for servers
 
-the following instructions show how to prepare a Debian installation media, in a Unix'like operating system
-if you don't have access to an installed Unix'like operating system,
-  you can use Debian's (or any other distro's) live image
-first make sure that these packages are installed: wget2/wget libarchive-tools xorriso udisks2
-download the files of this project:
-; wget2 -r -np -nH --cut-dirs=1 https://hashbang.sh/~damoonsaghian/Comshell/
+the following instructions show how to prepare a Debian installation media
+first boot to a Debian live system
+https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current-live/amd64/iso-hybrid/debian-live-11.3.0-amd64-gnome+nonfree.iso
+then download the files of this project:
+; wget -r -np -nH --cut-dirs=1 https://hashbang.sh/~damoonsaghian/Comshell/
 ensure that the downloaded files aren't malicious
-insert a USB storage device (at least 700MB), find the device using "lsblk"
+insert a USB storage device (at least 1GB), find the device using "lsblk"
 now assuming the device is "sdx", and the CPU architecture is "amd64":
 ; sh Comshell/mkdi/mkdi.sh amd64 sdx
 

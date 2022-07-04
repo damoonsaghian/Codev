@@ -86,4 +86,4 @@ double space:
 
 for implementing Comshell, it seems that the best tool at hand is PyGObject
 Lua LGI is good too, and actually better, if all we need is libraries based on GObject
-but Python is more suitable, if we want a simple unified interface for almost anything
+but Python is more suitable, if we want a simple unified object'oriented interface for almost anything
