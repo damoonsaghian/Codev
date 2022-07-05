@@ -134,8 +134,7 @@ IPv6PrivacyExtensions=yes
 [DHCPv4]
 RouteMetric=100
 [IPv6AcceptRA]
-RouteMetric=100
-' > /etc/systemd/network/20-wired.network
+RouteMetric=100' > /etc/systemd/network/20-wired.network
 echo '[Match]
 Type=wlan
 [Network]
@@ -145,8 +144,7 @@ IgnoreCarrierLoss=3s
 [DHCPv4]
 RouteMetric=600
 [IPv6AcceptRA]
-RouteMetric=600
-' > /etc/systemd/network/20-wireless.network
+RouteMetric=600' > /etc/systemd/network/20-wireless.network
 echo '[Match]
 Type=wwan
 [Network]
@@ -156,22 +154,20 @@ IgnoreCarrierLoss=3s
 [DHCPv4]
 RouteMetric=700
 [IPv6AcceptRA]
-RouteMetric=700
-' > /etc/systemd/network/20-wwan.network
+RouteMetric=700' > /etc/systemd/network/20-wwan.network
 systemctl enable systemd-networkd
 ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 systemctl enable systemd-resolved
 systemctl enable iwd
 
-cp /mnt/simple-cdd/os/net /usr/local/bin/
+cp /mnt/comshell/os/net /usr/local/bin/
 chmod +x /usr/local/bin/net
 
 echo '#!/bin/sh
-rfkill $1 $2
-' > /usr/local/bin/rf
+rfkill $1 $2' > /usr/local/bin/rf
 chmod u+s,+x /usr/local/bin/rf
 
-cp /mnt/simple-cdd/os/bt /usr/local/bin/
+cp /mnt/comshell/os/bt /usr/local/bin/
 chmod +x /usr/local/bin/bt
 
 echo '#!/bin/sh
@@ -187,8 +183,7 @@ if [ $1 = enable ]; then
 fi
 echo "usage:
 autologin disable
-autologin enable <user>"
-' > /usr/local/bin/autologin
+autologin enable <user>"' > /usr/local/bin/autologin
 chmod +x /usr/local/bin/autologin
 
 echo '#!/bin/sh
@@ -196,8 +191,7 @@ echo '#!/bin/sh
 navt=$(fgconsole --next-available)
 systemctl start getty@tty"$navt".service
 chvt "$navt"
-echo "$navt" > /tmp/navt-vt
-' > /usr/local/bin/navt
+echo "$navt" > /tmp/navt-vt' > /usr/local/bin/navt
 chmod u+s,+x /usr/local/bin/navt
 
 echo '# execute this script if running from tty1, or if put here by "navt"
@@ -216,16 +210,14 @@ if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/navt-vt)" ]; the
     fi
   }
   [ "$USER" = root ] || exec sway -c /usr/local/share/sway.conf
-fi
-' > /etc/profile.d/login-manager.sh
+fi' > /etc/profile.d/login-manager.sh
 
 echo '#!/bin/sh
 # save current vt as the last vt
 echo "$(fgconsole)" > /tmp/su-lvt
 # [ -z "$1" ] && switches to root
 # running "su username" in root, switches immediately, without asking for password
-# running "su" in root, switches immediately to the last user
-' > /usr/local/bin/su
+# running "su" in root, switches immediately to the last user' > /usr/local/bin/su
 chmod u+s,+x /usr/local/bin/su
 
 # when a keyboard is connected, disable others, lock the session (if any), run "navt"
@@ -234,7 +226,7 @@ chmod u+s,+x /usr/local/bin/su
 # , when you want to login you are sure that it's the login screen (not a fake one created by another user)
 # , others can't access your session using another keyboard
 
-cp /mnt/simple-cdd/os/{sway.conf,status.py,swapps.py} /usr/local/share/
+cp /mnt/comshell/os/{sway.conf,status.py,swapps.py} /usr/local/share/
 
 echo 'font=monospace:size=10.5
 dpi-aware=no
@@ -265,8 +257,7 @@ bright3=cfb017
 bright4=6684e1
 bright5=b854d4
 bright6=1fad83
-bright7=fefbec
-' > /usr/local/share/foot.ini
+bright7=fefbec' > /usr/local/share/foot.ini
 
 # https://github.com/tmux/tmux/wiki
 # https://wiki.archlinux.org/title/Tmux
@@ -280,16 +271,16 @@ bright7=fefbec
 # http://man.openbsd.org/OpenBSD-current/man1/tmux.1#send-keys
 # https://github.com/tmux/tmux/wiki/Advanced-Use#basics-of-scripting
 
-cp /mnt/simple-cdd/os/sd /usr/local/bin/
+cp /mnt/comshell/os/sd /usr/local/bin/
 chmod +x /usr/local/bin/sd
 
-cp /mnt/simple-cdd/os/fwi /usr/local/bin/
+cp /mnt/comshell/os/fwi /usr/local/bin/
 chmod +x /usr/local/bin/fwi
 # find and install required firmwares
 fwi
 # create a service to do it automatically in the future
 
-cp /mnt/simple-cdd/os/apm /usr/local/bin/
+cp /mnt/comshell/os/apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
 
 mkdir -p /usr/local/lib/systemd/system
@@ -300,8 +291,7 @@ After=network-online.target
 ExecStart=/usr/local/bin/dpm autoupdate
 Nice=19
 KillMode=process
-KillSignal=SIGINT
-' > /usr/local/lib/systemd/system/autoupdate.service
+KillSignal=SIGINT' > /usr/local/lib/systemd/system/autoupdate.service
 echo '[Unit]
 Description=automatic update timer
 [Timer]
@@ -309,24 +299,21 @@ OnBootSec=5min
 OnUnitInactiveSec=24h
 RandomizedDelaySec=5min
 [Install]
-WantedBy=timers.target
-' > /usr/local/lib/systemd/system/autoupdate.timer
+WantedBy=timers.target' > /usr/local/lib/systemd/system/autoupdate.timer
 systemctl enable autoupdate.timer
 
-cp /mnt/simple-cdd/os/codev /usr/local/bin/
+cp /mnt/comshell/os/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev
 
 mkdir -p /usr/local/lib/systemd/system
-echo '
-[Unit]
+echo '[Unit]
 Description=automatic backup
 [Service]
 ExecStart=/usr/local/bin/codev backup
 Nice=19
 KillMode=process
 KillSignal=SIGINT' > /usr/local/lib/systemd/system/autobackup.service
-echo '
-[Unit]
+echo '[Unit]
 Description=automatic backup timer
 [Timer]
 OnUnitInactiveSec=1h
@@ -345,8 +332,7 @@ echo '[udisks]
 # 2, read/write disk images without asking for password (for non-system devices)
 Identity=unix-user:*
 Action=org.freedesktop.udisks2.filesystem-mount-system;org.freedesktop.udisks2.open-device
-ResultActive=yes
-' > /etc/polkit-1/localauthority/50-local.d/50-nopasswd.pkla
+ResultActive=yes' > /etc/polkit-1/localauthority/50-local.d/50-nopasswd.pkla
 
 # despite using BTRFS, in-place writing is needed in two situations:
 # , in-place first write for preallocated space, like in torrents
@@ -364,18 +350,15 @@ ResultActive=yes
 # to customize dconf default values:
 mkdir -p /etc/dconf/profile
 echo 'user-db:user
-system-db:local
-' > /etc/dconf/profile/user
+system-db:local' > /etc/dconf/profile/user
 
 mkdir -p /etc/dconf/db/local.d
-echo "
-[org/gnome/desktop/interface]
+echo "[org/gnome/desktop/interface]
 gtk-theme='Materia-light-compact'
 cursor-blink-timeout=1000
 document-font-name='sans 10.5'
 font-name='sans 10.5'
-monospace-font-name='monospace 10.5'
-" > /etc/dconf/db/local.d/00-mykeyfile
+monospace-font-name='monospace 10.5'" > /etc/dconf/db/local.d/00-mykeyfile
 dconf update
 
 mkdir -p /etc/fonts
@@ -409,6 +392,6 @@ echo '<?xml version="1.0"?>
 
 # bash aliases: poweroff, reboot, logout, suspend, lock
 
-cp -r /mnt/simple-cdd/comshell-py /usr/local/share/
+cp -r /mnt/comshell/comshell-py /usr/local/share/
 
 echo 'installation completed successfully; enter "reboot" to boot into the new system'
