@@ -31,7 +31,8 @@ ln --symbolic --force -t / /0/usr
 # implementing atomic upgrade is impossible for the second kind
 # so check if "machine_uses_flash" then report that it's not supported
 #   https://salsa.debian.org/installer-team/flash-kernel/-/blob/master/functions
-# MIPS systems are not supported for a similar reason too
+# MIPS systems are not supported for a similar reason
+#   (new MIPS systems may not have this problem, but MIPS is moving to RISCV anyway, so why bother)
 # also s390x is not supported because
 #   ZIPL (the bootloader on s390x) only understands data'blocks (not the filesystem),
 #   and thus the boot partition must be rewritten everytime kernel/initrd is updated
