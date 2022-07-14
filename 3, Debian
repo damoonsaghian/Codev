@@ -2,7 +2,7 @@ with Debian we can easily setup a Linux based operating system
 anything which needs a kernel'based operating system can use Debian:
 , it supports a wide range of processor architectures
 , it's suitable for systems with limited resources
-, the stable releases provide a security proven system for servers
+, the stable release provides a highly tested system for sensitive use cases
 
 the following instructions show how to prepare a Debian installation media, in a Unix'like operating system
 if you don't have access to an installed Unix'like operating system,
@@ -21,8 +21,8 @@ it will ask for:
 , confirmation for auto'detected time'zone
 , the network configuration (if it's not a simple DHCP wired connection)
 , the target device (if there is more than one device), and then installs Debian on it
+after reboot, you can login to the installed system
 
-after reboot, you will see Comshell
 you can press "tab+enter" to open the application launcher
 the first character in application launcher:
 , space: switch between the first application (usually Comshell) and the prior application
