@@ -6,7 +6,7 @@ anything which needs a kernel'based operating system can use Debian:
 
 the following instructions show how to prepare a Debian installation media, in a Unix'like operating system
 if you don't have access to an installed Unix'like operating system,
-  you can use Debian's (or any other distro's) live image
+  you can use Debian (or any other Linux distro) live image
 first make sure that these packages are installed: wget2/wget libarchive-tools xorriso udisks2
 download the files of this project:
 ; wget2 -r -np -nH --cut-dirs=1 https://hashbang.sh/~damoonsaghian/Comshell/
@@ -55,8 +55,8 @@ to setup a WIFI access'point:
 ;; net ap
 to setup a router:
 ;; net router
-to setup a modem (ADSL, cellular ...)
-;; net modem
+to setup a cellular modem:
+;; net cell
 
 to connect a Bluetooth device:
 ; bt
