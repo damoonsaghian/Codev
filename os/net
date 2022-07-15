@@ -41,11 +41,7 @@ setup_router () {
 # https://man.archlinux.org/man/extra/modemmanager/mmcli.1.en
 # https://gitlab.archlinux.org/archlinux/archiso/-/blob/master/configs/releng/airootfs/etc/systemd/network/20-wwan.network
 # https://github.com/systemd/systemd/issues/20370
-
-# https://wiki.archlinux.org/title/Direct_modem_connection#DSL_(PPPoE)
-# https://github.com/dfskoll/rp-pppoe/blob/master/doc/HOW-TO-CONNECT
-
-setup_modem () {
+setup_cell () {
   echo "not yet implemented"
 }
 
@@ -53,5 +49,5 @@ case "$1" in
   wifi) shift; setup_wifi "$@" ;;
   ap) setup_access_point ;;
   router) setup_router ;;
-  modem) setup_modem ;;
+  cell) setup_cell ;;
 esac

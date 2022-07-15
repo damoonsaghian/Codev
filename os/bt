@@ -4,7 +4,7 @@ echo "not yet implemented"; exit
 
 # it seems that normal users can use Bluez to connect devices globally (ie for all users)
 # is this also true for keyboards and headsets?
-# if it is, then it's a security hole
+# if it is, then it's a security flaw
 
 # the correct usage domain for Bluetooth is personal devices like headsets
 # it perfectly makes sense to pair them per user
