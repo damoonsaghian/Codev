@@ -43,17 +43,16 @@ this mess of a design cries out for hidden and quite sophisticated backdoors
 "https://en.wikipedia.org/wiki/Intel_Management_Engine"
 "https://blog.invisiblethings.org/papers/2015/x86_harmful.pdf"
 
-on X86 architectures we can have a GPU with open source driver
-but the default boot firmware on nearly all systems are closed source
+on X86 architectures the default boot firmware on nearly all systems are closed source
 flashing a CoreBoot based boot firmware is possible, but there still will be closed source parts (Intel FSP)
 regardless there is no easy way to get rid of Intel ME (or AMD PSP),
   though there are some hacks to disable (but not completely remove) it:
   "https://puri.sm/posts/deep-dive-into-intel-me-disablement/"
 
-ARM architecture is closed source too, but we can have a GPU with open source driver (Qualcomm/Adreno)
-in most cases, boot firmwares are open source (U-Boot or EDK2)
+ARM architecture is closed source too, but in most cases, boot firmwares are open source (U-Boot or EDK2)
 ARM TrustZone can host an open source operating system too, apparently:
   "https://news.ycombinator.com/item?id=17783357"
+GPU with open source driver: Qualcomm/Adreno
 
 open source CPU: RISC-V, Power ISA
 

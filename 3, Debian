@@ -4,7 +4,7 @@ anything which needs a kernel'based operating system can use Debian:
 , it's suitable for systems with limited resources
 , the stable release provides a highly tested system for sensitive use cases
 
-the following instructions show how to prepare a Debian installation media, in a Unix'like operating system
+the following instructions show how to prepare an installation media, in a Unix'like operating system
 if you don't have access to an installed Unix'like operating system,
   you can use Debian (or any other Linux distro) live image
 first make sure that these packages are installed: wget2/wget libarchive-tools xorriso udisks2
@@ -15,7 +15,7 @@ insert a USB storage device (at least 700MB), find the device using "lsblk"
 now assuming the device is "sdx", and the CPU architecture is "amd64":
 ; sh Comshell/mkdi/mkdi.sh amd64 sdx
 
-now just boot to the USB storage device
+now just boot to the USB storage
 it will ask for:
 , a root password, and a user account (provide different passwords for user and root)
 , confirmation for auto'detected time'zone
@@ -47,15 +47,15 @@ in addition you must:
 these can make physical attacks more difficult, but keep in mind that
   physical access to a computer is root access, given enough time and resources
 
-to connect to WIFI:
+to configure a wifi connection:
 ;; net wifi
-to forget a previously configured wireless network:
+to forget a previously configured wifi connection:
 ;; net wifi forget
-to setup a WIFI access'point:
+to setup a wifi access'point:
 ;; net ap
 to setup a router:
 ;; net router
-to setup a cellular modem:
+to configure a cellular connection:
 ;; net cell
 
 to connect a Bluetooth device:
@@ -63,8 +63,8 @@ to connect a Bluetooth device:
 to disconnect a Bluetooth device:
 ; bt disconnect
 
-to block/unblock a radio device (wlan wwan bluetooth nfc all):
-; rf block/unblock device-type
+to block/unblock a radio device:
+;; rf block/unblock wlan/wwan/bluetooth/nfc/all
 
 to install packages:
 ;; apm install package-names
