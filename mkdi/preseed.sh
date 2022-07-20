@@ -1,5 +1,29 @@
 set -e
 
+partman_disk="$1"
+# i couldn't find a way to do it with partman
+apt-get install fdisk
+[ -d /sys/firmware/efi ] &&
+  sfdisk --part-type "$partman_disk" 1 C12A7328-F81F-11D2-BA4B-00A0C93EC93B
+apt-get purge fdisk
+
+# install these packages (no recommends):
+# dosfstools exfatprogs btrfs-progs udisks2 polkitd
+# iwd wireless-regdb modemmanager rfkill
+# wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth
+#   https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
+# kbd is needed for its chvt
+# sway swayidle swaylock wofi grim xwayland
+# i3pystatus python3-colour python3-netifaces
+# python3-cffi python3-cairocffi
+# foot tmux
+# fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji materia-gtk-theme
+# openssh-client wget2 gpg attr
+# installing gpg prevents wget2 to install the whole of gnupg as a dependency
+# libarchive-tools
+# libgtk-4-media-gstreamer gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav heif-gdk-pixbuf
+# python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18
+
 btrfs subvolume create /0
 btrfs subvolume snapshot / /0
 
@@ -32,7 +56,7 @@ ln --symbolic --force -t / /0/usr
 # so check if "machine_uses_flash" then report that it's not supported
 #   https://salsa.debian.org/installer-team/flash-kernel/-/blob/master/functions
 # MIPS systems are not supported for a similar reason
-#   (new MIPS systems may not have this problem, but MIPS is moving to RISCV anyway, so why bother)
+#   (newer MIPS systems may not have this problem, but MIPS is moving to RISCV anyway, so why bother)
 # also s390x is not supported because
 #   ZIPL (the bootloader on s390x) only understands data'blocks (not the filesystem),
 #   and thus the boot partition must be rewritten everytime kernel/initrd is updated
@@ -87,23 +111,6 @@ ln --symbolic --force -t / /0/usr
 # https://gitlab.com/craftyguy/networkd-dispatcher
 # https://manpages.debian.org/unstable/networkd-dispatcher/networkd-dispatcher.8.en.html
 # systemd-networkd-wait-online
-
-# install these packages (no recommends):
-# dosfstools exfatprogs btrfs-progs udisks2 polkitd
-# iwd wireless-regdb modemmanager usb-modeswitch pppoe rfkill
-# wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth
-#   https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
-# kbd is needed for its chvt
-# sway swayidle swaylock wofi grim xwayland
-# i3pystatus python3-colour python3-netifaces
-# python3-cffi python3-cairocffi
-# foot tmux
-# fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji materia-gtk-theme
-# openssh-client wget2 gpg attr
-# installing gpg prevents wget2 to install the whole of gnupg as a dependency
-# libarchive-tools
-# libgtk-4-media-gstreamer gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav heif-gdk-pixbuf
-# python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18
 
 # mono'space fonts:
 #   wide characters are forced to squeeze

@@ -10,7 +10,7 @@ case "$1" in
   amd64) ;;
   i386) ;;
   ppc64el) ;;
-  *) echo "the \"$1\" architecture is not supported";
+  *) echo "\"$1\" architecture is not supported";
     echo "supported architectures are:";
     echo "riscv64 arm64 armhf armel amd64 i386 ppc64el";
     exit;;
@@ -52,8 +52,7 @@ cd "$project_path"/.cache/mkdi/initrd
 initrd_path="$(dirname "$project_path"/.cache/mkdi/install*/initrd.gz)"/initrd.gz
 bsdcat "$initrd_path" | bsdcpio -i
 cp "$project_path"/mkdi/preseed.cfg .
-echo 'export DEBIAN_FRONTEND=text
-' > lib/debian-installer.d/S99text-frontend
+echo 'export DEBIAN_FRONTEND=text' > lib/debian-installer.d/S99text-frontend
 rm "$initrd_path"
 find . | bsdcpio -oz --format=newc > "$initrd_path"
 rm -r ./*
@@ -61,8 +60,7 @@ rm -r ./*
 initrd_gtk_path="$(dirname "$project_path"/.cache/mkdi/install*/gtk/initrd.gz)"/initrd.gz
 bsdcat "$initrd_gtk_path" | bsdcpio -i
 cp "$project_path"/mkdi/preseed.cfg .
-echo 'export DEBIAN_FRONTEND=text
-' > lib/debian-installer.d/S99text-frontend
+echo 'export DEBIAN_FRONTEND=text' > lib/debian-installer.d/S99text-frontend
 rm "$initrd_gtk_path"
 find . | bsdcpio -oz --format=newc > "$initrd_gtk_path"
 cd "$project_path"/.cache/mkdi; rm -r initrd
@@ -100,11 +98,61 @@ tar -xzf "$project_path"/.cache/mkdi/firmware.tar.gz
 [ -d firmware ] && { mv firmware/* .; rmdir firmware; }
 cd "$project_path"/.cache/mkdi
 
+
+mkdir partman-recepies
+echo 'default ::
+512 512 768 fat32
+  $iflabel{ gpt }
+  $bootable{ }
+  method{ format }
+  format{ }
+  use_filesystem{ }
+  filesystem{ fat32 }
+  mountpoint{ /boot } .
+900 10000 -1 btrfs
+  method{ format }
+  format{ }
+  use_filesystem{ }
+  filesystem{ btrfs }
+  mountpoint{ / } .
+100% 512 300% linux-swap
+  method{ swap }
+  format{ } .' > partman-recepies/default
+echo 'bios ::
+1 1 1 free
+	$iflabel{ gpt }
+	method{ biosgrub } .
+1500 10000 -1 btrfs
+	method{ format }
+	format{ }
+	use_filesystem{ }
+	filesystem{ btrfs }
+	mountpoint{ / } .
+100% 512 200% linux-swap
+	method{ swap }
+	format{ } .' > partman-recepies/bios
+echo 'ppc ::
+8 1 1 prep
+  $primary{ }
+  $bootable{ }
+  method{ prep } .
+1500 10000 -1 btrfs
+  $primary{ }
+  method{ format }
+  format{ }
+  use_filesystem{ }
+  filesystem{ btrfs }
+  mountpoint{ / } .
+100% 512 300% linux-swap
+  method{ swap }
+  format{ } .' > partman-recepies/ppc
+
 # generate the modified iso file
 [ -f debian-modified-"$1"-netinst.iso ] && rm debian-modified-"$1"-netinst.iso
 xorriso -indev "$debian_image" -outdev debian-modified-"$1"-netinst.iso \
   -overwrite on -pathspecs off -cd / \
   -add install*/initrd.gz install*/gtk/initrd.gz md5sum.txt firmware \
+  -map partman-recepies/ /comshell/partman-recepies/ \
   -map "$project_path"/mkdi/preseed.sh /comshell/preseed.sh \
   -map "$project_path"/os/ /comshell/os/ \
   -map "$project_path"/comshell-py/ /comshell/comshell-py/
