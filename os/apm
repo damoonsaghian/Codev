@@ -25,18 +25,18 @@ if [ "$1" != "autoupdate" ] && [ "$1" != "update" ] && [ "$1" != "add" ] && [ "$
   exit 1
 fi
 
-# create a snapshot of "/subvols/0" in "/subvols/1"
-btrfs subvolume snapshot /subvols/0 /subvols/1
+# create a snapshot of "/0" in "/1"
+btrfs subvolume snapshot /0 /1
 
-mount --bind /etc /subvols/1/etc
-mount --bind /home /subvols/1/home
-mount --bind /root /subvols/1/root
-mount --bind /opt /subvols/1/opt
-mount --bind /usr/local /subvols/1/usr/local
-mount --bind /srv /subvols/1/srv
-mount --bind /tmp /subvols/1/tmp
-mount --bind /var /subvols/1/var
-mount --bind /boot/efi /subvols/1/boot/efi
+mount --bind /etc /1/etc
+mount --bind /home /1/home
+mount --bind /root /1/root
+mount --bind /opt /1/opt
+mount --bind /usr/local /1/usr/local
+mount --bind /srv /1/srv
+mount --bind /tmp /1/tmp
+mount --bind /var /1/var
+mount --bind /boot/efi /1/boot/efi
 
 mount --bind /etc /0/etc
 mount --bind /home /0/home
@@ -61,4 +61,4 @@ apt-get autoremove --purge --yes
 apt-get autoclean --yes
 EOF
 
-mv /subvols/1 /subvols/0
+mv /1 /0
