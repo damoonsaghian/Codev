@@ -1,12 +1,5 @@
 set -e
 
-partman_disk="$1"
-# i couldn't find a way to do it with partman
-apt-get install fdisk
-[ -d /sys/firmware/efi ] &&
-  sfdisk --part-type "$partman_disk" 1 C12A7328-F81F-11D2-BA4B-00A0C93EC93B
-apt-get purge fdisk
-
 # install these packages (no recommends):
 # dosfstools exfatprogs btrfs-progs udisks2 polkitd
 # iwd wireless-regdb modemmanager rfkill
@@ -42,28 +35,24 @@ ln --symbolic --force -t / /0/usr
 
 # VFAT boot partition
 # separate boot partition and atomic upgrades can live together becasue Debian keeps old kernel and modules
-# before and after upgrade: regenerate extlinux.conf, flash-kernel, systemd-bootd, grub-mkconfig
+# before and after upgrade: regenerate systemd-bootd, update-grub (or grub-mkconfig)
 
-# U-Boot distro: /boot/extlinux/extlinux.conf
-# U-Boot: flash-kernel
 # UEFI: systemd-bootd
 # Bios and PPC (OpenFirmware, Petitboot): Grub
 
-# ARM systems which need "flash-kernel" package are two kinds:
-# , those which just need a U-Boot boot script
-# , some rare cases (mostly NAS devices) which need the kernel and initrd to be flashed in their ROM
-# implementing atomic upgrade is impossible for the second kind
-# so check if "machine_uses_flash" then report that it's not supported
-#   https://salsa.debian.org/installer-team/flash-kernel/-/blob/master/functions
+# flash-kernel way of dealing with kernel and initrd images is very diverse
+# this makes implementing atomic upgrades impossible
+# so see if flash-kernel is installed, remove it and warn the user
+# so on ARM and RISCV only UEFI is supported
+# supporting U-Boot distro is possible, but we skip that, because:
+# , it's not widely implemented
+# , it's not supported by Debian installation media, any way
+
 # MIPS systems are not supported for a similar reason
 #   (newer MIPS systems may not have this problem, but MIPS is moving to RISCV anyway, so why bother)
 # also s390x is not supported because
 #   ZIPL (the bootloader on s390x) only understands data'blocks (not the filesystem),
 #   and thus the boot partition must be rewritten everytime kernel/initrd is updated
-
-# U-boot "generic distro configuration"
-# https://source.denx.de/u-boot/u-boot/-/blob/master/doc/develop/distro.rst
-# https://developer.toradex.com/linux-bsp/how-to/boot/distro-boot/
 
 {
   printf "title\t\tDebian\n"
