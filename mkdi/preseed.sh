@@ -5,6 +5,7 @@ set -e
 # iwd wireless-regdb modemmanager rfkill
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth
 #   https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
+# dbus-user-session
 # kbd is needed for its chvt
 # sway swayidle swaylock wofi grim xwayland
 # i3pystatus python3-colour python3-netifaces
@@ -23,8 +24,6 @@ btrfs subvolume snapshot / /0
 rm -r /0/etc/* /0/home/* /0/root/* /0/opt/* /0/usr/local/* /0/srv/* /0/var/*
 rm -d /0/0
 
-mount --bind /boot/efi /0/boot/efi
-
 # directories which must change atomically during an upgrade
 ln --symbolic --force -t / /0/bin
 ln --symbolic --force -t / /0/boot
@@ -33,12 +32,18 @@ ln --symbolic --force -t / /0/lib64
 ln --symbolic --force -t / /0/sbin
 ln --symbolic --force -t / /0/usr
 
-# VFAT boot partition
-# separate boot partition and atomic upgrades can live together becasue Debian keeps old kernel and modules
-# before and after upgrade: regenerate systemd-bootd, update-grub (or grub-mkconfig)
-
 # UEFI: systemd-bootd
 # Bios and PPC (OpenFirmware, Petitboot): Grub
+
+# VFAT boot partition
+# separate boot partition and atomic upgrades can live together becasue Debian keeps old kernel and modules
+# before and after upgrade: regenerate systemd-bootd
+
+# for EFI -> systemd-bootd
+# https://man.archlinux.org/man/systemd-stub.7
+# https://systemd.io/BOOT_LOADER_SPECIFICATION/
+# https://wiki.debian.org/EFIStub
+# /EFI/BOOT/BOOTx64.EFI BOOTIA32.EFI
 
 # flash-kernel way of dealing with kernel and initrd images is very diverse
 # this makes implementing atomic upgrades impossible
@@ -54,34 +59,28 @@ ln --symbolic --force -t / /0/usr
 #   ZIPL (the bootloader on s390x) only understands data'blocks (not the filesystem),
 #   and thus the boot partition must be rewritten everytime kernel/initrd is updated
 
-{
-  printf "title\t\tDebian\n"
-  printf "version\t\t$(cat /etc/debian_version) ($desc)\n"
-  printf "linux\t\t$kfile\n"
-  [ -z "$ifile" ] || printf "initrd\t\t$ifile\n"
-  if [ -n "$dtb_name" ] ; then
-    printf "devicetree\t$dtbfile\n"
-  fi
-  printf "options\t\t$(get_kernel_cmdline)\n"
-  printf "linux-appendroot true\n"
-} > /boot/extlinux/extlinux.conf
-
-# for EFI -> systemd-bootd
-# https://man.archlinux.org/man/systemd-stub.7
-# https://systemd.io/BOOT_LOADER_SPECIFICATION/
-# https://wiki.debian.org/EFIStub
-# /EFI/BOOT/BOOTx64.EFI BOOTIA32.EFI
-
 # now we are left with BIOS and OpenFirmware
 # to have atomic upgrades for BIOS and OpenFirmware based systems,
 #   the bootloader is installed once, and never updated
-# disable Grub upgrade, and lock Grub:
+[ "$(dpkg --print-architecture)" = 'i386' ] && [ ! -d /sys/firmware/efi ] && {
+  apt-get install grub2-common grub-pc-bin grub-pc
+  apt-get remove grub-pc
+}
+[ "$(udpkg --print-architecture)" = 'amd64' ] && [ ! -d /sys/firmware/efi ] && {
+  apt-get install grub2-common grub-pc-bin grub-pc
+  apt-get remove grub-pc
+}
+[ "$(udpkg --print-architecture)" = 'ppc64el' ] && {
+  apt-get install grub2-common grub-ieee1275-bin grub-ieee1275
+  apt-get remove grub-ieee1275
+}
+# lock Grub:
 # printf '\nGRUB_TIMEOUT=0\nGRUB_DISABLE_OS_PROBER=true\n' >> /mnt/etc/default/grub
 # disable menu editing and other admin operations in Grub:
 # printf '#! /bin/sh\nset superusers=""\nset menuentry_id_option="--unrestricted $menuentry_id_option"\n' >
 #   /mnt/etc/grub.d/09_user
 # chmod +x /mnt/etc/grub.d/09_user
-# update-grub
+# update-grub (grub-mkconfig -o /boot/grub/grub.cfg)
 
 # boot firmware updates need special care
 # unless there is a read_only backup, firmware update is not a good idea
