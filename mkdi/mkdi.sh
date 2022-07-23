@@ -6,13 +6,12 @@ case "$1" in
   riscv64) ;;
   arm64) ;;
   armhf) ;;
-  armel) ;;
   amd64) ;;
   i386) ;;
   ppc64el) ;;
   *) echo "\"$1\" architecture is not supported";
     echo "supported architectures are:";
-    echo "riscv64 arm64 armhf armel amd64 i386 ppc64el";
+    echo "riscv64 arm64 armhf amd64 i386 ppc64el";
     exit;;
 esac
 
@@ -98,21 +97,17 @@ cd "$project_path"/.cache/mkdi
 
 mkdir partman-recepies && true
 echo 'default ::
-512 512 768 fat32
-  $iflabel{ gpt }
-  $bootable{ }
-  method{ format }
-  format{ }
-  use_filesystem{ }
-  filesystem{ fat32 }
-  mountpoint{ /boot } .
+538 538 1075 free
+	$iflabel{ gpt }
+	method{ efi }
+	format{ } .
 900 10000 -1 btrfs
   method{ format }
   format{ }
   use_filesystem{ }
   filesystem{ btrfs }
   mountpoint{ / } .
-100% 512 300% linux-swap
+100% 512 200% linux-swap
   method{ swap }
   format{ } .' > partman-recepies/default
 echo 'bios ::

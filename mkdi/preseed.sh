@@ -32,26 +32,9 @@ ln --symbolic --force -t / /0/lib64
 ln --symbolic --force -t / /0/sbin
 ln --symbolic --force -t / /0/usr
 
-# UEFI: systemd-bootd
-# Bios and PPC (OpenFirmware, Petitboot): Grub
-
-# VFAT boot partition
-# separate boot partition and atomic upgrades can live together becasue Debian keeps old kernel and modules
-# before and after upgrade: regenerate systemd-bootd
-
-# for EFI -> systemd-bootd
-# https://man.archlinux.org/man/systemd-stub.7
-# https://systemd.io/BOOT_LOADER_SPECIFICATION/
-# https://wiki.debian.org/EFIStub
-# /EFI/BOOT/BOOTx64.EFI BOOTIA32.EFI
-
 # flash-kernel way of dealing with kernel and initrd images is very diverse
 # this makes implementing atomic upgrades impossible
 # so see if flash-kernel is installed, remove it and warn the user
-# so on ARM and RISCV only UEFI is supported
-# supporting U-Boot distro is possible, but we skip that, because:
-# , it's not widely implemented
-# , it's not supported by Debian installation media, any way
 
 # MIPS systems are not supported for a similar reason
 #   (newer MIPS systems may not have this problem, but MIPS is moving to RISCV anyway, so why bother)
@@ -59,28 +42,70 @@ ln --symbolic --force -t / /0/usr
 #   ZIPL (the bootloader on s390x) only understands data'blocks (not the filesystem),
 #   and thus the boot partition must be rewritten everytime kernel/initrd is updated
 
-# now we are left with BIOS and OpenFirmware
+# bootloader:
+# , for UEFI use systemd-boot
+# , for Bios and PPC (OpenFirmware, Petitboot) use Grub
+
+# U-boot "generic distro configuration"
+# U-Boot distro is not widely adopted, and it's not even supported by Debian installation media
+# but we can support it by simply dropping a file in:
+#   /boot/efi/extlinux/extlinux.conf
+# https://u-boot.readthedocs.io/en/latest/develop/distro.html
+# https://developer.toradex.com/linux-bsp/how-to/boot/distro-boot/
+
+# UEFI needs a separate VFAT boot partition
+# separate boot partition and atomic upgrades can live together becasue Debian keeps old kernel and modules
+# we just need to regenerate systemd-boot config before and after upgrade
+
+[ -d /sys/firmware/efi ] && {
+  mkdir -p /boot/efi/loader
+  echo 'default debian
+  timeout 0' > /boot/efi/loader/loader.conf
+
+  mkdir /boot/efi/loader/entries
+  bootctl install --esp-path=/boot/efi
+
+  echo '#!/bin/sh -e
+kernel-install add "$1" "$2"
+exit 0' > /etc/kernel/postinst.d/zz-update-systemd-boot
+
+  echo '#!/bin/sh -e
+kernel-install remove "$1"
+exit 0' > /etc/kernel/postrm.d/zz-update-systemd-boot
+
+  mkdir /boot/efi/"$(cat /etc/machine-id)"
+  kernel-install
+  # /boot/boot/bootx64.efi bootia32.efi bootaa64.efi bootarm.efi bootrv64.efi
+}
+
 # to have atomic upgrades for BIOS and OpenFirmware based systems,
 #   the bootloader is installed once, and never updated
+lock_grub () {
+  echo '
+  GRUB_TIMEOUT=0
+  GRUB_DISABLE_OS_PROBER=true' >> /etc/default/grub
+  # disable menu editing and other admin operations in Grub:
+  echo '#! /bin/sh
+  set superusers=""
+  set menuentry_id_option="--unrestricted $menuentry_id_option"' > /etc/grub.d/09_user
+  chmod +x /etc/grub.d/09_user
+  grub-mkconfig -o /boot/grub/grub.cfg
+}
 [ "$(dpkg --print-architecture)" = 'i386' ] && [ ! -d /sys/firmware/efi ] && {
-  apt-get install grub2-common grub-pc-bin grub-pc
-  apt-get remove grub-pc
+  apt-get install --no-install-recommends --yes grub2-common grub-pc-bin grub-pc
+  apt-get remove --yes grub-pc
+  lock_grub
 }
 [ "$(udpkg --print-architecture)" = 'amd64' ] && [ ! -d /sys/firmware/efi ] && {
-  apt-get install grub2-common grub-pc-bin grub-pc
-  apt-get remove grub-pc
+  apt-get install --no-install-recommends --yes grub2-common grub-pc-bin grub-pc
+  apt-get remove --yes grub-pc
+  lock_grub
 }
 [ "$(udpkg --print-architecture)" = 'ppc64el' ] && {
-  apt-get install grub2-common grub-ieee1275-bin grub-ieee1275
-  apt-get remove grub-ieee1275
+  apt-get install --no-install-recommends --yes grub2-common grub-ieee1275-bin grub-ieee1275
+  apt-get remove --yes grub-ieee1275
+  lock_grub
 }
-# lock Grub:
-# printf '\nGRUB_TIMEOUT=0\nGRUB_DISABLE_OS_PROBER=true\n' >> /mnt/etc/default/grub
-# disable menu editing and other admin operations in Grub:
-# printf '#! /bin/sh\nset superusers=""\nset menuentry_id_option="--unrestricted $menuentry_id_option"\n' >
-#   /mnt/etc/grub.d/09_user
-# chmod +x /mnt/etc/grub.d/09_user
-# update-grub (grub-mkconfig -o /boot/grub/grub.cfg)
 
 # boot firmware updates need special care
 # unless there is a read_only backup, firmware update is not a good idea
