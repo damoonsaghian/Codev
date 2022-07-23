@@ -48,6 +48,8 @@ mount --bind /tmp /0/tmp
 mount --bind /var /0/var
 mount --bind /boot/efi /0/boot/efi
 
+[ -d /sys/firmware/efi ] && kernel-install add "$1" "$2"
+
 chroot /subvols/1 /usr/bin/sh << EOF
 set -e
 apt-get update
@@ -62,3 +64,4 @@ apt-get autoclean --yes
 EOF
 
 mv /1 /0
+[ -d /sys/firmware/efi ] && kernel-install add "$1" "$2"
