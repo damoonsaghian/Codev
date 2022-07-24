@@ -55,12 +55,16 @@ ln --symbolic --force -t / /0/usr
 
 # UEFI needs a separate VFAT boot partition
 # separate boot partition and atomic upgrades can live together becasue Debian keeps old kernel and modules
-# we just need to regenerate systemd-boot config before and after upgrade
+# and the fact that systemd-boot implements boot counting and automatic fallback to
+#   older working boot entries on failure
+#   https://systemd.io/AUTOMATIC_BOOT_ASSESSMENT/
+# for U-Boot distro we have to regenerate the config before upgrading and after root switch
 
 [ -d /sys/firmware/efi ] && {
   mkdir -p /boot/efi/loader
   echo 'default debian
-  timeout 0' > /boot/efi/loader/loader.conf
+  timeout 0
+  editor no' > /boot/efi/loader/loader.conf
 
   mkdir /boot/efi/loader/entries
   bootctl install --esp-path=/boot/efi
@@ -73,9 +77,11 @@ exit 0' > /etc/kernel/postinst.d/zz-update-systemd-boot
 kernel-install remove "$1"
 exit 0' > /etc/kernel/postrm.d/zz-update-systemd-boot
 
+  echo 1 >/etc/kernel/tries
+
   mkdir /boot/efi/"$(cat /etc/machine-id)"
-  kernel-install
-  # /boot/boot/bootx64.efi bootia32.efi bootaa64.efi bootarm.efi bootrv64.efi
+  kernel_version="$(basename /boot/vmlinuz-* | sed -e 's/vmlinuz-//')"
+  kernel-install "$kernel_version" /boot/vmlinuz-*
 }
 
 # to have atomic upgrades for BIOS and OpenFirmware based systems,
