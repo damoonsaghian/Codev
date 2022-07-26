@@ -48,8 +48,6 @@ mount --bind /tmp /0/tmp
 mount --bind /var /0/var
 mount --bind /boot/efi /0/boot/efi
 
-# regenerate /boot/efi/extlinux/extlinux.conf
-
 chroot /subvols/1 /usr/bin/sh << EOF
 set -e
 apt-get update
@@ -64,4 +62,4 @@ apt-get autoclean --yes
 EOF
 
 mv /1 /0
-# regenerate /boot/efi/extlinux/extlinux.conf
+bootctl update --graceful --quiet --no-variables --esp-path=/boot/efi
