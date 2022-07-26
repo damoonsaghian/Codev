@@ -24,7 +24,7 @@ btrfs subvolume snapshot / /0
 rm -r /0/etc/* /0/home/* /0/root/* /0/opt/* /0/usr/local/* /0/srv/* /0/var/*
 rm -d /0/0
 
-# directories which must change atomically during an upgrade
+# directories which must change atomicly during an upgrade
 ln --symbolic --force -t / /0/bin
 ln --symbolic --force -t / /0/boot
 ln --symbolic --force -t / /0/lib
@@ -35,53 +35,44 @@ ln --symbolic --force -t / /0/usr
 # flash-kernel way of dealing with kernel and initrd images is very diverse
 # this makes implementing atomic upgrades impossible
 # so see if flash-kernel is installed, remove it and warn the user
-
+#
 # MIPS systems are not supported for a similar reason
 #   (newer MIPS systems may not have this problem, but MIPS is moving to RISCV anyway, so why bother)
 # also s390x is not supported because
-#   ZIPL (the bootloader on s390x) only understands data'blocks (not the filesystem),
-#   and thus the boot partition must be rewritten everytime kernel/initrd is updated
-
+#   ZIPL (the bootloader on s390x) only understands data'blocks (not a filesystem),
+#   and the boot partition must be rewritten everytime kernel/initrd is updated
+#
 # bootloader:
 # , for UEFI use systemd-boot
 # , for Bios and PPC (OpenFirmware, Petitboot) use Grub
-
-# U-boot "generic distro configuration"
-# U-Boot distro is not widely adopted, and it's not even supported by Debian installation media
-# but we can support it by simply dropping a file in:
-#   /boot/efi/extlinux/extlinux.conf
-# https://u-boot.readthedocs.io/en/latest/develop/distro.html
-# https://developer.toradex.com/linux-bsp/how-to/boot/distro-boot/
 
 # UEFI needs a separate VFAT boot partition
 # separate boot partition and atomic upgrades can live together becasue Debian keeps old kernel and modules
 # and the fact that systemd-boot implements boot counting and automatic fallback to
 #   older working boot entries on failure
 #   https://systemd.io/AUTOMATIC_BOOT_ASSESSMENT/
-# for U-Boot distro we have to regenerate the config before upgrading and after root switch
+[ -d /boot/efi ] && {
+  apt-get install --yes systemd-boot
 
-[ -d /sys/firmware/efi ] && {
-  mkdir -p /boot/efi/loader
+  mkdir /boot/efi/loader
   echo 'default debian
   timeout 0
   editor no' > /boot/efi/loader/loader.conf
 
-  mkdir /boot/efi/loader/entries
-  bootctl install --esp-path=/boot/efi
-
-  echo '#!/bin/sh -e
-kernel-install add "$1" "$2"
-exit 0' > /etc/kernel/postinst.d/zz-update-systemd-boot
-
-  echo '#!/bin/sh -e
-kernel-install remove "$1"
-exit 0' > /etc/kernel/postrm.d/zz-update-systemd-boot
+  bootctl install --no-variables --esp-path=/boot/efi
 
   echo 1 >/etc/kernel/tries
-
   mkdir /boot/efi/"$(cat /etc/machine-id)"
-  kernel_version="$(basename /boot/vmlinuz-* | sed -e 's/vmlinuz-//')"
-  kernel-install "$kernel_version" /boot/vmlinuz-*
+
+  root_device=$(findmnt -n -o SOURCE --target /)
+  root_uuid=$(lsblk -no UUID "$root_device") # or $(blkid -s UUID -o value "$root_device")
+  echo "root=UUID=$root_uuid rw quiet" > /etc/kernel/cmdline
+
+  kernel_path=$(readlink -f /boot/vmlinu?)
+  kernel_version="$(basename $kernel_path | sed -e 's/vmlinu.-//')"
+  kernel-install add "$kernel_version" "$kernel_path" /boot/initrd.img-"$kernel_version"
+
+  rm /etc/kernel/cmdline
 }
 
 # to have atomic upgrades for BIOS and OpenFirmware based systems,
