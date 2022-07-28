@@ -55,18 +55,15 @@ ln --symbolic --force -t / /0/usr
   apt-get install --yes systemd-boot
 
   mkdir /boot/efi/loader
-  echo 'default debian
-  timeout 0
+  echo 'timeout 0
   editor no' > /boot/efi/loader/loader.conf
 
   bootctl install --no-variables --esp-path=/boot/efi
 
-  echo 1 >/etc/kernel/tries
-  mkdir /boot/efi/"$(cat /etc/machine-id)"
+  echo 1 > /etc/kernel/tries
 
-  root_device=$(findmnt -n -o SOURCE --target /)
-  root_uuid=$(lsblk -no UUID "$root_device") # or $(blkid -s UUID -o value "$root_device")
-  echo "root=UUID=$root_uuid rw quiet" > /etc/kernel/cmdline
+  root_uuid="$(findmnt -n -o UUID /)"
+  echo "root=UUID=$root_uuid ro quiet" > /etc/kernel/cmdline
 
   kernel_path=$(readlink -f /boot/vmlinu?)
   kernel_version="$(basename $kernel_path | sed -e 's/vmlinu.-//')"
