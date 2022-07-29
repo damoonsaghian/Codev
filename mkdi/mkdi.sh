@@ -23,13 +23,13 @@ mkdir -p "$project_path"/.cache/mkdi && true
 cd "$project_path"/.cache/mkdi
 
 # download and verify Debian installation image
-rm SHA512SUMS && true
+rm -f SHA512SUMS && true
 wget https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/SHA512SUMS
 debian_image="$(ls debian-*-"$1"-netinst.iso)"
 if [ -f "$debian_image" ] && sha512sum --check --status --ignore-missing SHA512SUMS; then
   echo "using priviously downloaded installation image"
 else
-  [ -f "$debian_image" ] && rm debian-*-"$1"-netinst.iso
+  [ -f "$debian_image" ] && rm -f debian-*-"$1"-netinst.iso && true
   wget --recursive --level=1 --no-directories \
     --accept "debian-*-$1-netinst.iso" --reject "debian-*-*-$1-netinst.iso" \
     https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/
@@ -40,10 +40,10 @@ else
 fi
 
 # extract "initrd.gz" from the iso file
-rm -r install* && true
+rm -rf install* && true
 xorriso -osirrox on -indev "$debian_image" -extract_l / ./ '/install*/initrd.gz'
 xorriso -osirrox on -indev "$debian_image" -extract_l / ./ '/install*/gtk/initrd.gz'
-rm -r initrd && true
+rm -rf initrd && true
 mkdir -p initrd
 cd "$project_path"/.cache/mkdi/initrd
 
@@ -52,23 +52,23 @@ initrd_path="$(dirname "$project_path"/.cache/mkdi/install*/initrd.gz)"/initrd.g
 bsdcat "$initrd_path" | bsdcpio -i
 cp "$project_path"/mkdi/preseed.cfg .
 echo 'export DEBIAN_FRONTEND=text' > lib/debian-installer.d/S99text-frontend
-rm "$initrd_path"
+rm -f "$initrd_path"
 find . | bsdcpio -oz --format=newc > "$initrd_path"
-rm -r ./*
+rm -rf ./*
 # do the same for "gtk/initrd.gz"
 initrd_gtk_path="$(dirname "$project_path"/.cache/mkdi/install*/gtk/initrd.gz)"/initrd.gz
 bsdcat "$initrd_gtk_path" | bsdcpio -i
 cp "$project_path"/mkdi/preseed.cfg .
 echo 'export DEBIAN_FRONTEND=text' > lib/debian-installer.d/S99text-frontend
-rm "$initrd_gtk_path"
+rm -f "$initrd_gtk_path"
 find . | bsdcpio -oz --format=newc > "$initrd_gtk_path"
-cd "$project_path"/.cache/mkdi; rm -r initrd
+cd "$project_path"/.cache/mkdi; rm -rf initrd && true
 
 # prepend the microcode to initrd
 # https://docs.kernel.org/x86/microcode.html#early-load-microcode
 
 # regenerate "md5sum.txt" file
-rm md5sum.txt && true
+rm -f md5sum.txt && true
 xorriso -osirrox on -indev "$debian_image" -cpx /md5sum.txt md5sum.txt
 # remove the lines corresponding to the initrd files
 grep -v "initrd.gz" md5sum.txt > tmpfile && mv tmpfile md5sum.txt
@@ -76,19 +76,19 @@ grep -v "initrd.gz" md5sum.txt > tmpfile && mv tmpfile md5sum.txt
 md5sum ./install*/initrd.gz ./install*/gtk/initrd.gz >> md5sum.txt
 
 # download and extract firmware archive
-rm SHA512SUMS && true
+rm -f SHA512SUMS && true
 wget https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/SHA512SUMS
 if [ -f firmware.tar.gz ] && sha512sum --check --status --ignore-missing SHA512SUMS; then
   echo "using priviously downloaded firmware archive"
 else
-  [ -f firmware.tar.gz ] && rm firmware.tar.gz
+  [ -f firmware.tar.gz ] && rm -f firmware.tar.gz && true
   wget https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.tar.gz
   sha512sum --check --status --ignore-missing SHA512SUMS || {
     echo "verifying the checksum of the downloaded firmware archive failed; try again"
     exit 1
   }
 fi
-rm -r firmware && true
+rm -rf firmware && true
 mkdir firmware
 cd firmware
 tar -xzf "$project_path"/.cache/mkdi/firmware.tar.gz
@@ -140,7 +140,7 @@ echo 'ppc ::
   format{ } .' > partman-recepies/ppc
 
 # generate the modified iso file
-[ -f debian-modified-"$1"-netinst.iso ] && rm debian-modified-"$1"-netinst.iso
+[ -f debian-modified-"$1"-netinst.iso ] && rm -f debian-modified-"$1"-netinst.iso && true
 xorriso -indev "$debian_image" -outdev debian-modified-"$1"-netinst.iso \
   -overwrite on -pathspecs off -cd / \
   -add install*/initrd.gz install*/gtk/initrd.gz md5sum.txt firmware \

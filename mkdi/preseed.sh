@@ -18,13 +18,15 @@ set -e
 # libgtk-4-media-gstreamer gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav heif-gdk-pixbuf
 # python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18
 
-btrfs subvolume create /0
-btrfs subvolume snapshot / /0
+btrfs subvolume create /1
+btrfs subvolume snapshot / /1
 
-rm -r /0/etc/* /0/home/* /0/root/* /0/opt/* /0/usr/local/* /0/srv/* /0/var/*
-rm -d /0/0
+rm -rf /1/etc/* /1/home/* /1/root/* /1/opt/* /1/usr/local/* /1/srv/* /1/var/*
+rm -df /1/1
 
-# directories which must change atomicly during an upgrade
+ln --symbolic /1 /0
+
+# directories which must change atomically during an upgrade
 ln --symbolic --force -t / /0/bin
 ln --symbolic --force -t / /0/boot
 ln --symbolic --force -t / /0/lib
@@ -51,6 +53,7 @@ ln --symbolic --force -t / /0/usr
 # and the fact that systemd-boot implements boot counting and automatic fallback to
 #   older working boot entries on failure
 #   https://systemd.io/AUTOMATIC_BOOT_ASSESSMENT/
+# https://manpages.debian.org/unstable/systemd-boot/systemd-boot.7.en.html
 [ -d /boot/efi ] && {
   apt-get install --yes systemd-boot
 
@@ -69,8 +72,15 @@ ln --symbolic --force -t / /0/usr
   kernel_version="$(basename $kernel_path | sed -e 's/vmlinu.-//')"
   kernel-install add "$kernel_version" "$kernel_path" /boot/initrd.img-"$kernel_version"
 
-  rm /etc/kernel/cmdline
+  rm -f /etc/kernel/cmdline
 }
+
+# alternative method:
+# bootctl remove --esp-path=/boot/efi
+# change root partition's type to XBOOTLDR
+# create /loader/entries/debian.conf which refers to these symlinks: /boot/vmlinu? /boot/initrd.img
+# put BTRFS driver in /boot/efi//EFI/systemd/drivers/...arch.efi
+# cp /usr/lib/systemd/boot/efi/systemd-bootx64.efi /boot/efi/EFI/BOOT/BOOTX64.EFI
 
 # to have atomic upgrades for BIOS and OpenFirmware based systems,
 #   the bootloader is installed once, and never updated
@@ -187,7 +197,7 @@ chmod +x /usr/local/bin/bt
 
 echo '#!/bin/sh
 if [ $1 = disable ]; then
-  rm /etc/systemd/system/getty@tty1.service.d/override.conf
+  rm -f /etc/systemd/system/getty@tty1.service.d/override.conf
   exit
 fi
 if [ $1 = enable ]; then
@@ -303,7 +313,7 @@ echo '[Unit]
 Description=automatic update
 After=network-online.target
 [Service]
-ExecStart=/usr/local/bin/dpm autoupdate
+ExecStart=/usr/local/bin/apm autoupdate
 Nice=19
 KillMode=process
 KillSignal=SIGINT' > /usr/local/lib/systemd/system/autoupdate.service
