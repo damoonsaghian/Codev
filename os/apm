@@ -4,6 +4,14 @@
 # https://www.debian.org/doc/manuals/apt-offline/index.en.html
 # https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
 
+if [ "$1" != "autoupdate" ] && [ "$1" != "update" ] && [ "$1" != "add" ] && [ "$1" != "del" ]; then
+  echo 'usage:
+  apm install package_names
+  apm remove package_names
+  apm update'
+  exit 1
+fi
+
 batteryIsEmpty() {
   battery_capacity="/sys/class/power_supply/BAT1/capacity"
 	[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
@@ -15,41 +23,36 @@ connectionIsMetered() {
 }
 [ "$1" = "autoupdate" ] && { batteryIsEmpty || connectionIsMetered; } && exit 0
 
-[ -d /subvols/1 ] && btrfs subvolume delete /subvols/1
-
-if [ "$1" != "autoupdate" ] && [ "$1" != "update" ] && [ "$1" != "add" ] && [ "$1" != "del" ]; then
-  echo 'usage:
-  dpm install package_names
-  dpm remove package_names
-  dpm update'
+[ -f /tmp/apm-lock ] && {
+  echo 'another instance is running; wait for it to finish, or reboot the system'
   exit 1
+}
+trap "rm -f /tmp/apm-lock; trap - EXIT; exit" EXIT HUP INT QUIT ABRT TERM
+touch /tmp/apm-lock
+
+old_snapshot="$(realpath /0)"
+if [ "$old_snapshot" = "/1" ]; then
+  new_snapshot="/2"
+else
+  new_snapshot="/1"
 fi
 
-# create a snapshot of "/0" in "/1"
-btrfs subvolume snapshot /0 /1
+[ -d "$new_snapshot" ] && btrfs subvolume delete "$new_snapshot"
 
-mount --bind /etc /1/etc
-mount --bind /home /1/home
-mount --bind /root /1/root
-mount --bind /opt /1/opt
-mount --bind /usr/local /1/usr/local
-mount --bind /srv /1/srv
-mount --bind /tmp /1/tmp
-mount --bind /var /1/var
-mount --bind /boot/efi /1/boot/efi
+btrfs subvolume create "$new_snapshot"
+btrfs subvolume snapshot "$old_snapshot" "$new_snapshot"
 
-mount --bind /etc /0/etc
-mount --bind /home /0/home
-mount --bind /root /0/root
-mount --bind /opt /0/opt
-mount --bind / /0/usr/local
-mount --bind /srv /0/srv
-mount --bind /tmp /0/tmp
-mount --bind /var /0/var
-mount --bind /boot/efi /0/boot/efi
+mount --bind /etc "$new_snapshot"/etc
+mount --bind /home "$new_snapshot"/home
+mount --bind /root "$new_snapshot"/root
+mount --bind /opt "$new_snapshot"/opt
+mount --bind /usr/local "$new_snapshot"/usr/local
+mount --bind /srv "$new_snapshot"/srv
+mount --bind /tmp "$new_snapshot"/tmp
+mount --bind /var "$new_snapshot"/var
+mount --bind /boot/efi "$new_snapshot"/boot/efi
 
-chroot /subvols/1 /usr/bin/sh << EOF
-set -e
+chroot "$new_snapshot" /usr/bin/sh -c 'set -e
 apt-get update
 case "$1" in
   remove) shift; apt-get purge -- "$@" ;;
@@ -59,7 +62,7 @@ case "$1" in
 esac
 apt-get autoremove --purge --yes
 apt-get autoclean --yes
-EOF
+bootctl update --graceful --quiet --no-variables --esp-path=/boot/efi' apm "$@"
 
-mv /1 /0
-bootctl update --graceful --quiet --no-variables --esp-path=/boot/efi
+ln --symbolic --force -T "$new_snapshot" /3
+mv --force -T /3 /0
