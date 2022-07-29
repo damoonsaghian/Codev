@@ -71,10 +71,8 @@ to install packages:
 to remove packages:
 ;; apm remove package-names
 "apm" (atomic package manager) uses "apt" and BTRFS snapshots to manage packages in such a way that
-  changes on the file'system would be atomic, and does not interfere with the running system
-as a result when you add/remove/update packages using "apm",
-  the system must be restarted for it to take effect
-all of this means that we can have reliable automatic updates
+  changes on the file'system would be atomic
+this means that we can have reliable automatic updates
 
 = codev
 collaborative development without the need to keep the whole history
