@@ -2,6 +2,8 @@ from gi.repository import Gtk, Gdk, Gio, GLib
 
 from project import Project
 
+# https://docs.gtk.org/gio/class.VolumeMonitor.html
+
 class ProjectsList:
   project_dir
 
