@@ -24,17 +24,37 @@ it will ask for:
 after reboot, you can login to the installed system
 
 you can press "tab+enter" to open the application launcher
+other than launching applications, you can do: poweroff, reboot, logout, sleep, lock, su
 the first character in application launcher:
 , space: switch between the first application (usually Comshell) and the prior application
 , backspace: close the current application
 , enter: open terminal
 
-system commands: poweroff, reboot, logout, suspend, lock
+to configure a wifi connection:
+; net wifi
+to forget a previously configured wifi connection:
+; net wifi forget
+to setup a wifi access'point:
+; net ap
+to setup a router:
+; net router
+to configure a cellular connection:
+; net cell
 
-to switch users, disconnected and reconnect your keyboard, or run "su user'name"
-"su" without user'name switches to root
-running "su user'name" in root, switches immediately, without asking for password
-running "su" in root, switches immediately to the last user
+to connect a Bluetooth device:
+; bt
+to disconnect a Bluetooth device:
+; bt disconnect
+
+to check the state of radio devices:
+; rd
+to block/unblock radio devices:
+; rd block/unblock wlan/wwan/bluetooth/nfc/all
+
+to switch user, disconnected and reconnect your keyboard,
+  or enter "su" in application launcher or terminal,
+  or just lock your session then press the "tab" key
+trying to hide the terminal while in root, brings up the last user session
 
 you can set a user for automatic login (lines starting with ";;" must be run as root):
 ;; autologin enable <user>
@@ -46,25 +66,6 @@ in addition you must:
 , disable changing the boot device
 these can make physical attacks more difficult, but keep in mind that
   physical access to a computer is root access, given enough time and resources
-
-to configure a wifi connection:
-;; net wifi
-to forget a previously configured wifi connection:
-;; net wifi forget
-to setup a wifi access'point:
-;; net ap
-to setup a router:
-;; net router
-to configure a cellular connection:
-;; net cell
-
-to connect a Bluetooth device:
-; bt
-to disconnect a Bluetooth device:
-; bt disconnect
-
-to block/unblock a radio device:
-;; rf block/unblock wlan/wwan/bluetooth/nfc/all
 
 to install packages:
 ;; apm install package-names
