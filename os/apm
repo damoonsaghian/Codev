@@ -4,7 +4,7 @@
 # https://www.debian.org/doc/manuals/apt-offline/index.en.html
 # https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
 
-if [ "$1" != "autoupdate" ] && [ "$1" != "update" ] && [ "$1" != "add" ] && [ "$1" != "del" ]; then
+if [ "$1" != "autoupdate" ] && [ "$1" != "update" ] && [ "$1" != "install" ] && [ "$1" != "remove" ]; then
   echo 'usage:
   apm install package_names
   apm remove package_names

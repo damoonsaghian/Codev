@@ -50,4 +50,6 @@ case "$1" in
   ap) setup_access_point ;;
   router) setup_router ;;
   cell) setup_cell ;;
+  *) echo 'usage: net wifi/ap/router/cell'
+    exit 1 ;;
 esac

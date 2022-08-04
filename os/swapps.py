@@ -3,3 +3,5 @@
 # https://github.com/DorianRudolph/sirula
 
 # foot --config=/usr/local/share/foot.ini tmux
+
+# poweroff, reboot, logout, suspend, lock

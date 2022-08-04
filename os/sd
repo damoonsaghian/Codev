@@ -1,29 +1,45 @@
-#!/bin/sh
-# storage device manipulation program, using udisks2 dbus interface
+#!/bin/sh -e
+# storage device manager, using udisks2 dbus interface
 # https://www.freedesktop.org/wiki/Software/dbus/
 # https://dbus.freedesktop.org/doc/dbus-tutorial.html
 
-# internal extra disks: format with BTRFS, and after mounting, create a directory named after the current user
-# removable disks: format with VFAT (or exFAT if there would be files bigger than 4GB)
+format () {
+  # http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Drive.html#gdbus-property-org-freedesktop-UDisks2-Drive.Removable
+  removable=
+  if [ "$removable" = "true" ]; then
+    # format with VFAT (or exFAT if there would be files bigger than 4GB)
+    # http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.Format
+  else
+    sd-internal format "$1"
+  fi
+}
 
-# udisksctl monitor
+mount () {
+  removable=
+  if [ "$removable" = "true" ]; then
+    udisksctl mount -b /dev/"$1"
+  else
+    sd-internal mount "$1"
+  fi
+}
 
-# list of storage devices
-# http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Manager.html#gdbus-method-org-freedesktop-UDisks2-Manager.GetBlockDevices
+unmount () {
+  udisksctl unmount -b /dev/"$1"
+}
 
-# mount
-# udisksctl mount -b /dev/"$2"
+write_image () {
+  # http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.OpenDevice
+  # the set of file descriptors open in a process can be accessed under the path /proc/PID/fd/,
+  #   where PID is the process identifier
+  image_file="$1"
+  device_name="$2"
+}
 
-# format
-# http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.Format
-
-# read/write disk image:
-# http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.OpenForRestore
-# https://www.thegeeksearch.com/how-to-use-file-descriptors-to-read-from-and-write-to-multiple-files-in-linux/
-# https://bash.cyberciti.biz/guide/Opening_the_file_descriptors_for_reading_and_writing
-# https://www.computerworld.com/article/2821652/unix-tip--reading-and-writing-with-file-descriptors.html
-# the set of file descriptors open in a process can be accessed under the path /proc/PID/fd/,
-#   where PID is the process identifier
-
-# unmount non'root devices:
-# udisksctl unmount -b /dev/"$2" && true
+case "$1" in
+  format) shift; format "$@" ;;
+  mount) shift; mount "$@" ;;
+  unmount) shift; unmount "$@" ;;
+  write) shift; write_image "$@" ;;
+  *) echo 'usage: sd format/mount/unmount/write'
+    exit 1 ;;
+esac
