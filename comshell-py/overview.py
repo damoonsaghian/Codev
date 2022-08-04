@@ -3,6 +3,8 @@ from gi.repository import Gtk, Gdk, Gio, GLib
 from project import Project
 
 # https://docs.gtk.org/gio/class.VolumeMonitor.html
+# if the device is removale and not formated with VFAT/exFAT, ask the user if she wants to format it
+# if the device is not removale and not formated with BTRFS, ask the user if she wants to format it
 
 class ProjectsList:
   project_dir
