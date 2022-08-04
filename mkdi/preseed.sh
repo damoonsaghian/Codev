@@ -6,6 +6,7 @@ set -e
 # wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth
 #   https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
 # dbus-user-session
+# vlock
 # kbd is needed for its chvt
 # sway swayidle swaylock wofi grim xwayland
 # i3pystatus python3-colour python3-netifaces
@@ -111,7 +112,7 @@ lock_grub () {
   lock_grub
 }
 
-# boot firmware updates need special care
+# boot'firmware updates need special care
 # unless there is a read_only backup, firmware update is not a good idea
 # fwupd
 
@@ -188,12 +189,14 @@ systemctl enable iwd
 cp /mnt/comshell/os/net /usr/local/bin/
 chmod +x /usr/local/bin/net
 
-echo '#!/bin/sh
-rfkill $1 $2' > /usr/local/bin/rf
-chmod u+s,+x /usr/local/bin/rf
-
 cp /mnt/comshell/os/bt /usr/local/bin/
 chmod +x /usr/local/bin/bt
+
+echo '#!/bin/sh
+rfkill $1 $2' > /usr/local/bin/rd
+# is this necessary?
+chgrp netdev /usr/local/bin/rd
+chmod u+s,ug+x /usr/local/bin/rd
 
 echo '#!/bin/sh
 if [ $1 = disable ]; then
@@ -212,15 +215,18 @@ autologin enable <user>"' > /usr/local/bin/autologin
 chmod +x /usr/local/bin/autologin
 
 echo '#!/bin/sh
+# save current vt as the last vt
+echo "$(fgconsole)" > /tmp/su-lvt
 # the next available virtual terminal
 navt=$(fgconsole --next-available)
 systemctl start getty@tty"$navt".service
+loginctl lock-session
 chvt "$navt"
-echo "$navt" > /tmp/navt-vt' > /usr/local/bin/navt
-chmod u+s,+x /usr/local/bin/navt
+echo "$navt" > /tmp/su-vt' > /usr/local/bin/su
+chmod u+s,+x /usr/local/bin/su
 
-echo '# execute this script if running from tty1, or if put here by "navt"
-if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/navt-vt)" ]; then
+echo '# run this script if running from tty1, or if put here by "su"
+if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/su-vt)" ]; then
   # if a user session is already running, switch to it, unlock it, and exit
   loginctl show-user "$USER" --value --property=Sessions | {
     read current_session previous_session rest
@@ -237,15 +243,7 @@ if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/navt-vt)" ]; the
   [ "$USER" = root ] || exec sway -c /usr/local/share/sway.conf
 fi' > /etc/profile.d/login-manager.sh
 
-echo '#!/bin/sh
-# save current vt as the last vt
-echo "$(fgconsole)" > /tmp/su-lvt
-# [ -z "$1" ] && switches to root
-# running "su username" in root, switches immediately, without asking for password
-# running "su" in root, switches immediately to the last user' > /usr/local/bin/su
-chmod u+s,+x /usr/local/bin/su
-
-# when a keyboard is connected, disable others, lock the session (if any), run "navt"
+# when a keyboard is connected, disable others, lock the session (if any), run "su"
 # since password prompts only accept keyboard input, this is not necessary for headsets
 # this has two benefits:
 # , when you want to login you are sure that it's the login screen (not a fake one created by another user)
@@ -295,15 +293,60 @@ bright7=fefbec' > /usr/local/share/foot.ini
 # , two apostrophes + a letter -> capital letter
 # http://man.openbsd.org/OpenBSD-current/man1/tmux.1#send-keys
 # https://github.com/tmux/tmux/wiki/Advanced-Use#basics-of-scripting
+# https://unix.stackexchange.com/questions/657555/tmux-lock-session-only-when-using-tmux-on-console-not-from-a-graphical-de
+# ; # Enable locking (pressing "prefix+l" locks session)
+# ; set -g lock-command vlock
+# ; set -g lock-after-time 0 # Seconds; 0 = never
+# ; bind l lock-session
+# hide foot window, or if user is root, run vlock, and switch to last vt
 
 cp /mnt/comshell/os/sd /usr/local/bin/
 chmod +x /usr/local/bin/sd
+echo '#!/bin/sh -e
+format () {
+  # if it is not already formated with BTRFS
+  mkfs.btrfs /dev/"$1"
+}
+mount () {
+  mkdir -p /run/mount/"$1"
+  mount /dev/$1 /run/mount/"$1"
+  cp --no-clobber --preserve=all /home/ /run/mount/"$1"
+}
+case "$1" in
+  format) shift; format "$@" ;;
+  mount) shift; mount "$@" ;;
+  *) echo "usage: sd-internal format/mount"
+    exit 1 ;;
+esac' > /usr/local/bin/mount-internal
+chmod u+s,+x /usr/local/bin/sd-internal
+
+mkdir -p /etc/polkit-1/localauthority/50-local.d
+echo '[udisks]
+# write disk images, on non-system devices, without asking for password
+Identity=unix-user:*
+Action=org.freedesktop.udisks2.open-device
+ResultActive=yes' > /etc/polkit-1/localauthority/50-local.d/50-nopasswd.pkla
+
+# despite using BTRFS, in-place writing is needed in two situations:
+# , in-place first write for preallocated space, like in torrents
+#   we don't want to disable COW for these files
+#   apparently supported by BTRFS, isn't it?
+#   https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
+#   https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
+#   https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
+# , virtual machines and databases (eg the one used in Webkit)
+#   COW must be disabled for these files
+#   generally it's done automatically by the program itself (eg systemd-journald)
+#   otherwise we must do it manually: chattr +C ...
+#   apparently Webkit uses SQLite in WAL mode
 
 cp /mnt/comshell/os/fwi /usr/local/bin/
 chmod +x /usr/local/bin/fwi
-# find and install required firmwares
-fwi
-# create a service to do it automatically in the future
+# https://wiki.archlinux.org/title/udev
+# https://wiki.debian.org/udev
+# https://salsa.debian.org/debian/isenkram/-/blob/master/isenkramd
+echo 'SUBSYSTEM=="firmware", ACTION=="add",  RUN+="/usr/local/bin/fwi"' >
+  /etc/udev/rules.d/80-fwi.rules
 
 cp /mnt/comshell/os/apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
@@ -349,29 +392,6 @@ systemctl enable autobackup.timer
 
 # also when a disk is inserted run "codev backup"
 
-mkdir -p /etc/polkit-1/localauthority/50-local.d
-echo '[udisks]
-# 1, mount internal devices without asking for password
-#   however, Linux system partitions can not be arbitrarily mounted/unmounted,
-#     because of "org.freedesktop.udisks2.filesystem-fstab"
-# 2, read/write disk images without asking for password (for non-system devices)
-Identity=unix-user:*
-Action=org.freedesktop.udisks2.filesystem-mount-system;org.freedesktop.udisks2.open-device
-ResultActive=yes' > /etc/polkit-1/localauthority/50-local.d/50-nopasswd.pkla
-
-# despite using BTRFS, in-place writing is needed in two situations:
-# , in-place first write for preallocated space, like in torrents
-#   we don't want to disable COW for these files
-#   apparently supported by BTRFS, isn't it?
-#   https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
-#   https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
-#   https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
-# , virtual machines and databases (eg the one used in Webkit)
-#   COW must be disabled for these files
-#   generally it's done automatically by the program itself (eg systemd-journald)
-#   otherwise we must do it manually: chattr +C ...
-#   apparently Webkit uses SQLite in WAL mode
-
 # to customize dconf default values:
 mkdir -p /etc/dconf/profile
 echo 'user-db:user
@@ -414,8 +434,6 @@ echo '<?xml version="1.0"?>
     <prefer><family>Hack</family></prefer>
   </alias>
 </fontconfig>' > /etc/fonts/local.conf
-
-# bash aliases: poweroff, reboot, logout, suspend, lock
 
 cp -r /mnt/comshell/comshell-py /usr/local/share/
 
