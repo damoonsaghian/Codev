@@ -23,7 +23,7 @@ cd "$project_path"/.cache/mkdi
 # download and verify latest Debian installation iso
 rm -f SHA512SUMS
 wget https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/SHA512SUMS
-debian_image="$(echo debian-*-"$1"-netinst.iso)"
+debian_image="$(printf debian-*-"$1"-netinst.iso)"
 wget --continue https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/"$debian_image" 2> /dev/null && true
 if [ -f "$debian_image" ] && sha512sum --check --status --ignore-missing SHA512SUMS; then
   true
@@ -36,7 +36,7 @@ else
     echo "verifying the checksum of the downloaded installation image failed; try again"
     exit 1
   }
-  debian_image="$(echo debian-*-"$1"-netinst.iso)"
+  debian_image="$(printf debian-*-"$1"-netinst.iso)"
 fi
 
 # download and extract firmware archive
@@ -62,8 +62,8 @@ cd "$project_path"/.cache/mkdi
 rm -rf install*
 xorriso -osirrox on -indev "$debian_image" -extract_l / ./ '/install*/initrd.gz'
 xorriso -osirrox on -indev "$debian_image" -extract_l / ./ '/install*/gtk/initrd.gz'
-initrd_rpath="$(echo install*/initrd.gz)"
-initrd_gtk_rpath="$(echo install*/gtk/initrd.gz)"
+initrd_rpath="$(printf install*/initrd.gz)"
+initrd_gtk_rpath="$(printf install*/gtk/initrd.gz)"
 
 # add "preseed.cfg" to "initrd.gz", and force Debian installer to use text frontend
 rm -rf initrd
@@ -96,7 +96,7 @@ grep -v "initrd.gz" md5sum.txt > tmpfile && mv tmpfile md5sum.txt
 md5sum ./"$initrd_rpath" ./"$initrd_gtk_rpath" >> md5sum.txt
 
 mkdir partman-recepies
-echo 'default ::
+echo -n 'default ::
 538 538 1075 free
 	$iflabel{ gpt }
 	method{ efi }
@@ -109,8 +109,9 @@ echo 'default ::
   mountpoint{ / } .
 100% 512 200% linux-swap
   method{ swap }
-  format{ } .' > partman-recepies/default
-echo 'bios ::
+  format{ } .
+' > partman-recepies/default
+echo -n 'bios ::
 1 1 1 free
 	$iflabel{ gpt }
 	method{ biosgrub } .
@@ -122,8 +123,9 @@ echo 'bios ::
 	mountpoint{ / } .
 100% 512 200% linux-swap
 	method{ swap }
-	format{ } .' > partman-recepies/bios
-echo 'ppc ::
+	format{ } .
+' > partman-recepies/bios
+echo -n 'ppc ::
 8 1 1 prep
   $primary{ }
   $bootable{ }
@@ -137,7 +139,8 @@ echo 'ppc ::
   mountpoint{ / } .
 100% 512 300% linux-swap
   method{ swap }
-  format{ } .' > partman-recepies/ppc
+  format{ } .
+' > partman-recepies/ppc
 
 # generate the modified iso file
 [ -f debian-modified-"$1"-netinst.iso ] && rm -f debian-modified-"$1"-netinst.iso
