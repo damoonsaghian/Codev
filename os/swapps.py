@@ -4,4 +4,5 @@
 
 # foot --config=/usr/local/share/foot.ini tmux
 
-# poweroff, reboot, logout, suspend, lock
+# poweroff, reboot, logout, suspend, lock, su
+# apm, net, bt, sd, codev

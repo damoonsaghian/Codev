@@ -1,4 +1,5 @@
 #!/bin/sh -e
+[ "$USER" = root ] || exec doas $0 "$@"
 
 # https://www.debian.org/doc/manuals/apt-guide/index.en.html
 # https://www.debian.org/doc/manuals/apt-offline/index.en.html

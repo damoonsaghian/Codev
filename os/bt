@@ -14,18 +14,21 @@ echo "not yet implemented"; exit
 
 # Bluetooth keyboards must have an already paired Bluetooth dongle, or an additional USB connection
 
-bluetoothctl --version &> /dev/null || apm install bluez
+printf "do you want to forget an already paired device (y/N): "
+read -r forget_mode
 
-if [ "$1" = "disconnect" ]; then
+if [ "$forget_mode" = y ]; then
   bluetoothctl paired-devices
-  printf "select a device (enter the MAC address): "; read -r mac_address
+  printf "select a device (enter the MAC address): "
+  read -r mac_address
   bluetoothctl disconnect "$mac_address"
   bluetoothctl untrust "$mac_address"
   exit
 fi
 
 bluetoothctl scan on
-printf "select a device (enter the MAC address): "; read -r mac_address
+printf "select a device (enter the MAC address): "
+read -r mac_address
 
 if bluetoothctl --agent -- pair "$mac_address"; then
   bluetoothctl trust "$mac_address"

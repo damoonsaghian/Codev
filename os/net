@@ -2,18 +2,22 @@
 
 # https://iwd.wiki.kernel.org/
 setup_wifi () {
-  if [ "$1" = "forget" ]; then
+  printf "do you want to forget a known network (y/N): "
+  read -r forget_mode
+  if [ "$forget_mode" = y ]; then
     iwctl known-networks list
-    printf "select the network to forget: "; read -r ssid
+    printf "select a known network to forget: "
+    read -r ssid
     iwctl known-networks "$ssid" forget
     exit
   fi
   iwctl device list
-  printf "select a device: "; read -r device
-  rfkill unblock wlan
+  printf "select a device: "
+  read -r device
   iwctl station "$device" scan
   iwctl station "$device" get-networks
-  printf "select a network: "; read -r ssid
+  printf "select a network: "
+  read -r ssid
   iwctl station "$device" connect "$ssid"
 }
 

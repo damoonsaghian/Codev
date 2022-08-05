@@ -385,12 +385,12 @@ import_backup() {}
 # add or remove a user that can push
 # ; codev add username
 # ; codev remove username
-add_user() {
+user_add() {
   remote_host=
   user=
   username=$1
 }
-remove_user() {
+user_del() {
   remote_host=
   user=
   username=$1
@@ -401,12 +401,13 @@ if [ "$0" != "init" ] && [ "$0" != "pull" ] && [ "$0" != "backup" ] && [ ! -f ~/
 fi
 
 case "$1" in
-  init) shift; init "$@" ;;
-  create) shift; create "$@" ;;
-  delete) shift; delete "$@" ;;
-  push) shift; push "$@" ;;
-  pull) shift; pull "$@" ;;
-  backup) shift; backup "$@" ;;
-  add) shift; add_user "$@" ;;
-  remove) shift; remove_user "$@" ;;
+  init) init ;;
+  create) create ;;
+  delete) delete ;;
+  push) push ;;
+  pull) pull ;;
+  backup) backup ;;
+  useradd) user_add ;;
+  userdel) remove_user ;;
+  *) echo 'usage: codev init/create/delete/push/pull/backup/useradd/userdel' ;;
 esac
