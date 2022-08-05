@@ -17,23 +17,28 @@ now assuming the device is "sdx", and the CPU architecture is "amd64":
 
 now just boot to the USB storage
 it will ask for:
-, a root password, and a user account (provide different passwords for user and root)
+, a root password, and a user account
 , confirmation for auto'detected time'zone
 , the network configuration (if it's not a simple DHCP wired connection)
 , the target device (if there is more than one device), and then installs Debian on it
 after reboot, you can login to the installed system
 
 you can press "tab+enter" to open the application launcher
-other than launching applications, you can do: poweroff, reboot, logout, sleep, lock, su
 the first character in application launcher:
-, space: switch between the first application (usually Comshell) and the prior application
+, space: run commands
+, enter: switch between the first application (usually Comshell) and the prior application
 , backspace: close the current application
-, enter: open terminal
+
+these commands with obvious names: poweroff, reboot, logout, sleep, lock
+
+to switch user, disconnected and reconnect your keyboard,
+  or enter "su" command in application launcher,
+  or when on lock'screen, press the "tab" key
+
+pressing "tab+enter" on Linux console (eg when logged in as root), brings up the last user session
 
 to configure a wifi connection:
 ; net wifi
-to forget a previously configured wifi connection:
-; net wifi forget
 to setup a wifi access'point:
 ; net ap
 to setup a router:
@@ -43,37 +48,27 @@ to configure a cellular connection:
 
 to connect a Bluetooth device:
 ; bt
-to disconnect a Bluetooth device:
-; bt disconnect
-
-to check the state of radio devices:
-; rd
 to block/unblock radio devices:
-; rd block/unblock wlan/wwan/bluetooth/nfc/all
+; rd
 
-to switch user, disconnected and reconnect your keyboard,
-  or enter "su" in application launcher or terminal,
-  or just lock your session then press the "tab" key
-trying to hide the terminal while in root, brings up the last user session
+to install packages:
+; apm install package-names
+to remove packages:
+; apm remove package-names
+"apm" (atomic package manager) uses "apt" and BTRFS snapshots to manage packages in such a way that
+  changes on the file'system would be atomic
+this means that we can have reliable automatic updates
 
-you can set a user for automatic login (lines starting with ";;" must be run as root):
-;; autologin enable <user>
-but to protect the computer from physical attacks, you have to disable automatic login ("sudo autologin disable"),
+to enable/disable automatic login for current user:
+; autologin
+but to protect the computer from physical attacks, you have to disable automatic login,
   and lock the session when you leave the computer
 in addition you must:
 , somehow prevent tampering with hardware
 , protect boot firmware by a password
-, disable changing the boot device
-these can make physical attacks more difficult, but keep in mind that
+, disable changing the storage device used for booting
+these can make physical attacks more difficult, but keep this in mind:
   physical access to a computer is root access, given enough time and resources
-
-to install packages:
-;; apm install package-names
-to remove packages:
-;; apm remove package-names
-"apm" (atomic package manager) uses "apt" and BTRFS snapshots to manage packages in such a way that
-  changes on the file'system would be atomic
-this means that we can have reliable automatic updates
 
 = codev
 collaborative development without the need to keep the whole history
