@@ -404,6 +404,7 @@ case "$1" in
   init) init ;;
   create) create ;;
   delete) delete ;;
+  clone) clone ;;
   push) push ;;
   pull) pull ;;
   backup) backup ;;
