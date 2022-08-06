@@ -3,11 +3,10 @@ set -e
 apt-get install --no-install-recommends dosfstools exfatprogs btrfs-progs udisks2 polkitd opendoas \
   iwd wireless-regdb modemmanager bluez rfkill \
   wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth \
-  dbus-user-session vlock kbd \
+  dbus-user-session kbd vlock \
   sway swayidle swaylock wofi grim xwayland \
   i3pystatus python3-colour python3-netifaces \
   python3-cffi python3-cairocffi \
-  foot tmux \
   fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji materia-gtk-theme \
   openssh-client wget2 gpg attr \
   libarchive-tools \
@@ -304,7 +303,9 @@ fi
 # , when you want to login you are sure that it's the login screen (not a fake one created by another user)
 # , others can't access your session using another keyboard
 
-# pressing "tab+enter" on Linux console (eg when logged in as root), brings up the last user session
+# when in Linux console (ie when logged in as root), and brought here by su
+# "tab+enter": vlock, su-lvt unlocked
+# before log out: su-lvt unlocked
 
 echo -n '#!/bin/sh
 [ "$USER" = root ] || exec doas $0 "$@"
@@ -353,58 +354,7 @@ systemctl enable autobackup.timer
 
 # also when a disk is inserted run "codev backup"
 
-
 cp /mnt/comshell/os/{sway.conf,status.py,swapps.py} /usr/local/share/
-
-echo -n 'font=monospace:size=10.5
-dpi-aware=no
-initial-window-size-chars=120x55
-pad=0x0 center
-[scrollback]
-indicator-position=none
-[cursor]
-blink=yes
-[colors]
-# alpha=1.0
-background=f8f8f8
-foreground=2A2B32
-selection-foreground=f8f8f8
-selection-background=2A2B32
-regular0=20201d  # black
-regular1=d73737  # red
-regular2=60ac39  # green
-regular3=cfb017  # yellow
-regular4=6684e1  # blue
-regular5=b854d4  # magenta
-regular6=1fad83  # cyan
-regular7=fefbec  # white
-bright0=7d7a68
-bright1=d73737
-bright2=60ac39
-bright3=cfb017
-bright4=6684e1
-bright5=b854d4
-bright6=1fad83
-bright7=fefbec
-' > /usr/local/share/foot.ini
-
-# https://github.com/tmux/tmux/wiki
-# https://wiki.archlinux.org/title/Tmux
-# https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/
-# use copy-mode to find the privious character
-#   copy-pipe-and-cancel [<command>] [<prefix>]
-# and then:
-# , double space -> completion
-# , comma + character -> punctuations
-# , two apostrophes + a letter -> capital letter
-# http://man.openbsd.org/OpenBSD-current/man1/tmux.1#send-keys
-# https://github.com/tmux/tmux/wiki/Advanced-Use#basics-of-scripting
-# https://unix.stackexchange.com/questions/657555/tmux-lock-session-only-when-using-tmux-on-console-not-from-a-graphical-de
-# ; # Enable locking (pressing "prefix+l" locks session)
-# ; set -g lock-command vlock
-# ; set -g lock-after-time 0 # Seconds; 0 = never
-# ; bind l lock-session
-# hide foot window, or if user is root, run vlock, and switch to last vt
 
 # to customize dconf default values:
 mkdir -p /etc/dconf/profile
