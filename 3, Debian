@@ -23,19 +23,28 @@ it will ask for:
 , the target device (if there is more than one device), and then installs Debian on it
 after reboot, you can login to the installed system
 
-you can press "tab+enter" to open the application launcher
+press "tab+enter" to open the application launcher
 the first character in application launcher:
-, space: run commands
+, space: command mode
 , enter: switch between the first application (usually Comshell) and the prior application
-, backspace: close the current application
+, backspace: close current application
 
-these commands with obvious names: poweroff, reboot, logout, sleep, lock
+self'explanatory commands: poweroff, reboot, logout, sleep, lock
 
-to switch user, disconnected and reconnect your keyboard,
+to switch between users, disconnected and reconnect your keyboard,
   or enter "su" command in application launcher,
-  or when on lock'screen, press the "tab" key
+  or when in lock screen, press the "tab" key
 
-pressing "tab+enter" on Linux console (eg when logged in as root), brings up the last user session
+to enable/disable automatic login for current user:
+; autologin
+but to protect the computer from physical attacks, you have to disable automatic login,
+  and lock the session when you leave the computer
+in addition you must:
+, somehow prevent tampering with hardware
+, protect boot firmware by a password
+, disable changing the storage device used for booting
+these can make physical attacks more difficult, but keep this in mind:
+  physical access to a computer is root access, given enough time and resources
 
 to configure a wifi connection:
 ; net wifi
@@ -58,32 +67,3 @@ to remove packages:
 "apm" (atomic package manager) uses "apt" and BTRFS snapshots to manage packages in such a way that
   changes on the file'system would be atomic
 this means that we can have reliable automatic updates
-
-to enable/disable automatic login for current user:
-; autologin
-but to protect the computer from physical attacks, you have to disable automatic login,
-  and lock the session when you leave the computer
-in addition you must:
-, somehow prevent tampering with hardware
-, protect boot firmware by a password
-, disable changing the storage device used for booting
-these can make physical attacks more difficult, but keep this in mind:
-  physical access to a computer is root access, given enough time and resources
-
-= codev
-collaborative development without the need to keep the whole history
-flaws of version control systems:
-, they double the storage (working directory, local repository)
-, their design makes it difficult to modify the history
-  so in practice, the whole history must be kept indefinitely, even if not needed
-
-to initialize a remote host (for "hashbang.sh" hosts, if login fails, it will try to sign you up):
-; codev init
-create a remote repository from the current project directory:
-; codev create
-clone:
-; codev clone repo
-pull:
-; codev pull
-after merging:
-; codev push
