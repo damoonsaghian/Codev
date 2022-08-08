@@ -49,11 +49,17 @@ setup_cell () {
   echo "not yet implemented"
 }
 
-case "$1" in
-  wifi) shift; setup_wifi "$@" ;;
-  ap) setup_access_point ;;
-  router) setup_router ;;
-  cell) setup_cell ;;
-  *) echo 'usage: net wifi/ap/router/cell'
-    exit 1 ;;
+printf "
+, wifi
+, access-point
+, router
+, cellular
+select one by typing the first charactor at least (wifi is default): "
+read -r selected_option
+
+case "$selected_option" in
+  a*) setup_access_point ;;
+  r*) setup_router ;;
+  c*) setup_cell ;;
+  *) shift; setup_wifi "$@" ;;
 esac

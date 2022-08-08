@@ -1,17 +1,22 @@
-#!/bin/sh -e
-[ "$USER" = root ] || exec doas $0 "$@"
+#!/usr/bin/pkexec /bin/sh
+set -e
 
 # https://www.debian.org/doc/manuals/apt-guide/index.en.html
 # https://www.debian.org/doc/manuals/apt-offline/index.en.html
 # https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
 
-if [ "$1" != "autoupdate" ] && [ "$1" != "update" ] && [ "$1" != "install" ] && [ "$1" != "remove" ]; then
-  echo 'usage:
-  apm install package_names
-  apm remove package_names
-  apm update'
-  exit 1
-fi
+apm_mode=install
+# ask user to enter a word to search for packages
+# leave it empty to just do an upgrade
+# https://manpages.debian.org/bullseye/apt/apt-cache.8.en.html
+apm_mode=update
+# ask user to enter the names of packages
+package_names=
+# if all of the entered packages are already installed, ask the user if she wants to remove them
+# https://manpages.debian.org/bullseye/dpkg/dpkg-query.1.en.html
+apm_mode=remove
+
+[ "$1" = "autoupdate" ] && apm_mode=autoupdate
 
 batteryIsEmpty() {
   battery_capacity="/sys/class/power_supply/BAT1/capacity"
@@ -53,6 +58,7 @@ mount --bind /tmp "$new_snapshot"/tmp
 mount --bind /var "$new_snapshot"/var
 mount --bind /boot/efi "$new_snapshot"/boot/efi
 
+# fork this; long running swapps commands
 chroot "$new_snapshot" /usr/bin/sh -c 'set -e
 apt-get update
 case "$1" in
@@ -63,7 +69,7 @@ case "$1" in
 esac
 apt-get autoremove --purge --yes
 apt-get autoclean --yes
-bootctl update --graceful --quiet --no-variables --esp-path=/boot/efi' apm "$@"
+bootctl update --graceful --quiet --no-variables --esp-path=/boot/efi' apm "$apm_mode" "$package_names"
 
 ln --symbolic --force -T "$new_snapshot" /3
 mv --force -T /3 /0
