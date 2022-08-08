@@ -265,8 +265,10 @@ WantedBy=timers.target
 ' > /usr/local/lib/systemd/system/autoupdate.timer
 systemctl enable autoupdate.timer
 
-# create a system user named "su" with a password equal to root's password
-useradd --system --password $(getent shadow root | cut -d: -f2) su
+groupadd su
+# add the first user to su group
+usermod -aG su "$(id -nu 1000)"
+
 echo '#!/usr/bin/pkexec /bin/sh
 set -e
 # switch user mode
@@ -282,12 +284,14 @@ set -e
 # "run command as root" mode
 # switch to the first available virtual terminal and ask for root password
 # openvt -sw ...
-# if the password is correct run $@
+# if the password is equal to correct run $@
+# getent shadow root | cut -d: -f2 | cut -c2-
 # https://unix.stackexchange.com/questions/329878/check-users-password-with-a-shell-script
 # https://unix.stackexchange.com/questions/21705/how-to-check-password-with-linux
 # https://askubuntu.com/questions/611580/how-to-check-the-password-entered-is-a-valid-password-for-this-user
 ' > /usr/local/bin/su
-chmod +x /usr/local/bin/su
+chgrp su /usr/local/bin/su
+chmod ug+x /usr/local/bin/su
 # lock root account
 passwd --lock root
 
