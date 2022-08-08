@@ -1,9 +1,9 @@
 set -e
 
-apt-get install --no-install-recommends dosfstools exfatprogs btrfs-progs udisks2 polkitd opendoas \
+apt-get install --no-install-recommends dosfstools exfatprogs btrfs-progs udisks2 polkitd pkexec \
   iwd wireless-regdb modemmanager bluez rfkill \
   wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth \
-  dbus-user-session kbd vlock \
+  dbus-user-session kbd \
   sway swayidle swaylock wofi grim xwayland \
   i3pystatus python3-colour python3-netifaces \
   python3-cffi python3-cairocffi \
@@ -13,7 +13,7 @@ apt-get install --no-install-recommends dosfstools exfatprogs btrfs-progs udisks
   libgtk-4-media-gstreamer gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav heif-gdk-pixbuf \
   python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18
 # https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
-# kbd is needed for its chvt
+# kbd is needed for its chvt and openvt
 # installing gpg prevents wget2 to install the whole of gnupg as a dependency
 
 btrfs subvolume create /1
@@ -111,6 +111,14 @@ lock_grub () {
 # the same applies to updating Grub
 # fwupd
 
+# https://github.com/maximbaz/wluma
+# https://github.com/FedeDP/Clight
+# https://wiki.archlinux.org/title/Backlight#Backlight_utilities
+# https://github.com/Ventto/lux
+#   https://github.com/harttle/macbook-lighter
+
+# when critical battery charge is reached, even when asleep, run poweroff
+
 # automatic time'zone:
 # periodically check for location and if it's not the same as the set timezone,
 #   and it's not equal to the value in "/usr/local/share/tz-extra",
@@ -124,14 +132,6 @@ lock_grub () {
 # https://gitlab.com/craftyguy/networkd-dispatcher
 # https://manpages.debian.org/unstable/networkd-dispatcher/networkd-dispatcher.8.en.html
 # systemd-networkd-wait-online
-
-# https://github.com/maximbaz/wluma
-# https://github.com/FedeDP/Clight
-# https://wiki.archlinux.org/title/Backlight#Backlight_utilities
-# https://github.com/Ventto/lux
-#   https://github.com/harttle/macbook-lighter
-
-# when critical battery charge is reached, even when asleep, run poweroff
 
 echo -n '[Match]
 Type=ether
@@ -177,9 +177,9 @@ chmod +x /usr/local/bin/net
 cp /mnt/comshell/os/bt /usr/local/bin/
 chmod +x /usr/local/bin/bt
 
-echo -n '#!/bin/sh
-# is this necessary? or rfkill can be run by a netdev user
-[ "$USER" = root ] || exec doas $0 "$@"
+echo -n '#!/usr/bin/pkexec /bin/sh
+# do not know if pkexec is necessary, or rfkill can be run by a netdev user
+set -e
 rfkill
 printf "select the type of radio device to toggle its block/unblock state (leave empty to select all): "
 read -r device_type
@@ -190,8 +190,8 @@ chmod +x /usr/local/bin/rd
 
 cp /mnt/comshell/os/sd /usr/local/bin/
 chmod +x /usr/local/bin/sd
-echo -n '#!/bin/sh -e
-[ "$USER" = root ] || exec doas $0 "$@"
+echo -n '#!/usr/bin/pkexec /bin/sh
+set -e
 format () {
   # if it is not already formated with BTRFS
   mkfs.btrfs /dev/"$1"
@@ -207,7 +207,7 @@ case "$1" in
   *) echo "usage: sd-internal format/mount"
     exit 1 ;;
 esac
-' > /usr/local/bin/mount-internal
+' > /usr/local/bin/sd-internal
 chmod +x /usr/local/bin/sd-internal
 
 mkdir -p /etc/polkit-1/localauthority/50-local.d
@@ -265,18 +265,31 @@ WantedBy=timers.target
 ' > /usr/local/lib/systemd/system/autoupdate.timer
 systemctl enable autoupdate.timer
 
-echo -n '#!/bin/sh -e
-[ "$USER" = root ] || exec doas $0 "$@"
-# save current vt as the last vt
-echo "$(fgconsole)" > /tmp/su-lvt
-# the next available virtual terminal
-navt=$(fgconsole --next-available)
-systemctl start getty@tty"$navt".service
-loginctl lock-session
-chvt "$navt"
-echo "$navt" > /tmp/su-vt
+# create a system user named "su" with a password equal to root's password
+useradd --system --password $(getent shadow root | cut -d: -f2) su
+echo '#!/usr/bin/pkexec /bin/sh
+set -e
+# switch user mode
+[ -z "$@" ] && {
+  # the next available virtual terminal
+  navt=$(fgconsole --next-available)
+  systemctl start getty@tty"$navt".service
+  loginctl lock-session
+  chvt "$navt"
+  echo "$navt" > /tmp/su-vt
+  exit
+}
+# "run command as root" mode
+# switch to the first available virtual terminal and ask for root password
+# openvt -sw ...
+# if the password is correct run $@
+# https://unix.stackexchange.com/questions/329878/check-users-password-with-a-shell-script
+# https://unix.stackexchange.com/questions/21705/how-to-check-password-with-linux
+# https://askubuntu.com/questions/611580/how-to-check-the-password-entered-is-a-valid-password-for-this-user
 ' > /usr/local/bin/su
 chmod +x /usr/local/bin/su
+# lock root account
+passwd --lock root
 
 echo -n '# run this script if running from tty1, or if put here by "su"
 if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/su-vt)" ]; then
@@ -301,34 +314,50 @@ fi
 # since password prompts only accept keyboard input, this is not necessary for headsets
 # this has two benefits:
 # , when you want to login you are sure that it's the login screen (not a fake one created by another user)
-# , others can't access your session using another keyboard
+# , others can't access your session using an extra keyboard
 
-# when in Linux console (ie when logged in as root), and brought here by su
-# "tab+enter": vlock, su-lvt unlocked
-# before log out: su-lvt unlocked
+echo -n '<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <action id="com.comshell.su">
+    <description>switch users</description>
+    <message>switch users</message>
+    <defaults><allow_active>yes</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/su</annotate>
+  </action>
+  <action id="com.comshell.sd-internal">
+    <description>internal storage device management</description>
+    <message>internal storage device management</message>
+    <defaults><allow_active>yes</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/sd-internal</annotate>
+  </action>
+  <action id="com.comshell.rd">
+    <description>radio device management</description>
+    <message>radio device management</message>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/rd</annotate>
+  </action>
+  <action id="com.comshell.apm">
+    <description>package management</description>
+    <message>package management</message>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/apm</annotate>
+  </action>
+</policyconfig>
+' > /usr/share/polkit-1/actions/com.comshell.policy
 
-echo -n '#!/bin/sh
-[ "$USER" = root ] || exec doas $0 "$@"
-# if it is not run by "doas", do nothing
-[ -z "$DOAS_USER" ] && exit
-printf "enable autologin for current user? (y/N): "
-read -r enable_autologin
-if [ "$enable_autologin" = y ]; then
-  mkdir -p /etc/systemd/system/getty@tty1.service.d
-  printf "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin \"$DOAS_USER\" --noclear %I $TERM\n" >
-    /etc/systemd/system/getty@tty1.service.d/override.conf
-else
-  rm -f /etc/systemd/system/getty@tty1.service.d/override.conf
-fi
-' > /usr/local/bin/autologin
-chmod +x /usr/local/bin/autologin
-
-echo -n 'permit : as root cmd /usr/local/bin/su
-permit nopass nolog : as root cmd /usr/local/bin/sd-internal
-permit nopass nolog : as root cmd /usr/local/bin/autologin
-permit nopass nolog :netdev as root cmd /usr/local/bin/rd
-permit nopass nolog :package-manager as root cmd /usr/local/bin/apm
-' > /etc/doas.conf
+echo -n '[rd]
+Identity=unix-group:netdev
+Action=com.comshell.rd
+ResultActive=yes
+[apm]
+Identity=unix-group:package-manager
+Action=com.comshell.apm
+ResultActive=yes
+' > /etc/polkit-1/localauthority/50-local.d/51-comshell.pkla
 
 cp /mnt/comshell/os/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev
