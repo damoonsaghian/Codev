@@ -2,9 +2,9 @@ set -e
 
 apt-get install --no-install-recommends dosfstools exfatprogs btrfs-progs udisks2 polkitd pkexec \
   iwd wireless-regdb modemmanager bluez rfkill \
-  wireplumber pipewire-pulse pipewire-audio-client-libraries libspa-0.2-bluetooth \
+  wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth \
   dbus-user-session kbd \
-  sway swayidle swaylock wofi grim xwayland \
+  sway swayidle swaylock xwayland \
   i3pystatus python3-colour python3-netifaces \
   python3-cffi python3-cairocffi \
   fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji materia-gtk-theme \
@@ -12,7 +12,6 @@ apt-get install --no-install-recommends dosfstools exfatprogs btrfs-progs udisks
   libarchive-tools \
   libgtk-4-media-gstreamer gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav heif-gdk-pixbuf \
   python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18
-# https://wiki.debian.org/PipeWire#Debian_Testing.2FUnstable
 # kbd is needed for its chvt and openvt
 # installing gpg prevents wget2 to install the whole of gnupg as a dependency
 
@@ -238,9 +237,6 @@ chmod +x /usr/local/bin/fwi
 # https://salsa.debian.org/debian/isenkram/-/blob/master/isenkramd
 echo 'SUBSYSTEM=="firmware", ACTION=="add",  RUN+="/usr/local/bin/fwi"' > /etc/udev/rules.d/80-fwi.rules
 
-# add the first user to package-manager group
-groupadd --users "$(id -un 1000)" package-manager
-
 cp /mnt/comshell/os/apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
 
@@ -269,19 +265,17 @@ groupadd su
 # add the first user to su group
 usermod -aG su "$(id -nu 1000)"
 
-echo '#!/usr/bin/pkexec /bin/sh
+echo -n '
+navt=$(fgconsole --next-available)
+systemctl start getty@tty"$navt".service
+loginctl lock-session
+chvt "$navt"
+echo "$navt" > /tmp/su-vt
+' > /usr/local/bin/switch-user
+chmod +x /usr/local/bin/switch-user
+
+echo -n '#!/usr/bin/pkexec /bin/sh
 set -e
-# switch user mode
-[ -z "$@" ] && {
-  # the next available virtual terminal
-  navt=$(fgconsole --next-available)
-  systemctl start getty@tty"$navt".service
-  loginctl lock-session
-  chvt "$navt"
-  echo "$navt" > /tmp/su-vt
-  exit
-}
-# "run command as root" mode
 # switch to the first available virtual terminal and ask for root password
 # openvt -sw ...
 # if the password is equal to correct run $@
@@ -290,8 +284,7 @@ set -e
 # https://unix.stackexchange.com/questions/21705/how-to-check-password-with-linux
 # https://askubuntu.com/questions/611580/how-to-check-the-password-entered-is-a-valid-password-for-this-user
 ' > /usr/local/bin/su
-chgrp su /usr/local/bin/su
-chmod ug+x /usr/local/bin/su
+chmod +x /usr/local/bin/su
 # lock root account
 passwd --lock root
 
@@ -327,16 +320,8 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
   <action id="com.comshell.su">
     <description>switch users</description>
     <message>switch users</message>
-    <defaults><allow_active>yes</allow_active></defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
     <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/su</annotate>
-  </action>
-  <action id="com.comshell.sd-internal">
-    <description>internal storage device management</description>
-    <message>internal storage device management</message>
-    <defaults><allow_active>yes</allow_active></defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
-    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/sd-internal</annotate>
   </action>
   <action id="com.comshell.rd">
     <description>radio device management</description>
@@ -350,18 +335,39 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
     <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
     <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/apm</annotate>
   </action>
+  <action id="com.comshell.switch-user">
+    <description>switch user</description>
+    <message>switch user</message>
+    <defaults><allow_active>yes</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/switch-user</annotate>
+  </action>
+  <action id="com.comshell.sd-internal">
+    <description>internal storage device management</description>
+    <message>internal storage device management</message>
+    <defaults><allow_active>yes</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/sd-internal</annotate>
+  </action>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/com.comshell.policy
 
-echo -n '[rd]
+echo -n '[su]
+Identity=unix-group:su
+Action=com.comshell.su
+ResultActive=yes
+[rd]
 Identity=unix-group:netdev
 Action=com.comshell.rd
 ResultActive=yes
 [apm]
-Identity=unix-group:package-manager
+Identity=unix-group:su
 Action=com.comshell.apm
 ResultActive=yes
 ' > /etc/polkit-1/localauthority/50-local.d/51-comshell.pkla
+
+[ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
+  cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
 
 cp /mnt/comshell/os/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev
