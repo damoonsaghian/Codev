@@ -30,10 +30,8 @@ the first character in application launcher:
 , space: command mode
 
 self'explanatory commands: poweroff, reboot, logout, sleep, lock
-
-to switch between users, disconnected and reconnect your keyboard,
-  or enter "su" command in application launcher,
-  or when in lock screen, press the "tab" key
+to switch between users, disconnect and reconnect your keyboard,
+  or first lock the session, and then press "tab"
 
 to run a command as root:
 ; su command
