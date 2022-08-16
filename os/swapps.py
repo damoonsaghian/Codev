@@ -7,5 +7,5 @@
 # , enter: switch between the first application (usually Comshell) and the prior application
 # , backspace: close current application switch to previous application
 
-# poweroff, reboot, logout, suspend, lock, su
-# apm, net, bt, sd, codev
+# poweroff, reboot, logout, suspend, lock
+# apm, net, bt, rd, sd, su
