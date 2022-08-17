@@ -1,19 +1,18 @@
 set -e
 
-apt-get install --no-install-recommends dosfstools exfatprogs btrfs-progs udisks2 polkitd pkexec \
-  iwd wireless-regdb modemmanager bluez rfkill \
+apt-get update
+apt-get install --no-install-recommends iwd wireless-regdb modemmanager bluez rfkill \
   wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth \
-  dbus-user-session kbd \
+  dbus-user-session kbd pkexec \
   sway swayidle swaylock xwayland \
-  i3pystatus python3-colour python3-netifaces \
-  python3-cffi python3-cairocffi \
   fonts-hack fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji materia-gtk-theme \
-  openssh-client wget2 gpg attr \
-  libarchive-tools \
+  python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18 python3-cairocffi \
   libgtk-4-media-gstreamer gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav heif-gdk-pixbuf \
-  python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18
+  dosfstools exfatprogs btrfs-progs udisks2 polkitd \
+  libarchive-tools \
+  openssh-client wget2 gpg attr
+# installing gpg prevents wget2 to install the whole of gnupg as dependency
 # kbd is needed for its chvt and openvt
-# installing gpg prevents wget2 to install the whole of gnupg as a dependency
 
 btrfs subvolume create /1
 btrfs subvolume snapshot / /1
