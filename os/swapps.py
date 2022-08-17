@@ -8,4 +8,4 @@
 # , backspace: close current application switch to previous application
 
 # poweroff, reboot, logout, suspend, lock
-# apm, net, bt, rd, sd, su
+# su, net, bt, rd, apm

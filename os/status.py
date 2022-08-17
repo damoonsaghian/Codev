@@ -1,10 +1,11 @@
-# i3pystatus
-# https://i3pystatus.readthedocs.io/en/latest/
-# https://computingforgeeks.com/configure-i3pystatus-on-linux/
-# https://github.com/enkore/i3pystatus/wiki
-# font-awesome
-# %F %a % p %I:%M
+# https://github.com/i3/i3status/blob/master/contrib/wrapper.py
 
+# make_graph in: https://github.com/enkore/i3pystatus/blob/current/i3pystatus/core/util.py
+
+# font-awesome
+
+# %F %a % p %I:%M
+# battery
 # cpu ram disk net (sum since login)
 
 # active network device:
@@ -12,6 +13,7 @@
 # net speed:
 #   device-path/statistics/tx_bytes
 #   device-path/statistics/rx_bytes
+#   https://github.com/i3/i3status/blob/master/contrib/net-speed.sh
 # total internet consumption
 # wifi signal strength
 #   iwctl station wlan0 show -> RSSI, AverageRSSI
@@ -22,18 +24,15 @@
 #   BitRates
 # https://github.com/Alexays/Waybar/wiki/Module:-Network
 
-# cpu ram disk net (sum since login)
 # libgtop
 # https://gitlab.gnome.org/GNOME/gnome-usage
 # https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/custom_statusbar
 # https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/custom_statusbar
 # https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/batpct
 
-# show a status icon indicating:
-# , running update process
-# , system needs to reboot
-
 # show time for extra timezone (if available) in /usr/local/share/tz-extra
 
+# update indicator: in'progress, completed
+# https://github.com/enkore/i3pystatus/wiki/Restart-reminder
+
 # backup indicator: in'progress, completed
-# update indicator checks if there is an updated subvolume
