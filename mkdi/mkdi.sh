@@ -149,6 +149,7 @@ xorriso -indev "$debian_image" -outdev debian-modified-"$1"-netinst.iso \
   -add firmware "$initrd_rpath" "$initrd_gtk_rpath" md5sum.txt \
   -map partman-recepies/ '/comshell/partman-recepies/' \
   -map "$project_path"/mkdi/preseed.sh '/comshell/preseed.sh' \
+  -map "$project_path"/mkdi/s-bootloader.sh '/comshell/s-bootloader.sh' \
   -map "$project_path"/os/ '/comshell/os/' \
   -map "$project_path"/comshell-py/ '/comshell/comshell-py/'
 
