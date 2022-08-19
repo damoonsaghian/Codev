@@ -24,7 +24,7 @@ cd "$project_path"/.cache/mkdi
 rm -f SHA512SUMS
 wget https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/SHA512SUMS
 debian_image="$(printf debian-*-"$1"-netinst.iso)"
-wget --continue https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/"$debian_image" 2> /dev/null && true
+wget --continue https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/"$debian_image" 2> /dev/null || true
 if [ -f "$debian_image" ] && sha512sum --check --status --ignore-missing SHA512SUMS; then
   true
 else

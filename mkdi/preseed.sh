@@ -1,7 +1,7 @@
 set -e
 
 apt-get update
-apt-get install --no-install-recommends --yes iwd wireless-regdb modemmanager bluez rfkill \
+apt-get install --no-install-recommends --yes systemd-resolved iwd wireless-regdb modemmanager bluez rfkill \
   wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth \
   dbus-user-session kbd pkexec \
   sway swayidle swaylock xwayland \
@@ -31,17 +31,16 @@ command -v flash-kernel &>/dev/null && {
 # , for UEFI use systemd-boot
 # , for Bios and PPC (OpenFirmware, Petitboot) use Grub
 
-# UEFI needs a separate VFAT boot partition
-# separate boot partition and atomic upgrades can live together becasue Debian keeps old kernel and modules
+# UEFI with systemd-boot needs a separate VFAT partition containing kernel and initrd images
+# this and atomic upgrades can live together becasue Debian keeps old kernel and modules
 # and the fact that systemd-boot implements boot counting and automatic fallback to
 #   older working boot entries on failure
-#   https://systemd.io/AUTOMATIC_BOOT_ASSESSMENT/
-# https://manpages.debian.org/unstable/systemd-boot/systemd-boot.7.en.html
+# https://manpages.debian.org/unstable/systemd-boot/systemd-boot.7.en.html#BOOT_COUNTING
+# https://systemd.io/AUTOMATIC_BOOT_ASSESSMENT/
 [ -d /boot/efi ] && {
   apt-get install --yes systemd-boot
   mkdir /boot/efi/loader
   printf 'timeout 0\neditor no\n' > /boot/efi/loader/loader.conf
-  #
   bootctl install --no-variables --esp-path=/boot/efi
   echo 1 > /etc/kernel/tries
   echo "root=UUID=$(findmnt -n -o UUID /) ro quiet" > /etc/kernel/cmdline
@@ -49,16 +48,13 @@ command -v flash-kernel &>/dev/null && {
   kernel_version="$(basename $kernel_path | sed -e 's/vmlinu.-//')"
   kernel-install add "$kernel_version" "$kernel_path" /boot/initrd.img-"$kernel_version"
   rm -f /etc/kernel/cmdline
-  # an alternative method would be:
-  # change root partition's type to XBOOTLDR
-  # create /loader/entries/debian.conf which refers to these symlinks: /boot/vmlinu? /boot/initrd.img
-  # put BTRFS driver in /boot/efi//EFI/systemd/drivers/...arch.efi
-  # cp /usr/lib/systemd/boot/efi/systemd-bootx64.efi /boot/efi/EFI/BOOT/BOOTX64.EFI
 }
+
 # to have atomic upgrades for BIOS and OpenFirmware based systems,
 #   the bootloader is installed once, and never updated
 lock_grub () {
-  printf '\nGRUB_TIMEOUT=0\nGRUB_DISABLE_OS_PROBER=true\n' >> /etc/default/grub
+  # since we will lock root, recovery entries are useless
+  printf '\nGRUB_DISABLE_RECOVERY=true\nGRUB_DISABLE_OS_PROBER=true\nGRUB_TIMEOUT=0\n' >> /etc/default/grub
   # disable menu editing and other admin operations in Grub:
   echo '#! /bin/sh' > /etc/grub.d/09_user
   echo 'set superusers=""' >> /etc/grub.d/09_user
@@ -134,9 +130,6 @@ RouteMetric=700
 RouteMetric=700
 ' > /etc/systemd/network/20-wwan.network
 systemctl enable systemd-networkd
-ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
-systemctl enable systemd-resolved
-systemctl enable iwd
 
 cp /mnt/comshell/os/net /usr/local/bin/
 chmod +x /usr/local/bin/net
