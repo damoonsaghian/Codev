@@ -62,39 +62,17 @@ lock_grub () {
   chmod +x /etc/grub.d/09_user
   grub-mkconfig -o /boot/grub/grub.cfg
 }
-[ -d /sys/firmware/efi ] || {
-  [ "$(udpkg --print-architecture)" = 'i386' ] || [ "$(udpkg --print-architecture)" = 'amd64' ] && {
-    apt-get install --no-install-recommends --yes grub2-common grub-pc-bin grub-pc
-    apt-get remove --yes grub-pc
-    lock_grub
-  }
+architecture="$(udpkg --print-architecture)"
+[ -d /sys/firmware/efi ] || { [ "$architecture" = 'i386' ] || [ "$architecture" = 'amd64' ]; } && {
+  apt-get install --no-install-recommends --yes grub2-common grub-pc-bin grub-pc
+  apt-get remove --yes grub-pc
+  lock_grub
 }
-[ "$(udpkg --print-architecture)" = 'ppc64el' ] && {
+[ "$architecture" = 'ppc64el' ] && {
   apt-get install --no-install-recommends --yes grub2-common grub-ieee1275-bin grub-ieee1275
   apt-get remove --yes grub-ieee1275
   lock_grub
 }
-
-# boot'firmware updates need special care
-# unless there is a read'only backup, firmware update is not a good idea
-# the same applies to updating Grub
-# fwupd
-
-# when critical battery charge is reached, even when asleep, run poweroff
-
-# automatic time'zone:
-# periodically check for location and if it's not the same as the set timezone,
-#   and it's not equal to the value in "/usr/local/share/tz-extra",
-#   overwrite the time'zone in "/usr/local/share/tz-extra"
-# timezone="$(wget -q -O- http://ip-api.com/line/?fields=timezone)"
-#
-# if the file exists and it's older than a week then change the timezone, and delete the file
-# timedatectl set-timezone "$timezone"
-#
-# networkd-dispatcher package
-# https://gitlab.com/craftyguy/networkd-dispatcher
-# https://manpages.debian.org/unstable/networkd-dispatcher/networkd-dispatcher.8.en.html
-# systemd-networkd-wait-online
 
 echo -n '[Match]
 Type=ether
@@ -201,7 +179,6 @@ echo 'SUBSYSTEM=="firmware", ACTION=="add",  RUN+="/usr/local/bin/fwi"' > /etc/u
 cp /mnt/comshell/os/apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
 
-mkdir -p /usr/local/lib/systemd/system
 echo -n '[Unit]
 Description=automatic update
 After=network-online.target
@@ -220,7 +197,44 @@ RandomizedDelaySec=5min
 [Install]
 WantedBy=timers.target
 ' > /usr/local/lib/systemd/system/autoupdate.timer
-systemctl enable autoupdate.timer
+systemctl enable /usr/local/lib/systemd/system/autoupdate.timer
+
+echo -n 'tz_system="$(timedatectl show --value --property Timezone)"
+tz_geoip="$(wget -q -O- http://ip-api.com/line/?fields=timezone)"
+if [ "$tz_geoip" = "$tz_system" ]; then
+  rm /usr/local/share/tz-geoip
+else
+  tz_geoip_old="$(cat /usr/local/share/tz-geoip)"
+  [ "$tz_geoip" = "$tz_geoip_old" ] || echo "$tz_geoip" > /usr/local/share/tz-geoip
+fi
+' > /usr/local/share/tz-check.sh
+echo -n '[Unit]
+Description=timezone check
+After=network-online.target
+[Service]
+ExecStart=/bin/sh /usr/local/share/tz-check.sh
+Nice=19
+KillMode=process
+KillSignal=SIGINT
+' > /usr/local/lib/systemd/system/tz-check.service
+echo -n '[Unit]
+Description=timezone check timer
+[Timer]
+OnBootSec=1
+OnUnitInactiveSec=5min
+RandomizedDelaySec=1min
+[Install]
+WantedBy=timers.target
+' > /usr/local/lib/systemd/system/tz-check.timer
+systemctl enable /usr/local/lib/systemd/system/tz-check.timer
+
+echo -n '#!/usr/bin/pkexec /bin/sh
+. /usr/share/debconf/confmodule
+db_set time/zone "$(wget -q -O- http://ip-api.com/line/?fields=timezone)"
+db_fset time/zone seen false
+DEBIAN_FRONTEND=text dpkg-reconfigure tzdata
+rm /usr/local/share/tz-geoip
+' > /usr/local/bin/tz
 
 groupadd su
 # add the first user to su group
@@ -296,6 +310,12 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
     <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
     <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/apm</annotate>
   </action>
+  <action id="com.comshell.tz">
+    <description>set timezone</description>
+    <message>set timezone</message>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/tz</annotate>
+  </action>
   <action id="com.comshell.switch-user">
     <description>switch user</description>
     <message>switch user</message>
@@ -325,6 +345,10 @@ ResultActive=yes
 Identity=unix-group:su
 Action=com.comshell.apm
 ResultActive=yes
+[tz]
+Identity=unix-group:su
+Action=com.comshell.tz
+ResultActive=yes
 ' > /etc/polkit-1/localauthority/50-local.d/51-comshell.pkla
 
 [ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
@@ -350,10 +374,11 @@ RandomizedDelaySec=5min
 [Install]
 WantedBy=timers.target
 ' > /usr/local/lib/systemd/system/autobackup.timer
-systemctl enable autobackup.timer
+systemctl enable /usr/local/lib/systemd/system/autobackup.timer
 
 # also when a disk is inserted run "codev backup"
 
+mkdir -p /usr/local/share
 cp /mnt/comshell/os/{sway.conf,status.py,swapps.py} /usr/local/share/
 
 # to customize dconf default values:
