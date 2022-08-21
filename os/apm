@@ -18,16 +18,17 @@ apm_mode=remove
 
 [ "$1" = "autoupdate" ] && apm_mode=autoupdate
 
-batteryIsEmpty() {
-  battery_capacity="/sys/class/power_supply/BAT1/capacity"
+critical_battery() {
+  battery_capacity="/sys/class/power_supply/BAT0/capacity"
+  [ -f "$battery_capacity" ] || battery_capacity="/sys/class/power_supply/BAT1/capacity"
 	[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
 }
-connectionIsMetered() {
+metered_connection() {
   # nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
   # if not mobile broadband
 	true
 }
-[ "$1" = "autoupdate" ] && { batteryIsEmpty || connectionIsMetered; } && exit 0
+[ "$1" = "autoupdate" ] && { critical_battery || metered_connection; } && exit 0
 
 [ -f /tmp/apm-lock ] && {
   echo 'another instance is running; wait for it to finish, or reboot the system'

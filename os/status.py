@@ -5,6 +5,10 @@
 # font-awesome
 
 # %F %a % p %I:%M
+# if "/usr/local/share/tz-geoip" exists, show additional time indictor for that timezone
+# date +%z
+# wget -q -O- http://ip-api.com/line/?fields=timezone
+
 # battery
 # cpu ram disk net (sum since login)
 
@@ -29,8 +33,6 @@
 # https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/custom_statusbar
 # https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/custom_statusbar
 # https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/batpct
-
-# show time for extra timezone (if available) in /usr/local/share/tz-extra
 
 # update indicator: in'progress, completed
 # https://github.com/enkore/i3pystatus/wiki/Restart-reminder
