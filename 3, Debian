@@ -13,7 +13,7 @@ download the files of this project:
 ensure that the downloaded files aren't malicious
 insert a USB storage device (at least 700MB), find the device using "lsblk"
 now assuming the device is "sdx", and the CPU architecture is "amd64":
-; sh Comshell/mkdi/mkdi.sh amd64 sdx
+; sh Comshell/os/di.sh amd64 sdx
 
 now just boot to the USB storage
 it will ask for:
