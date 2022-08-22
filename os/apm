@@ -5,7 +5,8 @@ set -e
 # https://www.debian.org/doc/manuals/apt-offline/index.en.html
 # https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
 
-[ "$1" = "firmwares" ] && {
+[ "$1" = "install-firmware" ] && {
+  device_name="$2"
   # find and install required firmwares
   # https://salsa.debian.org/debian/isenkram
   exit

@@ -70,6 +70,7 @@ chmod +x /usr/local/bin/rd
 
 cp /mnt/comshell/os/apm /usr/local/bin/
 chmod +x /usr/local/bin/apm
+mkdir -p /usr/local/lib/systemd/system
 echo -n '[Unit]
 Description=automatic update
 After=network-online.target
@@ -89,10 +90,8 @@ RandomizedDelaySec=5min
 WantedBy=timers.target
 ' > /usr/local/lib/systemd/system/autoupdate.timer
 systemctl enable /usr/local/lib/systemd/system/autoupdate.timer
-# https://wiki.archlinux.org/title/udev
-# https://wiki.debian.org/udev
-# https://salsa.debian.org/debian/isenkram/-/blob/master/isenkramd
-echo 'SUBSYSTEM=="firmware", ACTION=="add",  RUN+="/usr/local/bin/apm firmwares"' >
+# install needed firmwares when new hardware is inserted into the machine
+echo 'SUBSYSTEM=="firmware", ACTION=="add",  RUN+="/usr/local/bin/apm install-firmware %k"' >
   /etc/udev/rules.d/80-firmwares.rules
 
 . /mnt/comshell/os/di-late-sd.sh
@@ -115,7 +114,7 @@ ExecStart=/bin/sh /usr/local/share/codev.sh backup
 Nice=19
 KillMode=process
 KillSignal=SIGINT
-' > /usr/local/share/codev-backup.service
+' > /usr/local/lib/systemd/system/codev-backup.service
 echo -n '[Unit]
 Description=automatic backup timer
 [Timer]
@@ -123,8 +122,8 @@ OnUnitInactiveSec=1h
 RandomizedDelaySec=5min
 [Install]
 WantedBy=timers.target
-' > /usr/local/share/codev-backup.timer
-systemctl --global enable /usr/local/share/codev-backup.timer
+' > /usr/local/lib/systemd/system/codev-backup.timer
+systemctl --global enable /usr/local/lib/systemd/system/codev-backup.timer
 
 cp /mnt/comshell/os/{sway.conf,status.py,swapps.py} /usr/local/share/
 
