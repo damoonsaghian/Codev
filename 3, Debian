@@ -27,9 +27,17 @@ press "tab+enter" to open the application launcher
 the first character in application launcher:
 , enter: switch between the first application (usually Comshell) and the prior application
 , backspace: close current application
-, space: command mode
+, space: runs the dialog based program "system"
 
-self'explanatory commands: poweroff, reboot, logout, sleep, lock
+in "system" you can configure timezone, network, Bluetooth ...
+
+also in "system" you can manage packages
+the package manager uses BTRFS snapshots to manage packages in such a way that
+  changes on the file'system would be atomic
+this means that we can have reliable automatic updates
+
+and finally in "system" you can do: poweroff, reboot, logout, sleep, lock
+
 to switch between users, disconnect and reconnect your keyboard,
   or first lock the session, and then press "tab"
 
@@ -55,16 +63,3 @@ in addition you must:
 , disable changing the storage device used for booting
 these can make physical attacks more difficult, but keep this in mind:
   physical access to a computer is root access, given enough time and resources
-
-to configure network:
-; net
-to connect a Bluetooth device:
-; bt
-to block/unblock radio devices:
-; rd
-
-package management:
-; apm
-"apm" (atomic package manager) uses "apt" and BTRFS snapshots to manage packages in such a way that
-  changes on the file'system would be atomic
-this means that we can have reliable automatic updates
