@@ -96,7 +96,13 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/com.comshell.policy
 
-echo -n '[su]
+mkdir -p /etc/polkit-1/localauthority/50-local.d
+echo -n '[udisks]
+# write disk images, on non-system devices, without asking for password
+Identity=unix-user:*
+Action=org.freedesktop.udisks2.open-device
+ResultActive=yes
+[su]
 Identity=unix-group:su
 Action=com.comshell.su
 ResultActive=yes
@@ -112,4 +118,4 @@ ResultActive=yes
 Identity=unix-group:su
 Action=com.comshell.tz
 ResultActive=yes
-' > /etc/polkit-1/localauthority/50-local.d/51-comshell.pkla
+' > /etc/polkit-1/localauthority/50-local.d/50-comshell.pkla

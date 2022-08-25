@@ -35,7 +35,7 @@ read -r selected_option
 
 case "$selected_option" in
   s*) systemctl suspend ;;
-  e*) loginctl terminate-session ;;
+  e*) swaymsg "[title=*] kill; exit" ;;
   r*) systemctl reboot ;;
   p*) systemctl poweroff ;;
   *) loginctl lock-session ;;
@@ -49,7 +49,10 @@ db_fset time/zone seen false
 DEBIAN_FRONTEND=text dpkg-reconfigure tzdata
 ' > /usr/local/share/timezone.sh
 
+# https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/gdbus-org.freedesktop.ModemManager1.Modem.Time.html
+# https://manpages.debian.org/bullseye/modemmanager/mmcli.1.en.html
 # https://lazka.github.io/pgi-docs/ModemManager-1.0/classes/NetworkTimezone.html
+# https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/
 
 cp /mnt/comshell/os/network.sh /usr/local/share/
 

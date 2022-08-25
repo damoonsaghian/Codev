@@ -95,59 +95,11 @@ grep -v "initrd.gz" md5sum.txt > tmpfile && mv tmpfile md5sum.txt
 # add the md5sum of the new initrd files
 md5sum ./"$initrd_rpath" ./"$initrd_gtk_rpath" >> md5sum.txt
 
-mkdir partman-recepies
-echo -n 'default ::
-538 538 1075 free
-	$iflabel{ gpt }
-	method{ efi }
-	format{ } .
-900 10000 -1 btrfs
-  method{ format }
-  format{ }
-  use_filesystem{ }
-  filesystem{ btrfs }
-  mountpoint{ / } .
-100% 512 200% linux-swap
-  method{ swap }
-  format{ } .
-' > partman-recepies/default
-echo -n 'bios ::
-1 1 1 free
-	$iflabel{ gpt }
-	method{ biosgrub } .
-1500 10000 -1 btrfs
-	method{ format }
-	format{ }
-	use_filesystem{ }
-	filesystem{ btrfs }
-	mountpoint{ / } .
-100% 512 200% linux-swap
-	method{ swap }
-	format{ } .
-' > partman-recepies/bios
-echo -n 'ppc ::
-8 1 1 prep
-  $primary{ }
-  $bootable{ }
-  method{ prep } .
-1500 10000 -1 btrfs
-  $primary{ }
-  method{ format }
-  format{ }
-  use_filesystem{ }
-  filesystem{ btrfs }
-  mountpoint{ / } .
-100% 512 300% linux-swap
-  method{ swap }
-  format{ } .
-' > partman-recepies/ppc
-
 # generate the modified iso file
 [ -f debian-modified-"$1"-netinst.iso ] && rm -f debian-modified-"$1"-netinst.iso
 xorriso -indev "$debian_image" -outdev debian-modified-"$1"-netinst.iso \
   -overwrite on -pathspecs off -cd / \
   -add firmware "$initrd_rpath" "$initrd_gtk_rpath" md5sum.txt \
-  -map partman-recepies/ '/comshell/partman-recepies/' \
   -map "$project_path"/os/ '/comshell/os/' \
   -map "$project_path"/comshell-py/ '/comshell/comshell-py/'
 

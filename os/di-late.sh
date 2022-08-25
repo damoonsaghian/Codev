@@ -21,7 +21,24 @@ apt-get install --no-install-recommends --yes systemd-resolved iwd wireless-regd
 
 . /mnt/comshell/os/di-late-su.sh
 
-. /mnt/comshell/os/di-late-sd.sh
+cp /mnt/comshell/os/sd.sh /usr/local/share/
+echo -n 'set -e
+format () {
+  # if it is not already formated with BTRFS
+  mkfs.btrfs /dev/"$1"
+}
+mount () {
+  mkdir -p /run/mount/"$1"
+  mount /dev/$1 /run/mount/"$1"
+  cp --no-clobber --preserve=all /home/ /run/mount/"$1"
+}
+case "$1" in
+  format) shift; format "$@" ;;
+  mount) shift; mount "$@" ;;
+  *) echo "usage: sd-internal format/mount"
+    exit 1 ;;
+esac
+' > /usr/local/share/sd-internal.sh
 
 cp /mnt/comshell/os/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev

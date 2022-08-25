@@ -43,16 +43,12 @@ echo -n '<?xml version="1.0"?>
 ' > /etc/fonts/local.conf
 
 # mono'space fonts:
-#   wide characters are forced to squeeze
-#   narrow characters are forced to stretch
-#   uppercase letters look skinny next to lowercase
-#   bold characters don’t have enough room
+# , wide characters are forced to squeeze
+# , narrow characters are forced to stretch
+# , bold characters don’t have enough room
 # proportional font for code:
-#   generous spacing
-#   large punctuation
-#   and easily distinguishable characters
-#   while allowing each character to take up the space that it needs
+# , generous spacing
+# , large punctuation
+# , and easily distinguishable characters
+# , while allowing each character to take up the space that it needs
 # "https://input.djr.com/"
-# for proportional fonts, we can't use spaces for text alignment
-# elastic tabstops may help: "http://nickgravgaard.com/elastic-tabstops/"
-# but i think, text alignment is a bad idea, in general
