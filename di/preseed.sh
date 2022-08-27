@@ -24,17 +24,6 @@ chmod +x /usr/local/bin/codev
 apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland
 cp /mnt/comshell/os/{sway.conf,status.py,swapps.py} /usr/local/share/
 mkdir -p /usr/local/lib/systemd/user
-echo -n '[Unit]
-Description=sway
-[Service]
-ExecStart=/bin/sh -c "[ $(id -u) = 0 ] || sway -c /usr/local/share/sway.conf"
-Nice=19
-KillMode=process
-KillSignal=SIGINT
-[Install]
-WantedBy=default.target
-' > /usr/local/lib/systemd/user/sway.service
-systemctl --global enable sway.service
 
 apt-get install --no-install-recommends --yes \
   python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18 python3-cairocffi \

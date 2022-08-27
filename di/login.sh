@@ -31,6 +31,7 @@ if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/su-vt)" ]; then
       exit
     fi
   }
+  [ $(id -u) = 0 ] || exec sway -c /usr/local/share/sway.conf
 fi
 ' > /etc/profile.d/login-manager.sh
 

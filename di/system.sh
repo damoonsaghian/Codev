@@ -1,7 +1,4 @@
 echo -n '#!/bin/sh -e
-
-# /usr/bin/pkexec /bin/sh radio.sh
-
 echo -n "
 , session
 , timezone
@@ -11,13 +8,12 @@ echo -n "
 , packages
 select one by typing the first charactor at the least (session is default): "
 read -r selected_option
-
 case "$selected_option" in
-  t*) pkexec sh /usr/local/share/timezone.sh ;;
-  n*) sh /usr/local/share/network.sh ;;
-  b*) sh /usr/local/share/bluetooth.sh ;;
-  r*) pkexec sh /usr/local/share/radio.sh ;;
   p*) pkexec sh /usr/local/share/packages.sh ;;
+  r*) pkexec sh /usr/local/share/radio.sh ;;
+  b*) sh /usr/local/share/bluetooth.sh ;;
+  n*) sh /usr/local/share/network.sh ;;
+  t*) pkexec sh /usr/local/share/timezone.sh ;;
   *) sh /usr/local/share/session.sh ;;
 esac
 ' > /usr/local/bin/system
@@ -26,23 +22,22 @@ chmod +x /usr/local/bin/system
 echo -n 'set -e
 echo -n "
 , lock
-, suspend
 , exit
+, suspend
 , reboot
 , poweroff
 select one by typing the first charactor at the least (lock is default): "
 read -r selected_option
-
 case "$selected_option" in
+  p*) systemctl poweroff ;;
+  r*) systemctl reboot ;;
   s*) systemctl suspend ;;
   e*) swaymsg "[title=*] kill; exit" ;;
-  r*) systemctl reboot ;;
-  p*) systemctl poweroff ;;
   *) loginctl lock-session ;;
 esac
 ' > /usr/local/share/session.sh
 
-echo -n '#!/usr/bin/pkexec /bin/sh
+echo -n 'set -e
 . /usr/share/debconf/confmodule
 db_set time/zone "$(wget -q -O- http://ip-api.com/line/?fields=timezone)"
 db_fset time/zone seen false
@@ -56,8 +51,7 @@ DEBIAN_FRONTEND=text dpkg-reconfigure tzdata
 
 apt-get install --no-install-recommends --yes systemd-resolved iwd wireless-regdb modemmanager bluez rfkill
 
-cp /mnt/comshell/os/system-network.sh /usr/local/share/
-
+cp /mnt/comshell/di/system-network.sh /usr/local/share/
 echo -n '[Match]
 Type=ether
 Name=! veth*
@@ -93,7 +87,7 @@ RouteMetric=700
 ' > /etc/systemd/network/20-wwan.network
 systemctl enable systemd-networkd
 
-cp /mnt/comshell/os/system-bluetooth.sh /usr/local/share/
+cp /mnt/comshell/di/system-bluetooth.sh /usr/local/share/
 
 echo -n 'set -e
 rfkill
@@ -105,7 +99,7 @@ read -r devices
 rfkill toggle "$devices"
 ' > /usr/local/share/radio.sh
 
-cp /mnt/comshell/os/system-packages.sh /usr/local/share/
+cp /mnt/comshell/di/system-packages.sh /usr/local/share/
 
 mkdir -p /usr/local/lib/systemd/system
 echo -n '[Unit]
@@ -132,42 +126,42 @@ systemctl enable autoupdate.timer
 echo 'SUBSYSTEM=="firmware", ACTION=="add",  RUN+="/usr/local/bin/apm install-firmware %k"' >
   /etc/udev/rules.d/80-install-firmware.rules
 
-  echo -n '<?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
-    "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
-  <policyconfig>
-    <action id="com.comshell.rd">
-      <description>radio device management</description>
-      <message>radio device management</message>
-      <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
-      <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/rd</annotate>
-    </action>
-    <action id="com.comshell.apm">
-      <description>package management</description>
-      <message>package management</message>
-      <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
-      <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/apm</annotate>
-    </action>
-    <action id="com.comshell.tz">
-      <description>set timezone</description>
-      <message>set timezone</message>
-      <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
-      <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/tz</annotate>
-    </action>
-  </policyconfig>
-  ' > /usr/share/polkit-1/actions/comshell.system.policy
+echo -n '<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <action id="comshell.system.tz">
+    <description>set timezone</description>
+    <message>set timezone</message>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/tz</annotate>
+  </action>
+  <action id="comshell.system.rd">
+    <description>radio device management</description>
+    <message>radio device management</message>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/rd</annotate>
+  </action>
+  <action id="comshell.system.apm">
+    <description>package management</description>
+    <message>package management</message>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/apm</annotate>
+  </action>
+</policyconfig>
+' > /usr/share/polkit-1/actions/comshell.system.policy
 
-  mkdir -p /etc/polkit-1/localauthority/50-local.d
-  echo -n '[rd]
-  Identity=unix-group:netdev
-  Action=com.comshell.rd
-  ResultActive=yes
-  [apm]
-  Identity=unix-group:su
-  Action=com.comshell.apm
-  ResultActive=yes
-  [tz]
-  Identity=unix-group:su
-  Action=com.comshell.tz
-  ResultActive=yes
-  ' > /etc/polkit-1/localauthority/50-local.d/comshell.system.pkla
+mkdir -p /etc/polkit-1/localauthority/50-local.d
+echo -n '[tz]
+Identity=unix-group:su
+Action=comshell.system.tz
+ResultActive=yes
+[rd]
+Identity=unix-group:netdev
+Action=comshell.system.rd
+ResultActive=yes
+[apm]
+Identity=unix-group:su
+Action=comshell.system.apm
+ResultActive=yes
+' > /etc/polkit-1/localauthority/50-local.d/comshell.system.pkla
