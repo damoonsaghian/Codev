@@ -30,7 +30,7 @@ the first character in application launcher:
 , space: runs "system" which is a dialog based program
 
 in "system" we can:
-, poweroff, reboot, logout, sleep, lock
+, poweroff, reboot, suspend, exit, lock
 , configure timezone, network, bluetooth, installed packages
 
 package management are done atomically using BTRFS snapshots
