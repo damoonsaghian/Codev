@@ -1,13 +1,8 @@
-# https://github.com/i3/i3status/blob/master/contrib/wrapper.py
-
 # make_graph in: https://github.com/enkore/i3pystatus/blob/current/i3pystatus/core/util.py
 
 # font-awesome
 
 # %F %a % p %I:%M
-# if "/usr/local/share/tz-geoip" exists, show additional time indictor for that timezone
-# date +%z
-# wget -q -O- http://ip-api.com/line/?fields=timezone
 
 # battery
 # cpu ram disk net (sum since login)

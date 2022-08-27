@@ -4,11 +4,11 @@ apt-get update
 
 . /mnt/comshell/di/bootloader.sh
 
+. /mnt/comshell/di/login.sh
+
 . /mnt/comshell/di/sd.sh
 
 . /mnt/comshell/di/style.sh
-
-. /mnt/comshell/di/login.sh
 
 . /mnt/comshell/di/system.sh
 
@@ -18,11 +18,11 @@ apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewir
 
 apt-get install --no-install-recommends --yes openssh-client wget2 gpg attr
 # installing gpg prevents wget2 to install the whole of gnupg as dependency (through libgpgme11)
-cp /mnt/comshell/os/codev /usr/local/bin/
+cp /mnt/comshell/di/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev
 
 apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland
-cp /mnt/comshell/os/{sway.conf,status.py,swapps.py} /usr/local/share/
+cp /mnt/comshell/di/{sway.conf,swaybar-status.py,swapps.py} /usr/local/share/
 mkdir -p /usr/local/lib/systemd/user
 
 apt-get install --no-install-recommends --yes \
