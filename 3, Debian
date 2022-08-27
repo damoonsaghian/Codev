@@ -13,7 +13,7 @@ download the files of this project:
 ensure that the downloaded files aren't malicious
 insert a USB storage device (at least 700MB), find the device using "lsblk"
 now assuming the device is "sdx", and the CPU architecture is "amd64":
-; sh Comshell/os/di.sh amd64 sdx
+; sh Comshell/di/0.sh amd64 sdx
 
 now just boot to the USB storage
 it will ask for:
@@ -27,16 +27,14 @@ press "tab+enter" to open the application launcher
 the first character in application launcher:
 , enter: switch between the first application (usually Comshell) and the prior application
 , backspace: close current application
-, space: runs the dialog based program "system"
+, space: runs "system" which is a dialog based program
 
-in "system" you can configure timezone, network, Bluetooth ...
+in "system" we can:
+, poweroff, reboot, logout, sleep, lock
+, configure timezone, network, bluetooth, installed packages
 
-also in "system" you can manage packages
-the package manager uses BTRFS snapshots to manage packages in such a way that
-  changes on the file'system would be atomic
+package management are done atomically using BTRFS snapshots
 this means that we can have reliable automatic updates
-
-and finally in "system" you can do: poweroff, reboot, logout, sleep, lock
 
 to switch between users, disconnect and reconnect your keyboard,
   or first lock the session, and then press "tab"
