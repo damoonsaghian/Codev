@@ -42,7 +42,7 @@ echo -n 'set -e
 db_set time/zone "$(wget -q -O- http://ip-api.com/line/?fields=timezone)"
 db_fset time/zone seen false
 DEBIAN_FRONTEND=text dpkg-reconfigure tzdata
-' > /usr/local/share/systemtimezone.sh
+' > /usr/local/share/system-timezone.sh
 
 # https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/gdbus-org.freedesktop.ModemManager1.Modem.Time.html
 # https://manpages.debian.org/bullseye/modemmanager/mmcli.1.en.html
@@ -97,7 +97,7 @@ read -r devices
 [ -z "$devices" ] && { rfkill unblock all; exit; }
 [ "$devices" = "block" ] && { rfkill block all; exit; }
 rfkill toggle "$devices"
-' > /usr/local/share/radio.sh
+' > /usr/local/share/system-radio.sh
 
 cp /mnt/comshell/di/system-packages.sh /usr/local/share/
 
@@ -106,7 +106,7 @@ echo -n '[Unit]
 Description=automatic update
 After=network-online.target
 [Service]
-ExecStart=/usr/local/bin/apm autoupdate
+ExecStart=/bin/sh /usr/local/bin/system-packages autoupdate
 Nice=19
 KillMode=process
 KillSignal=SIGINT
@@ -133,20 +133,23 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
   <action id="comshell.system.timezone">
     <description>set timezone</description>
     <message>set timezone</message>
+    <defaults><allow_active>no</allow_active></defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
-    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/tz</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/system-timezone.sh</annotate>
   </action>
   <action id="comshell.system.radio">
     <description>radio device management</description>
     <message>radio device management</message>
+    <defaults><allow_active>no</allow_active></defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
-    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/rd</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/system-radio.sh</annotate>
   </action>
   <action id="comshell.system.packages">
     <description>package management</description>
     <message>package management</message>
+    <defaults><allow_active>no</allow_active></defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
-    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/apm</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/system-packages.sh</annotate>
   </action>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/comshell.system.policy

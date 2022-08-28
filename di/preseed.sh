@@ -1,29 +1,28 @@
 set -e
 
-apt-get update
-
 . /mnt/comshell/di/bootloader.sh
 
-. /mnt/comshell/di/login.sh
-
-. /mnt/comshell/di/sd.sh
-
-. /mnt/comshell/di/style.sh
-
-. /mnt/comshell/di/system.sh
+apt-get update
 
 apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth
 [ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
   cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
 
+. /mnt/comshell/di/login.sh
+
+. /mnt/comshell/di/system.sh
+
+apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland
+cp /mnt/comshell/di/{sway.conf,swaybar-status.py,swapps.py} /usr/local/share/
+
+. /mnt/comshell/di/style.sh
+
+. /mnt/comshell/di/sd.sh
+
 apt-get install --no-install-recommends --yes openssh-client wget2 gpg attr
 # installing gpg prevents wget2 to install the whole of gnupg as dependency (through libgpgme11)
 cp /mnt/comshell/di/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev
-
-apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland
-cp /mnt/comshell/di/{sway.conf,swaybar-status.py,swapps.py} /usr/local/share/
-mkdir -p /usr/local/lib/systemd/user
 
 apt-get install --no-install-recommends --yes \
   python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18 python3-cairocffi \

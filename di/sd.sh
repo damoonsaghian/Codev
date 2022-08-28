@@ -1,6 +1,6 @@
 apt-get install --no-install-recommends --yes dosfstools exfatprogs btrfs-progs udisks2 polkitd
 
-cat <<_EOF_ > /usr/local/share/sd.sh
+cat <<'_EOF_' > /usr/local/share/sd.sh
 set -e
 
 # storage device manager, using udisks2 dbus interface
@@ -49,7 +49,7 @@ case "$1" in
 esac
 _EOF_
 
-cat <<_EOF_ > /usr/local/share/sd-internal.sh
+cat <<'_EOF_' > /usr/local/share/sd-internal.sh
 set -e
 format () {
   # if it is not already formated with BTRFS
@@ -57,7 +57,7 @@ format () {
 }
 mount () {
   mkdir -p /run/mount/"$1"
-  mount /dev/$1 /run/mount/"$1"
+  mount -o noexec,nosuid,nodev /dev/$1 /run/mount/"$1"
   cp --no-clobber --preserve=all /home/ /run/mount/"$1"
 }
 case "$1" in

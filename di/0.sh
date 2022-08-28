@@ -91,7 +91,7 @@ rm -rf initrd
 rm -f md5sum.txt
 xorriso -osirrox on -indev "$debian_image" -cpx /md5sum.txt md5sum.txt
 # remove the lines corresponding to the initrd files
-grep -v "initrd.gz" md5sum.txt > tmpfile && mv tmpfile md5sum.txt
+sed -n "/initrd.gz/d" md5sum.txt
 # add the md5sum of the new initrd files
 md5sum ./"$initrd_rpath" ./"$initrd_gtk_rpath" >> md5sum.txt
 

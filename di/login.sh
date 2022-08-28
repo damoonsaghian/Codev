@@ -1,53 +1,68 @@
-apt-get install --no-install-recommends --yes dbus-user-session kbd pkexec
+apt-get install --no-install-recommends --yes dbus-user-session kbd openssl pkexec
 # kbd is needed for its chvt and openvt
 
 echo -n '#!/usr/bin/pkexec /bin/sh
+set -e
 navt=$(fgconsole --next-available)
 systemctl start getty@tty"$navt".service
-loginctl lock-session
 chvt "$navt"
-echo "$navt" > /tmp/su-vt
+echo "$navt" > /tmp/switch-user-vt
 ' > /usr/local/bin/switch-user
 chmod +x /usr/local/bin/switch-user
 
 # when a keyboard is connected, disable others, lock the session (if any), run "switch-user"
+# loginctl lock-session; switch-user
 # since password prompts only accept keyboard input, this is not necessary for headsets
 # this has two benefits:
 # , when you want to login you are sure that it's the login screen (not a fake one created by another user)
 # , others can't access your session using an extra keyboard
 
-echo -n '# run this script if running from tty1, or if put here by "switch-user"
-if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/su-vt)" ]; then
-  # if a user session is already running, switch to it, unlock it, and exit
-  loginctl show-user "$USER" --value --property=Sessions | {
-    read current_session previous_session rest
-    previous_tty=$(loginctl show-session $previous_session --value --property=TTY)
-    current_tty=$(tty)
-    current_tty=${current_tty##*/}
-    if [ -n $previous_session ] && [ $current_tty != $previous_tty ]; then
-      loginctl activate $previous_session &&
-      loginctl unlock-session $previous_session
-      systemctl stop getty@$current_tty.service
-      exit
-    fi
-  }
-  [ $(id -u) = 0 ] || exec sway -c /usr/local/share/sway.conf
+cat <<'_EOF_' > /etc/profile.d/login-manager.sh
+# run this script if running from tty1, or if put here by "switch-user"
+if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/switch-user-vt)" ]; then
+  # if a user session is already running, switch to it, and unlock it
+  # otherwise run sway (if this script is not called by a display manager, or by root)
+  previous_session="$(loginctl show-user "$USER" --value --property=Sessions | cut -d ' ' -f2)"
+  current_tty="$(basename $(tty))"
+  if [ -n "$previous_session" ]; then
+    loginctl activate "$previous_session" && {
+      loginctl unlock-session "$previous_session"
+      systemctl stop getty@"$current_tty".service
+    }
+  elif [ -z $DISPLAY ] && [ $(id -u) != 0 ]; then
+    exec sway -c /usr/local/share/sway.conf
+  fi
 fi
-' > /etc/profile.d/login-manager.sh
+_EOF_
 
 groupadd su
 # add the first user to su group
 usermod -aG su "$(id -nu 1000)"
 
+cat <<'_EOF_' > /usr/localshare/su-chkpasswd.sh
+set -e
+root_passwd_hashed="$(sed -n '/root/p' /etc/shadow | cut -d ':' -f2)"
+hash_method="$(echo "$root_passwd_hashed" | cut -d '$' -f2)"
+salt="$(echo $root_passwd_hashed | cut -d '$' -f3)"
+printf "enter root password: "
+IFS= read -rs entered_passwd
+entered_passwd_hashed="$(echo "$entered_passwd" | openssl passwd -$hash_method -salt $salt -stdin)"
+if [ "$entered_passwd_hashed" = "$root_passwd_hashed" ]; then
+  exit 0
+else
+  exit 1
+fi
+_EOF_
+
 echo -n '#!/usr/bin/pkexec /bin/sh
 set -e
-# switch to the first available virtual terminal and ask for root password
-# openvt -sw ...
-# if the password is correct run $@
-# getent shadow root | cut -d: -f2 | cut -c2-
-# https://unix.stackexchange.com/questions/329878/check-users-password-with-a-shell-script
-# https://unix.stackexchange.com/questions/21705/how-to-check-password-with-linux
-# https://askubuntu.com/questions/611580/how-to-check-the-password-entered-is-a-valid-password-for-this-user
+# switch to the first available virtual terminal and ask for root password,
+#   and if successful, run the given command
+if openvt -sw -- /bin/sh /usr/localshare/su-chkpasswd.sh; then
+  $@
+else
+  echo "authentication failure"
+fi
 ' > /usr/local/bin/su
 chmod +x /usr/local/bin/su
 
@@ -61,6 +76,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
   <action id="comshell.login.su">
     <description>su</description>
     <message>switch users</message>
+    <defaults><allow_active>no</allow_active></defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
     <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/su</annotate>
   </action>
