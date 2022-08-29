@@ -41,8 +41,10 @@ to switch between users, disconnect and reconnect your keyboard,
 
 to run a command as root:
 ; su command
-this will switch to the first available virtual terminal and ask for root password
-if the password is correct it returns back to previous virtual terminal, and runs the command as root
+this will switch to the first available virtual terminal, shows the command at top,
+  and ask for root password
+if the entered password is correct it returns back to previous virtual terminal,
+  and runs the command as root
 
 note that you can't login as root; actually root account is locked,
   and root password provided during installation, is used only for "su"
