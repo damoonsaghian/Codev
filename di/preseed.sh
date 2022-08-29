@@ -12,8 +12,8 @@ apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewir
 
 . /mnt/comshell/di/system.sh
 
-apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland
-cp /mnt/comshell/di/{sway.conf,swaybar-status.py,swapps.py} /usr/local/share/
+apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland foot
+cp /mnt/comshell/di/{sway.conf,swaybar-status.py.swapps.py} /usr/local/share/
 
 . /mnt/comshell/di/style.sh
 

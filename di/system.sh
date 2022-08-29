@@ -1,4 +1,6 @@
-echo -n '#!/bin/sh -e
+apt-get install --no-install-recommends --yes systemd-resolved iwd wireless-regdb modemmanager bluez rfkill
+
+echo -n '#!/bin/sh
 echo -n "
 , session
 , timezone
@@ -6,7 +8,8 @@ echo -n "
 , bluetooth
 , radio
 , packages
-select one by typing the first charactor at the least (session is default): "
+enter the first character, or leave empty to select the first entry
+select an entry: "
 read -r selected_option
 case "$selected_option" in
   p*) pkexec sh /usr/local/share/system-packages.sh ;;
@@ -19,14 +22,14 @@ esac
 ' > /usr/local/bin/system
 chmod +x /usr/local/bin/system
 
-echo -n 'set -e
-echo -n "
+echo -n 'echo -n "
 , lock
 , exit
 , suspend
 , reboot
 , poweroff
-select one by typing the first charactor at the least (lock is default): "
+enter the first character, or leave empty to select the first entry
+select an entry: "
 read -r selected_option
 case "$selected_option" in
   p*) systemctl poweroff ;;
@@ -48,8 +51,6 @@ DEBIAN_FRONTEND=text dpkg-reconfigure tzdata
 # https://manpages.debian.org/bullseye/modemmanager/mmcli.1.en.html
 # https://lazka.github.io/pgi-docs/ModemManager-1.0/classes/NetworkTimezone.html
 # https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/
-
-apt-get install --no-install-recommends --yes systemd-resolved iwd wireless-regdb modemmanager bluez rfkill
 
 cp /mnt/comshell/di/system-network.sh /usr/local/share/
 echo -n '[Match]
@@ -91,8 +92,9 @@ cp /mnt/comshell/di/system-bluetooth.sh /usr/local/share/
 
 echo -n 'set -e
 rfkill
-echo "select radio devices to toggle their block/unblock states"
-printf "or enter \"block\" to block all (default: unblock all): "
+echo "enter the name of radio devices to toggle their block/unblock states"
+echo "enter \"block\" to block all"
+printf "leave empty to unblock all: "
 read -r devices
 [ -z "$devices" ] && { rfkill unblock all; exit; }
 [ "$devices" = "block" ] && { rfkill block all; exit; }
@@ -123,7 +125,7 @@ WantedBy=timers.target
 systemctl enable autoupdate.timer
 
 # install needed firmwares when new hardware is inserted into the machine
-echo 'SUBSYSTEM=="firmware", ACTION=="add",  RUN+="/usr/local/bin/apm install-firmware %k"' >
+echo 'SUBSYSTEM=="firmware", ACTION=="add",  RUN+="/usr/local/bin/system-packages install-firmware %k"' >
   /etc/udev/rules.d/80-install-firmware.rules
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
