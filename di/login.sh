@@ -1,4 +1,4 @@
-apt-get install --no-install-recommends --yes dbus-user-session kbd openssl pkexec
+apt-get install --no-install-recommends --yes dbus-user-session kbd python3-minimal libpython3-stdlib pkexec
 # kbd is needed for its chvt and openvt
 
 echo -n '#!/usr/bin/pkexec /bin/sh
@@ -39,26 +39,33 @@ groupadd su
 # add the first user to su group
 usermod -aG su "$(id -nu 1000)"
 
-cat <<'_EOF_' > /usr/localshare/su-chkpasswd.sh
-set -e
-root_passwd_hashed="$(sed -n '/root/p' /etc/shadow | cut -d ':' -f2)"
-hash_method="$(echo "$root_passwd_hashed" | cut -d '$' -f2)"
-salt="$(echo $root_passwd_hashed | cut -d '$' -f3)"
-printf "enter root password: "
-IFS= read -rs entered_passwd
-entered_passwd_hashed="$(echo "$entered_passwd" | openssl passwd -$hash_method -salt $salt -stdin)"
-if [ "$entered_passwd_hashed" = "$root_passwd_hashed" ]; then
-  exit 0
-else
-  exit 1
-fi
-_EOF_
+# this can't be written in shell because of security concerns
+# i couldn't find a good way to prevent salt from being exposed as a process parameter
+# https://askubuntu.com/questions/611580/how-to-check-the-password-entered-is-a-valid-password-for-this-user
+# https://wiki.debian.org/Hardening#Mounting_.2Fproc_with_hidepid
+echo -n 'import sys, re, crypt, getpass
+# root password hashed
+root_hash = ""
+with open("/etc/shadow","r") as file:
+  for line in file:
+    if re.search("root", line):
+      root_hash = line.split(":")[1]
+      break
+root_hash_split = root_hash.split("$")
+# the head of root hash, containing the hash method and the salt
+root_hash_head = "$" + root_hash_split[1] + "$" + root_hash_split[2]
+print(sys.argv[1])
+entered_passwd = getpass.getpass("enter root password: ")
+entered_passwd_hashed = crypt.crypt(entered_passwd, root_hash_head)
+if entered_passwd_hashed != root_hash:
+  sys.exit(1)
+' > /usr/localshare/su-chkpasswd.py
 
 echo -n '#!/usr/bin/pkexec /bin/sh
 set -e
 # switch to the first available virtual terminal and ask for root password,
 #   and if successful, run the given command
-if openvt -sw -- /bin/sh /usr/localshare/su-chkpasswd.sh; then
+if openvt -sw -- /usr/bin/python3 /usr/localshare/su-chkpasswd.sh "$@"; then
   $@
 else
   echo "authentication failure"
