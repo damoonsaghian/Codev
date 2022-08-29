@@ -27,13 +27,11 @@ press "tab+enter" to open the application launcher
 the first character in application launcher:
 , enter: switch between the first application (usually Comshell) and the prior application
 , backspace: close current application
-, space: runs "system" which is a dialog based program
+, space: runs "system", a dialog based program in which you can:
+  , poweroff, reboot, suspend, exit, lock
+  , configure timezone, network, bluetooth, installed packages
 
-in "system" we can:
-, poweroff, reboot, suspend, exit, lock
-, configure timezone, network, bluetooth, installed packages
-
-package management are done atomically using BTRFS snapshots
+package management is done atomically using BTRFS snapshots
 this means that we can have reliable automatic updates
 
 to switch between users, disconnect and reconnect your keyboard,
@@ -42,7 +40,7 @@ to switch between users, disconnect and reconnect your keyboard,
 to run a command as root:
 ; su command
 this will switch to the first available virtual terminal, shows the command at top,
-  and ask for root password
+  and asks for root password
 if the entered password is correct it returns back to previous virtual terminal,
   and runs the command as root
 
