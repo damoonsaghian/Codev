@@ -12,7 +12,7 @@ apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewir
 
 . /mnt/comshell/di/system.sh
 
-apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland foot
+apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland foot python3-gi gir1.2-gtk-4.0
 cp /mnt/comshell/di/{sway.conf,swaybar-status.py.swapps.py} /usr/local/share/
 
 . /mnt/comshell/di/style.sh
@@ -25,7 +25,7 @@ cp /mnt/comshell/di/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev
 
 apt-get install --no-install-recommends --yes \
-  python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18 python3-cairocffi \
+  gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18 python3-cairocffi \
   libgtk-4-media-gstreamer gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav heif-gdk-pixbuf \
   libarchive-tools
 cp -r /mnt/comshell/comshell-py /usr/local/share/
