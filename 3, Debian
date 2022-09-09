@@ -23,19 +23,21 @@ it will ask for:
 , the target device (if there is more than one device), and then installs Debian on it
 after reboot, you can login to the installed system
 
-press "tab+enter" to open the application launcher
-the first character in application launcher:
-, enter: switch between the first application (usually Comshell) and the prior application
-, backspace: close current application
-, space: runs "system", a dialog based program in which you can:
-  , poweroff, reboot, suspend, exit, lock
-  , configure timezone, network, bluetooth, installed packages
+press "alt+space" to open the application launcher
+press "alt+tab" to switch between the first application (usually Comshell) and the prior application
+press "alt+a" to switch between windows
+press "alt+escape" to close current application
+press "alt+enter" to open system menu, in which you can:
+, do session management: poweroff, reboot, suspend, exit, lock
+, configure timezone, network, bluetooth, installed packages
 
-package management is done atomically using BTRFS snapshots
+system menu is accessible from command line too, using the "system" command
+
+package management is atomic (using BTRFS snapshots)
 this means that we can have reliable automatic updates
 
 to switch between users, disconnect and reconnect your keyboard,
-  or first lock the session, and then press "tab"
+  or first lock the session, and then press "escape"
 
 to run a command as root:
 ; su command

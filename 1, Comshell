@@ -20,7 +20,7 @@ for those who neither can use all their fingers, nor can talk, gesture based (2d
 , comma followed by a letter -> the symbol on its bottom right corner
 , ";" followed by "psi" followed by space or comma -> "ψ" followed by one space or nothing
 , two apostrophes then an alphabetical letter -> capital letter
-, "aBcd" then two apostrophes followed by one space -> "AbCD" followed by one space
+, "aBcd" then two apostrophes followed by space -> "AbCD" followed by space
 "https://github.com/abstracthat/dactyl-manuform"
 "https://zealot.hu/absolem/"
 "https://github.com/foostan/crkbd"
@@ -31,8 +31,8 @@ Kinesis Advantage 2 keyboard
 
 for compatibility with other applications, we may still need a mouse,
   plus these extra keys which can be put in the middle of the keyboard:
-, arrow keys, "page up", "page down", "home", "end", "escape"
-, "alt", "ctrl", "shift", and an extra modal key for inserting punctuations
+, arrow keys, "page up", "page down", "home", "end", "tab"
+, "alt", "ctrl", "shift", and an extra modifier key for inserting punctuations
 also we can have a row of function keys, plus the "delete" key
 
 = Comshell
@@ -43,7 +43,7 @@ Comshell is a unified computing environment, utilizing command based user interf
 project directories reside in directories named "projects" or "projects.*",
   inside home directory or mounted disks
 list of all projects will appear in a floating layer, at the center of screen
-each group of projects (which are in the same directory) will be shown in separate tabs
+each group of projects (which are in the same directory) will be shown in a separate tab
 
 in a project view, the list of files of a project will be displayed in the left side'bar
 opened files will be slightly highlighted
@@ -79,9 +79,8 @@ in normal mode we can:
 , selection
 , completion
 
-double space:
-, at the beginning of line: indent
-, otherwise: complete (auto'completion does not disappear with only one space)
+enter: selection, completion
+space or punctuations or empty line, then enter: new line
 
 codev: collaborative development without the need to keep the whole history
 flaws of version control systems:
@@ -96,6 +95,10 @@ codev clone
 codev pull
 and after merging: codev push
 
-for implementing Comshell, it seems that the best tool at hand is PyGObject
+in projects view press comma to open system menu, in which you can:
+, do session management: poweroff, reboot, suspend, exit, lock
+, configure timezone, network, bluetooth, installed packages
+
+for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
 Lua LGI is good too, and actually better, if all we need is libraries based on GObject
 but Python is more suitable, if we want a simple unified object'oriented interface for almost anything
