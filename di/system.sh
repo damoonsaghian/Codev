@@ -1,50 +1,35 @@
-apt-get install --no-install-recommends --yes systemd-resolved iwd wireless-regdb modemmanager bluez rfkill
+apt-get install --no-install-recommends --yes fzy systemd-resolved iwd wireless-regdb modemmanager bluez rfkill
 
 echo -n '#!/bin/sh
-echo -n "
-, session
-, timezone
-, network
-, bluetooth
-, radio
-, packages
-enter the first character, or leave empty to select the first entry
-select an entry: "
-read -r selected_option
+selected_option="$(printf "session\ntimezone\nnetwork\nbluetooth\nradio\npackages" | fzy)"
 case "$selected_option" in
-  p*) pkexec sh /usr/local/share/system-packages.sh ;;
-  r*) pkexec sh /usr/local/share/system-radio.sh ;;
-  b*) sh /usr/local/share/system-bluetooth.sh ;;
-  n*) sh /usr/local/share/system-network.sh ;;
-  t*) pkexec sh /usr/local/share/system-timezone.sh ;;
-  *) sh /usr/local/share/system-session.sh ;;
+  session) sh /usr/local/share/system-session.sh ;;
+  timezone) pkexec sh /usr/local/share/system-timezone.sh ;;
+  network) sh /usr/local/share/system-network.sh ;;
+  bluetooth) sh /usr/local/share/system-bluetooth.sh ;;
+  radio) pkexec sh /usr/local/share/system-radio.sh ;;
+  packages) pkexec sh /usr/local/share/system-packages.sh ;;
 esac
 ' > /usr/local/bin/system
 chmod +x /usr/local/bin/system
 
-echo -n 'echo -n "
-, lock
-, exit
-, suspend
-, reboot
-, poweroff
-enter the first character, or leave empty to select the first entry
-select an entry: "
-read -r selected_option
+echo -n 'selected_option="$(printf "lock\nexit\nsuspend\nreboot\npoweroff" | fzy)"
 case "$selected_option" in
-  p*) systemctl poweroff ;;
-  r*) systemctl reboot ;;
-  s*) systemctl suspend ;;
-  e*) swaymsg "[title=*] kill; exit" ;;
-  *) loginctl lock-session ;;
+  lock) loginctl lock-session ;;
+  exit) swaymsg "[title=*] kill; exit" ;;
+  suspend) systemctl suspend ;;
+  reboot) systemctl reboot ;;
+  poweroff) systemctl poweroff ;;
 esac
 ' > /usr/local/share/system-session.sh
 
 echo -n 'set -e
-. /usr/share/debconf/confmodule
-db_set time/zone "$(wget -q -O- http://ip-api.com/line/?fields=timezone)"
-db_fset time/zone seen false
-DEBIAN_FRONTEND=text dpkg-reconfigure tzdata
+auto_timezone="$(wget2 -q -O- http://ip-api.com/line/?fields=timezone)"
+auto_continent="$(echo "$timezone" | cut -d / -f1)"
+auto_city="$(echo "$timezone" | cut -d / -f2)"
+continents="${auto_continent}\n$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | fzy)"
+city="${auto_city}\n$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6 | fzy)"
+timedatectl set-timezone "${continent}/${city}"
 ' > /usr/local/share/system-timezone.sh
 
 # https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/gdbus-org.freedesktop.ModemManager1.Modem.Time.html
@@ -90,15 +75,10 @@ systemctl enable systemd-networkd
 
 cp /mnt/comshell/di/system-bluetooth.sh /usr/local/share/
 
-echo -n 'set -e
-rfkill
-echo "enter the name of radio devices to toggle their block/unblock states"
-echo "enter \"block\" to block all"
-printf "leave empty to unblock all: "
-read -r devices
-[ -z "$devices" ] && { rfkill unblock all; exit; }
-[ "$devices" = "block" ] && { rfkill block all; exit; }
-rfkill toggle "$devices"
+echo -n 'lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
+device="$(printf "$lines" | fzy | cut -d " " -f1)"
+action="$(printf "block\nunblock" | fzy)"
+rfkill "$action "$device"
 ' > /usr/local/share/system-radio.sh
 
 cp /mnt/comshell/di/system-packages.sh /usr/local/share/
@@ -132,13 +112,6 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
   "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
-  <action id="comshell.system.timezone">
-    <description>set timezone</description>
-    <message>set timezone</message>
-    <defaults><allow_active>no</allow_active></defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
-    <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/system-timezone.sh</annotate>
-  </action>
   <action id="comshell.system.radio">
     <description>radio device management</description>
     <message>radio device management</message>
@@ -159,7 +132,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 mkdir -p /etc/polkit-1/localauthority/50-local.d
 echo -n '[timezone]
 Identity=unix-group:su
-Action=comshell.system.timezone
+Action=org.freedesktop.timedate1.set-timezone
 ResultActive=yes
 [radio]
 Identity=unix-group:netdev

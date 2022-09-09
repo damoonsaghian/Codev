@@ -2,22 +2,15 @@ set -e
 
 # https://iwd.wiki.kernel.org/
 setup_wifi () {
-  printf "do you want to forget a known network (y/N): "
-  read -r forget_mode
-  if [ "$forget_mode" = y ]; then
-    iwctl known-networks list
-    printf "select a known network to forget: "
-    read -r ssid
+  mode="$(printf "connect\nremove\n" | fzy)"
+  if [ "$mode" = remove ]; then
+    ssid="$(iwctl known-networks list | tail -n +5 | fzy | cut -c5- | cut -d ' ' -f1)"
     iwctl known-networks "$ssid" forget
     exit
   fi
-  iwctl device list
-  printf "select a device to connect: "
-  read -r device
+  device="$(iwctl device list | tail -n +5 | fzy | { read first _; echo $first; })"
   iwctl station "$device" scan
-  iwctl station "$device" get-networks
-  printf "select a network to connect: "
-  read -r ssid
+  ssid="$(iwctl station "$device" get-networks | tail -n +5 | fzy | cut -c5- | cut -d ' ' -f1)"
   iwctl station "$device" connect "$ssid"
 }
 
@@ -49,17 +42,11 @@ setup_cell () {
   echo "not yet implemented"
 }
 
-echo -n "
-, wifi
-, access-point
-, router
-, cellular
-select one by typing the first charactor at the least (wifi is default): "
-read -r selected_option
+selected_option="$(printf "wifi\naccess-point\nrouter\ncellular\n" | fzy)"
 
 case "$selected_option" in
-  a*) setup_access_point ;;
-  r*) setup_router ;;
-  c*) setup_cell ;;
-  *) setup_wifi ;;
+  wifi) setup_wifi ;;
+  access-point) setup_access_point ;;
+  router) setup_router ;;
+  cellular) setup_cell ;;
 esac

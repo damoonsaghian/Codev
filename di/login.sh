@@ -82,7 +82,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <policyconfig>
   <action id="comshell.login.su">
     <description>su</description>
-    <message>switch users</message>
+    <message>super user</message>
     <defaults><allow_active>no</allow_active></defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
     <annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/su</annotate>

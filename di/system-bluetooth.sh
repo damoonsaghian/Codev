@@ -1,6 +1,7 @@
 set -e
 
-echo "not yet implemented"; exit
+# temporary solution, until "simple_agent" is implemented
+bluetoothctl; exit
 
 # it seems that normal users can use Bluez to connect devices globally (ie for all users)
 # is this also true for keyboards and headsets?
@@ -14,25 +15,34 @@ echo "not yet implemented"; exit
 
 # Bluetooth keyboards must have an already paired Bluetooth dongle, or an additional USB connection
 
-printf "do you want to forget an already paired device (y/N): "
-read -r forget_mode
+mode="$(printf "add\nremove\n" | fzy)"
 
-if [ "$forget_mode" = y ]; then
-  bluetoothctl paired-devices
-  printf "select a device (enter the MAC address): "
-  read -r mac_address
-  bluetoothctl disconnect "$mac_address"
-  bluetoothctl untrust "$mac_address"
+if [ "$mode" = remove ]; then
+  device_mac="$(bluetoothctl devices | fzy | { read _ device_mac; echo $device_mac; })"
+  bluetoothctl disconnect "$device_mac"
+  bluetoothctl untrust "$device_mac"
+  bluetoothctl remove "$device_mac"
   exit
 fi
 
-bluetoothctl scan on
-printf "select a device (enter the MAC address): "
-read -r mac_address
+bluetoothctl power on
+bluetoothctl scan on & sleep 3
+device_mac="$(bluetoothctl devices | fzy | { read _ device_mac; echo $device_mac; })"
 
-if bluetoothctl --agent -- pair "$mac_address"; then
-  bluetoothctl trust "$mac_address"
-  bluetoothctl connect "$mac_address"
-else
-  bluetoothctl untrust "$mac_address"
-fi
+simple_agent () {
+  true
+  # https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/test/simple-agent
+  # https://ukbaz.github.io/howto/python_gio_1.html
+  # https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
+}
+
+temp_file="$(mktemp -q)"
+
+{
+  bluetoothctl connect "$device_mac" &&
+  bluetoothctl trust "$device_mac" ||
+  bluetoothctl untrust "$device_mac"
+} &> $temp_file &
+simple_agent
+cat $temp_file
+rm $temp_file
