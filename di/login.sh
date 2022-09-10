@@ -1,4 +1,4 @@
-apt-get install --no-install-recommends --yes dbus-user-session kbd python3-minimal libpython3-stdlib pkexec
+apt-get install --no-install-recommends --yes dbus-user-session kbd pkexec
 # kbd is needed for its chvt and openvt
 
 echo -n '#!/usr/bin/pkexec /bin/sh
