@@ -95,9 +95,8 @@ codev clone
 codev pull
 and after merging: codev push
 
-in projects view press comma to open system menu, in which you can:
-, do session management: poweroff, reboot, suspend, exit, lock
-, configure timezone, network, bluetooth, installed packages
+in system menu you can do session management (poweroff, reboot, suspend, exit, lock),
+  or configure timezone, network, bluetooth, installed packages
 
 for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
 Lua LGI is good too, and actually better, if all we need is libraries based on GObject
