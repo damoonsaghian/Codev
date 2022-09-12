@@ -2,15 +2,15 @@ set -e
 
 # https://iwd.wiki.kernel.org/
 setup_wifi () {
-  mode="$(printf "connect\nremove\n" | $BEMENU)"
+  mode="$(printf "connect\nremove\n" | bemenu -p system/network)"
   if [ "$mode" = remove ]; then
-    ssid="$(iwctl known-networks list | tail -n +5 | $BEMENU | cut -c5- | cut -d ' ' -f1)"
+    ssid="$(iwctl known-networks list | tail -n +5 | bemenu -p system/network | cut -c5- | cut -d ' ' -f1)"
     iwctl known-networks "$ssid" forget
     exit
   fi
-  device="$(iwctl device list | tail -n +5 | $BEMENU | { read first _; echo $first; })"
+  device="$(iwctl device list | tail -n +5 | bemenu -p system/network | { read first _; echo $first; })"
   iwctl station "$device" scan
-  ssid="$(iwctl station "$device" get-networks | tail -n +5 | $BEMENU | cut -c5- | cut -d ' ' -f1)"
+  ssid="$(iwctl station "$device" get-networks | tail -n +5 | bemenu -p system/network | cut -c5- | cut -d ' ' -f1)"
   iwctl station "$device" connect "$ssid"
 }
 
@@ -42,7 +42,7 @@ setup_cell () {
   echo "not yet implemented"
 }
 
-selected_option="$(printf "wifi\naccess-point\nrouter\ncellular\n" | $BEMENU)"
+selected_option="$(printf "wifi\naccess-point\nrouter\ncellular\n" | bemenu -p system/network)"
 
 case "$selected_option" in
   wifi) setup_wifi ;;

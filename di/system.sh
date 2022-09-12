@@ -4,11 +4,13 @@ apt-get install --no-install-recommends --yes bemenu libbemenu-curses libbemenu-
 echo -n '#!/bin/sh
 if [ -t 0 ]; then
   export BEMENU_BACKEND=curses
-  export BEMENU="bemenu --ignorecase --scrollbar autohide"
+  export BEMENU_OPTS="--ignorecase"
 else
-  export BEMENU="bemenu --ignorecase --scrollbar autohide --grab --bottom --fn \"sans 10.5\""
+  export BEMENU_OPTS="--ignorecase --grab --bottom --fn \"sans 10.5\" \
+    --tb #4285F4 --tf #ffffff --hb #4285F4 --hf #ffffff --sb #4285F4 --sf #ffffff \
+    --fb #222222 --ff #ffffff --cb #222222 --cf #ffffff --nb #222222 --nf #ffffff"
 fi
-selected_option="$(printf "session\ntimezone\nnetwork\nbluetooth\nradio\npackages" | $BEMENU -p system)"
+selected_option="$(printf "session\ntimezone\nnetwork\nbluetooth\nradio\npackages" | bemenu -p system)"
 case "$selected_option" in
   session) sh /usr/local/share/system-session.sh ;;
   timezone) pkexec sh /usr/local/share/system-timezone.sh ;;
@@ -20,7 +22,7 @@ esac
 ' > /usr/local/bin/system
 chmod +x /usr/local/bin/system
 
-echo -n 'selected_option="$(printf "lock\nexit\nsuspend\nreboot\npoweroff" | $BEMENU -p system/session)"
+echo -n 'selected_option="$(printf "lock\nexit\nsuspend\nreboot\npoweroff" | bemenu -p system/session)"
 case "$selected_option" in
   lock) loginctl lock-session ;;
   exit) swaymsg "[title=*] kill; exit" ;;
@@ -30,7 +32,8 @@ case "$selected_option" in
 esac
 ' > /usr/local/share/system-session.sh
 
-echo -n 'set -e
+cat <<'_EOF_' > /usr/local/share/system-timezone.sh
+set -e
 auto_timezone="$(wget2 -q -O- http://ip-api.com/line/?fields=timezone)"
 auto_continent="$(printf "$timezone" | cut -d / -f1)"
 auto_city="$(printf "$timezone" | cut -d / -f2)"
@@ -39,16 +42,16 @@ continent_list="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)"
 continent_index="$(printf "$continent_list" | sed -n "/^$auto_continent$/=" | head -n1)"
 [ -z continent_index ] && continent_index=1
 continent_index="$((continent_index-1))"
-continent="$(printf "$continent_list" | $BEMENU -p system/timezone -I $continent_index)"
+continent="$(printf "$continent_list" | bemenu -p system/timezone -I $continent_index)"
 
 city_list="$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)"
 city_index="$(printf "city_list" | sed -n "/^$auto_city$/p" | head -n1)"
 [ -z city_index ] && city_index=1
 city_index="$((city_index-1))"
-city="$(printf "$city_list" | $BEMENU -p system/timezone -I $city_index)"
+city="$(printf "$city_list" | bemenu -p system/timezone -I $city_index)"
 
 timedatectl set-timezone "${continent}/${city}"
-' > /usr/local/share/system-timezone.sh
+_EOF_
 
 # https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/gdbus-org.freedesktop.ModemManager1.Modem.Time.html
 # https://manpages.debian.org/bullseye/modemmanager/mmcli.1.en.html
@@ -94,8 +97,8 @@ systemctl enable systemd-networkd
 cp /mnt/comshell/di/system-bluetooth.sh /usr/local/share/
 
 echo -n 'lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
-device="$(printf "$lines" | $BEMENU -p system/radio | cut -d " " -f1)"
-action="$(printf "block\nunblock" | $BEMENU -p system/radio)"
+device="$(printf "$lines" | bemenu -p system/radio | cut -d " " -f1)"
+action="$(printf "block\nunblock" | bemenu -p system/radio)"
 rfkill "$action "$device"
 ' > /usr/local/share/system-radio.sh
 

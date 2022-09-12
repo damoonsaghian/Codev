@@ -15,10 +15,10 @@ bluetoothctl; exit
 
 # Bluetooth keyboards must have an already paired Bluetooth dongle, or an additional USB connection
 
-mode="$(printf "add\nremove\n" | $BEMENU)"
+mode="$(printf "add\nremove\n" | bemenu -p system/bluetooth)"
 
 if [ "$mode" = remove ]; then
-  device_mac="$(bluetoothctl devices | $BEMENU | { read _ device_mac; echo $device_mac; })"
+  device_mac="$(bluetoothctl devices | bemenu -p system/bluetooth | { read _ device_mac; echo $device_mac; })"
   bluetoothctl disconnect "$device_mac"
   bluetoothctl untrust "$device_mac"
   bluetoothctl remove "$device_mac"
@@ -27,7 +27,7 @@ fi
 
 bluetoothctl power on
 bluetoothctl scan on & sleep 3
-device_mac="$(bluetoothctl devices | $BEMENU | { read _ device_mac; echo $device_mac; })"
+device_mac="$(bluetoothctl devices | bemenu -p system/bluetooth | { read _ device_mac; echo $device_mac; })"
 
 simple_agent () {
   true
