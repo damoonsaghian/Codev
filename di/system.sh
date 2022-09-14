@@ -4,9 +4,8 @@ apt-get install --no-install-recommends --yes bemenu libbemenu-curses libbemenu-
 echo -n '#!/bin/sh
 if [ -t 0 ]; then
   export BEMENU_BACKEND=curses
-  export BEMENU_OPTS="--ignorecase"
 else
-  export BEMENU_OPTS="--ignorecase --grab --bottom --fn \"sans 10.5\" \
+  export BEMENU_OPTS="--grab --bottom --margin 1 --line-height 12 --fn \"sans 10.5\" \
     --tb #4285F4 --tf #ffffff --hb #4285F4 --hf #ffffff --sb #4285F4 --sf #ffffff \
     --fb #222222 --ff #ffffff --cb #222222 --cf #ffffff --nb #222222 --nf #ffffff"
 fi
@@ -25,7 +24,7 @@ chmod +x /usr/local/bin/system
 echo -n 'selected_option="$(printf "lock\nexit\nsuspend\nreboot\npoweroff" | bemenu -p system/session)"
 case "$selected_option" in
   lock) loginctl lock-session ;;
-  exit) swaymsg "[title=*] kill; exit" ;;
+  exit) swaymsg exit ;;
   suspend) systemctl suspend ;;
   reboot) systemctl reboot ;;
   poweroff) systemctl poweroff ;;
