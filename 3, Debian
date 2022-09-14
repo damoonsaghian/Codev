@@ -23,10 +23,10 @@ it will ask for:
 , the target device (if there is more than one device), and then installs Debian on it
 after reboot, you can login to the installed system
 
-press "alt+space" to open the app launcher menu
+press super key (❖) or "alt+space" to open the app launcher menu
 press "alt+tab" to switch between the first app (usually Comshell) and the prior app
 press "alt+a" to switch between windows
-press "alt+escape" to close current app
+press "alt+escape" to close focused window
 press "alt+enter" to open system menu,
   in which you can do session management (poweroff, reboot, suspend, exit, lock),
   or configure timezone, network, bluetooth, installed packages
