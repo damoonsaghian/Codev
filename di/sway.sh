@@ -1,4 +1,4 @@
-apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland
+apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland psmisc
 
 cp /mnt/comshell/di/{sway.conf,sway-status.sh} /usr/local/share/
 
@@ -17,7 +17,7 @@ app =
 # if app is system, execute "system"
 
 # if app is comshell
-# "swaymsg \"workspace 1:comshell; exec comshell || python3 /usr/local/share/comshell-py/ || python3 /usr/local/share/swapps.py\""
+# "swaymsg \"workspace 1:comshell; exec comshell || python3 /usr/local/share/comshell-py/\""
 
 # if app in not empty
 # "swaymsg \"workspace ${app}; sway [con_id=__focused__] focus\" || swaymsg exec ${app}"
