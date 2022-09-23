@@ -43,6 +43,11 @@ from overview import Overview
 # at startup scan email boxes of projects, and show notifications
 # during the runtime add/remove notifications
 
+# key bindings:
+# keycont = Gtk.EventControllerKey()
+# keycont.connect('key-pressed', lol, win)
+# win.add_controller(keycont)
+
 Gtk.init(null)
 
 projects = Gtk.Stack()
