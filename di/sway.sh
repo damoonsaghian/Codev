@@ -5,7 +5,7 @@ cp /mnt/comshell/di/{sway.conf,sway-status.sh} /usr/local/share/
 echo -n '' > /usr/local/share/i3status.conf
 
 echo -n '
-apps = "comshell" +
+apps = "system\ncomshell\n"
 
 bemenu = "bemenu --grab --bottom --margin 1 --line-height 12 --fn \"sans 10.5\""
 bmenu += " --tb #4285F4 --tf #ffffff --hb #4285F4 --hf #ffffff --sb #4285F4 --sf #ffffff"
@@ -14,8 +14,10 @@ bmenu += " --ignorecase -p applications"
 
 app =
 
+# if app is system, execute "system"
+
 # if app is comshell
-# "swaymsg \"workspace Comshell; exec comshell || python3 /usr/local/share/comshell-py/ || python3 /usr/local/share/swapps.py\""
+# "swaymsg \"workspace 1:comshell; exec comshell || python3 /usr/local/share/comshell-py/ || python3 /usr/local/share/swapps.py\""
 
 # if app in not empty
 # "swaymsg \"workspace ${app}; sway [con_id=__focused__] focus\" || swaymsg exec ${app}"

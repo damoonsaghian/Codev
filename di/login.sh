@@ -17,23 +17,25 @@ chmod +x /usr/local/bin/switch-user
 # , when you want to login you are sure that it's the login screen (not a fake one created by another user)
 # , others can't access your session using an extra keyboard
 
-cat <<'_EOF_' > /etc/profile.d/login-manager.sh
+cat <<'_EOF_' > /etc/skel/.bash_profile
+[ -f "$HOME/.profile" ] && . "$HOME/.profile"
 # run this script if running from tty1, or if put here by "switch-user"
 if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/switch-user-vt)" ]; then
   # if a user session is already running, switch to it, and unlock it
-  # otherwise run sway (if this script is not called by a display manager, or by root)
   previous_session="$(loginctl show-user "$USER" --value --property=Sessions | cut -d ' ' -f2)"
-  current_tty="$(basename $(tty))"
   if [ -n "$previous_session" ]; then
     loginctl activate "$previous_session" && {
       loginctl unlock-session "$previous_session"
-      systemctl stop getty@"$current_tty".service
+      systemctl stop getty@"$(basename $(tty))".service
     }
-  elif [ -z $DISPLAY ] && [ $(id -u) != 0 ]; then
+  # otherwise run sway (if this script is not called by a display manager)
+  elif [ -z $DISPLAY ]; then
     exec sway -c /usr/local/share/sway.conf
   fi
 fi
 _EOF_
+
+cp /etc/skel/.bash_profile /home/"$(id -nu 1000)"/
 
 groupadd su
 # add the first user to su group
