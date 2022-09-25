@@ -17,8 +17,7 @@ chmod +x /usr/local/bin/switch-user
 # , when you want to login you are sure that it's the login screen (not a fake one created by another user)
 # , others can't access your session using an extra keyboard
 
-cat <<'_EOF_' > /etc/skel/.bash_profile
-[ -f "$HOME/.profile" ] && . "$HOME/.profile"
+echo -n '[ -f "$HOME/.profile" ] && . "$HOME/.profile"
 # run this script if running from tty1, or if put here by "switch-user"
 if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/switch-user-vt)" ]; then
   # if a user session is already running, switch to it, and unlock it
@@ -33,8 +32,7 @@ if [ "$(tty)" = "/dev/tty1" ] || [ "$(fgconsole)" = "$(cat /tmp/switch-user-vt)"
     exec sway -c /usr/local/share/sway.conf
   fi
 fi
-_EOF_
-
+' > /etc/skel/.bash_profile
 cp /etc/skel/.bash_profile /home/"$(id -nu 1000)"/
 
 groupadd su

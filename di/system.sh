@@ -31,8 +31,7 @@ case "$selected_option" in
 esac
 ' > /usr/local/share/system-session.sh
 
-cat <<'_EOF_' > /usr/local/share/system-timezone.sh
-set -e
+echo -n 'set -e
 auto_timezone="$(wget2 -q -O- http://ip-api.com/line/?fields=timezone)"
 auto_continent="$(printf "$timezone" | cut -d / -f1)"
 auto_city="$(printf "$timezone" | cut -d / -f2)"
@@ -50,7 +49,7 @@ city_index="$((city_index-1))"
 city="$(printf "$city_list" | bemenu -p system/timezone -I $city_index)"
 
 timedatectl set-timezone "${continent}/${city}"
-_EOF_
+' > /usr/local/share/system-timezone.sh
 
 # https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/gdbus-org.freedesktop.ModemManager1.Modem.Time.html
 # https://manpages.debian.org/bullseye/modemmanager/mmcli.1.en.html

@@ -15,11 +15,12 @@ apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewir
 
 . /mnt/comshell/di/system.sh
 
-. /mnt/comshell/di/sway.sh
-
 . /mnt/comshell/di/style.sh
 
 . /mnt/comshell/di/sd.sh
+
+apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland psmisc gir1.2-gnomedesktop-4.0
+cp /mnt/comshell/di/{sway.conf,sway-status.py,swapps.py} /usr/local/share/
 
 apt-get install --no-install-recommends --yes openssh-client gpg attr
 # installing gpg prevents wget2 to install the whole of gnupg as dependency (through libgpgme11)

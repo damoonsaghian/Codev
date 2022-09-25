@@ -1,58 +1,7 @@
 apt-get install --no-install-recommends --yes dosfstools exfatprogs btrfs-progs udisks2 polkitd
 
-cat <<'_EOF_' > /usr/local/share/sd.sh
-set -e
-
-# storage device manager, using udisks2 dbus interface
-# https://www.freedesktop.org/wiki/Software/dbus/
-# https://dbus.freedesktop.org/doc/dbus-tutorial.html
-
+echo -n 'set -e
 format () {
-  # http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Drive.html#gdbus-property-org-freedesktop-UDisks2-Drive.Removable
-  removable=
-  if [ "$removable" = "true" ]; then
-    # format with VFAT (or exFAT if there would be files bigger than 4GB)
-    # http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.Format
-  else
-    pkexec sh /usr/local/share/sd-internal.sh format "$1"
-  fi
-}
-
-mount () {
-  removable=
-  if [ "$removable" = "true" ]; then
-    udisksctl mount -b /dev/"$1"
-  else
-    pkexec sh /usr/local/share/sd-internal.sh mount "$1"
-  fi
-}
-
-unmount () {
-  udisksctl unmount -b /dev/"$1"
-}
-
-write_image () {
-  # http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.OpenDevice
-  # the set of file descriptors open in a process can be accessed under the path /proc/PID/fd/,
-  #   where PID is the process identifier
-  image_file="$1"
-  device_name="$2"
-}
-
-case "$1" in
-  format) shift; format "$@" ;;
-  mount) shift; mount "$@" ;;
-  unmount) shift; unmount "$@" ;;
-  write) shift; write_image "$@" ;;
-  *) echo 'usage: sd format/mount/unmount/write'
-    exit 1 ;;
-esac
-_EOF_
-
-cat <<'_EOF_' > /usr/local/share/sd-internal.sh
-set -e
-format () {
-  # if it is not already formated with BTRFS
   mkfs.btrfs /dev/"$1"
 }
 mount () {
@@ -63,16 +12,14 @@ mount () {
 case "$1" in
   format) shift; format "$@" ;;
   mount) shift; mount "$@" ;;
-  *) echo "usage: sd-internal format/mount"
-    exit 1 ;;
 esac
-_EOF_
+' > /usr/local/share/sd-internal.sh
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
   "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
-  <action id="comshell.sd.sd-internal">
+  <action id="comshell.sd.internal">
     <description>internal storage device management</description>
     <message>internal storage device management</message>
     <defaults><allow_active>yes</allow_active></defaults>
