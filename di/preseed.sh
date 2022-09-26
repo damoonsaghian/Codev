@@ -19,7 +19,7 @@ apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewir
 
 . /mnt/comshell/di/sd.sh
 
-apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland psmisc gir1.2-gnomedesktop-4.0
+apt-get install --no-install-recommends --yes sway swayidle swaylock xwayland psmisc
 cp /mnt/comshell/di/{sway.conf,sway-status.py,swapps.py} /usr/local/share/
 
 apt-get install --no-install-recommends --yes openssh-client gpg attr

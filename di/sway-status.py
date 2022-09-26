@@ -1,19 +1,36 @@
-def updateClock:
-  time = GLib.DateTime.new_now_local().format("%F  %a  %p  %I:%M")
-  printf(time)
+import dbus
+import gobject
+from dbus.mainloop.glib import DBusGMainLoop
 
-wallClock =
+# "%Y-%m-%d  %a  %p  %I:%M"
+# calculate full minute
+sec_til_full_minute = 60 -
+# monitor for resume and timezone via dbus
 
-wallClock.connect("notify::clock", updateClock)
+def handle_resume_callback():
+  print "System just resumed from hibernate or suspend"
 
-# %F  %a  %p  %I:%M
+DBusGMainLoop(set_as_default=True) # integrate into main loob
+bus = dbus.SystemBus()             # connect to dbus system wide
+bus.add_signal_receiver(           # defince the signal to listen to
+  handle_resume_callback,            # name of callback function
+  'Resuming',                        # singal name
+  'org.freedesktop.UPower',          # interface
+  'org.freedesktop.UPower'           # bus name
+)
 
-# https://github.com/enkore/i3pystatus
-
-# font-awesome
+# https://www.freedesktop.org/software/systemd/man/org.freedesktop.timedate1.html
+# whenever the Timezone and LocalRTC settings are changed via the daemon,
+#   PropertyChanged signals are sent out to which clients can subscribe
 
 # battery
-# cpu ram disk net (sum since login)
+with open("/sys/class/power_supply/BAT0/energy_full") as f:
+    full = float(f.read())
+with open("/sys/class/power_supply/BAT0/energy_now") as f:
+    now = float(f.read())
+battery_percentage = str(int(now / full * 100))
+
+# cpu (/proc/stat) ram (/proc/meminfo) disk net (sum since login)
 
 # active network device:
 #   ip route show default
@@ -33,13 +50,17 @@ wallClock.connect("notify::clock", updateClock)
 
 # bluetooth
 
+# font-awesome
+
+# https://github.com/enkore/i3pystatus
 # libgtop
 # https://gitlab.gnome.org/GNOME/gnome-usage
-# https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/custom_statusbar
-# https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/custom_statusbar
-# https://git.sr.ht/~sircmpwn/dotfiles/tree/master/item/bin/cirno/batpct
+
 
 # update indicator: in'progress, completed
 # https://github.com/enkore/i3pystatus/wiki/Restart-reminder
 
 # backup indicator: in'progress, completed
+
+loop = gobject.MainLoop()
+loop.run()

@@ -104,12 +104,10 @@ xorriso -indev "$debian_image" -outdev debian-modified-"$1"-netinst.iso \
   -map "$project_path"/comshell-py/ '/comshell/comshell-py/'
 
 # write image to device:
-# https://www.freedesktop.org/wiki/Software/dbus/
-# https://dbus.freedesktop.org/doc/dbus-tutorial.html
 # http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.OpenDevice
 # the set of file descriptors open in a process can be accessed under the path /proc/PID/fd/,
 #   where PID is the process identifier
-# open "$2" and put the file descriptor in "$fd"
+# open the device "$2", and put the file descriptor in "fd"
 cat "debian-modified-$1-netinst.iso" >&"$fd"
 
 echo 'Debian installation media created successfully'
