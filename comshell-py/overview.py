@@ -3,7 +3,7 @@ from gi.repository import Gtk, Gdk, Gio, GLib
 from project import Project
 
 # https://docs.gtk.org/gio/class.VolumeMonitor.html
-#
+
 # http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Drive.html#gdbus-property-org-freedesktop-UDisks2-Drive.Removable
 #
 # if the device is removale and not formated with VFAT/exFAT, ask the user if she wants to format it
