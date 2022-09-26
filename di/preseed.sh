@@ -5,7 +5,7 @@ set -e
 apt-get update
 # some statndard packages, plus wget and python
 apt-get install --no-install-recommends --yes libnss-systemd systemd-timesyncd file bash-completion \
-  wget2 python3-minimal libpython3-stdlib
+  iproute2 wget2 python3-minimal libpython3-stdlib
 
 apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth
 [ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||

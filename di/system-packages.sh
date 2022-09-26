@@ -4,6 +4,13 @@ set -e
 # https://www.debian.org/doc/manuals/apt-offline/index.en.html
 # https://github.com/cmuench/pacman-auto-update/blob/master/root/usr/lib/pacman-auto-update/pacman-auto-update
 
+[ -f /tmp/apm-lock ] && {
+  echo 'another instance is running; wait for it to finish, or reboot the system'
+  exit 1
+}
+trap "rm -f /tmp/apm-lock; trap - EXIT; exit" EXIT HUP INT QUIT ABRT TERM
+touch /tmp/apm-lock
+
 [ "$1" = "install-firmware" ] && {
   device_name="$2"
   # find and install required firmwares
@@ -11,37 +18,42 @@ set -e
   exit
 }
 
-apm_mode=install
-# ask user to enter a word to search for packages
-# leave it empty to just do an upgrade
-# https://manpages.debian.org/bullseye/apt/apt-cache.8.en.html
-apm_mode=update
-# ask user to enter the names of packages
-package_names=
-# if all of the entered packages are already installed, ask the user if she wants to remove them
-# https://manpages.debian.org/bullseye/dpkg/dpkg-query.1.en.html
-apm_mode=remove
-
-[ "$1" = "autoupdate" ] && apm_mode=autoupdate
-
-critical_battery() {
-  battery_capacity="/sys/class/power_supply/BAT0/capacity"
-  [ -f "$battery_capacity" ] || battery_capacity="/sys/class/power_supply/BAT1/capacity"
-	[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
-}
-metered_connection() {
-  # nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
-  # if not mobile broadband
-	true
-}
-[ "$1" = "autoupdate" ] && { critical_battery || metered_connection; } && exit 0
-
-[ -f /tmp/apm-lock ] && {
-  echo 'another instance is running; wait for it to finish, or reboot the system'
-  exit 1
-}
-trap "rm -f /tmp/apm-lock; trap - EXIT; exit" EXIT HUP INT QUIT ABRT TERM
-touch /tmp/apm-lock
+if [ "$1" = "autoupdate" ]; then
+  critical_battery() {
+    battery_capacity="/sys/class/power_supply/BAT0/capacity"
+    [ -f "$battery_capacity" ] || battery_capacity="/sys/class/power_supply/BAT1/capacity"
+  	[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
+  }
+  
+  metered_connection() {
+    active_net_device="$(ip route show default | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
+    is_metered=false
+  	case "$active_net_device" in
+      wwan*) is_metered=true ;;
+    esac
+    is_metered
+  }
+  
+  critical_battery || metered_connection && exit 0
+  mode=update
+else
+  mode="$(printf 'update\ninstall\nremove\n' | bemenu -p 'system/packages' | { read first _; echo $first; })"
+  
+  [ "$mode" = install ] &&
+  package_name="$(echo | bemenu -p 'system/packages/install' |
+    { read first _; echo $(apt-query $first); } |
+    bemenu -p 'system/packages/install' | { read first _; echo $first; })"
+  
+  [ "$mode" = remove ] && {
+    package_name="$(echo | bemenu -p 'system/packages/remove' |
+      { read first _; echo $(apt-query $first); } |
+      bemenu -p 'system/packages/remove' | { read first _; echo $first; })"
+    
+    confirm_remove="$(printf "no\nyes" | bemenu -p "system/packages/remove/$package_name" |
+      { read first _; echo $first; })"
+    [ "$confirm_remove" != yes ] && exit
+  }
+fi
 
 old_snapshot="$(realpath /0)"
 if [ "$old_snapshot" = "/1" ]; then
@@ -65,18 +77,16 @@ mount --bind /tmp "$new_snapshot"/tmp
 mount --bind /var "$new_snapshot"/var
 mount --bind /boot/efi "$new_snapshot"/boot/efi
 
-# fork this; long running swapps commands
 chroot "$new_snapshot" /usr/bin/sh -c 'set -e
 apt-get update
 case "$1" in
-  remove) shift; apt-get purge -- "$@" ;;
-  install) shift; apt-get install --no-install-recommends -- "$@" ;;
-  update) apt-get dist-upgrade ;;
-  autoupdate) apt-get dist-upgrade --yes ;;
+  update) apt-get dist-upgrade --yes;;
+  install) shift; apt-get install --no-install-recommends --yes -- "$2" ;;
+  remove) shift; apt-get purge --yes -- "$2" ;;
 esac
 apt-get autoremove --purge --yes
 apt-get autoclean --yes
-bootctl update --graceful --quiet --no-variables --esp-path=/boot/efi' apm "$apm_mode" "$package_names"
+bootctl update --graceful --quiet --no-variables --esp-path=/boot/efi' apm "$mode" "$package_name"
 
 ln --symbolic --force -T "$new_snapshot" /3
 mv --force -T /3 /0

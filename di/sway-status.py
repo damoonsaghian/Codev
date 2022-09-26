@@ -2,6 +2,9 @@ import dbus
 import gobject
 from dbus.mainloop.glib import DBusGMainLoop
 
+DBusGMainLoop(set_as_default=True) # integrate into main loob
+bus = dbus.SystemBus()
+
 # "%Y-%m-%d  %a  %p  %I:%M"
 # calculate full minute
 sec_til_full_minute = 60 -
@@ -9,15 +12,7 @@ sec_til_full_minute = 60 -
 
 def handle_resume_callback():
   print "System just resumed from hibernate or suspend"
-
-DBusGMainLoop(set_as_default=True) # integrate into main loob
-bus = dbus.SystemBus()             # connect to dbus system wide
-bus.add_signal_receiver(           # defince the signal to listen to
-  handle_resume_callback,            # name of callback function
-  'Resuming',                        # singal name
-  'org.freedesktop.UPower',          # interface
-  'org.freedesktop.UPower'           # bus name
-)
+bus.add_signal_receiver(handle_resume_callback, 'Resuming', 'org.freedesktop.UPower', 'org.freedesktop.UPower')
 
 # https://www.freedesktop.org/software/systemd/man/org.freedesktop.timedate1.html
 # whenever the Timezone and LocalRTC settings are changed via the daemon,
@@ -32,8 +27,7 @@ battery_percentage = str(int(now / full * 100))
 
 # cpu (/proc/stat) ram (/proc/meminfo) disk net (sum since login)
 
-# active network device:
-#   ip route show default
+# active_net_device="$(ip route show default | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
 # net speed:
 #   device-path/statistics/tx_bytes
 #   device-path/statistics/rx_bytes
@@ -57,7 +51,7 @@ battery_percentage = str(int(now / full * 100))
 # https://gitlab.gnome.org/GNOME/gnome-usage
 
 
-# update indicator: in'progress, completed
+# package manager indicator: in'progress, system upgraded
 # https://github.com/enkore/i3pystatus/wiki/Restart-reminder
 
 # backup indicator: in'progress, completed
