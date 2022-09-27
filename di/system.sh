@@ -32,22 +32,8 @@ esac
 ' > /usr/local/share/system-session.sh
 
 echo -n 'set -e
-auto_timezone="$(wget2 -q -O- http://ip-api.com/line/?fields=timezone)"
-auto_continent="$(printf "$timezone" | cut -d / -f1)"
-auto_city="$(printf "$timezone" | cut -d / -f2)"
-
-continent_list="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)"
-continent_index="$(printf "$continent_list" | sed -n "/^$auto_continent$/=" | head -n1)"
-[ -z continent_index ] && continent_index=1
-continent_index="$((continent_index-1))"
-continent="$(printf "$continent_list" | bemenu -p system/timezone -I $continent_index)"
-
-city_list="$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)"
-city_index="$(printf "city_list" | sed -n "/^$auto_city$/p" | head -n1)"
-[ -z city_index ] && city_index=1
-city_index="$((city_index-1))"
-city="$(printf "$city_list" | bemenu -p system/timezone -I $city_index)"
-
+continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | bemenu -p system/timezone)"
+city="$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6 | bemenu -p system/timezone)"
 timedatectl set-timezone "${continent}/${city}"
 ' > /usr/local/share/system-timezone.sh
 
@@ -58,8 +44,7 @@ timedatectl set-timezone "${continent}/${city}"
 
 cp /mnt/comshell/di/system-network.sh /usr/local/share/
 echo -n '[Match]
-Type=ether
-Name=! veth*
+Name=en*
 [Network]
 DHCP=yes
 IPv6PrivacyExtensions=yes
@@ -67,9 +52,19 @@ IPv6PrivacyExtensions=yes
 RouteMetric=100
 [IPv6AcceptRA]
 RouteMetric=100
-' > /etc/systemd/network/20-wired.network
+' > /etc/systemd/network/20-ethernet.network
 echo -n '[Match]
-Type=wlan
+Name=ib*
+[Network]
+DHCP=yes
+IPv6PrivacyExtensions=yes
+[DHCPv4]
+RouteMetric=200
+[IPv6AcceptRA]
+RouteMetric=200
+' > /etc/systemd/network/20-infiniband.network
+echo -n '[Match]
+Name=wl*
 [Network]
 DHCP=yes
 IPv6PrivacyExtensions=yes
@@ -80,7 +75,7 @@ RouteMetric=600
 RouteMetric=600
 ' > /etc/systemd/network/20-wireless.network
 echo -n '[Match]
-Type=wwan
+Name=ww*
 [Network]
 DHCP=yes
 IPv6PrivacyExtensions=yes
@@ -97,7 +92,7 @@ cp /mnt/comshell/di/system-bluetooth.sh /usr/local/share/
 echo -n 'lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
 device="$(printf "$lines" | bemenu -p system/radio | cut -d " " -f1)"
 action="$(printf "block\nunblock" | bemenu -p system/radio)"
-rfkill "$action "$device"
+rfkill "$action" "$device"
 ' > /usr/local/share/system-radio.sh
 
 cp /mnt/comshell/di/system-packages.sh /usr/local/share/
@@ -107,7 +102,7 @@ echo -n '[Unit]
 Description=automatic update
 After=network-online.target
 [Service]
-ExecStart=/bin/sh /usr/local/bin/system-packages autoupdate
+ExecStart=/bin/sh /usr/local/share/system-packages.sh autoupdate
 Nice=19
 KillMode=process
 KillSignal=SIGINT
@@ -124,8 +119,8 @@ WantedBy=timers.target
 systemctl enable autoupdate.timer
 
 # install needed firmwares when new hardware is inserted into the machine
-echo 'SUBSYSTEM=="firmware", ACTION=="add",  RUN+="/usr/local/bin/system-packages install-firmware %k"' >
-  /etc/udev/rules.d/80-install-firmware.rules
+echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/bin/sh /usr/local/share/system-packages.sh install-firmware %k"'\
+  > /etc/udev/rules.d/80-install-firmware.rules
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"

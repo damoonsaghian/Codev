@@ -18,7 +18,8 @@ bluetoothctl; exit
 mode="$(printf "add\nremove\n" | bemenu -p system/bluetooth)"
 
 if [ "$mode" = remove ]; then
-  device_mac="$(bluetoothctl devices | bemenu -p system/bluetooth | { read _ device_mac; echo $device_mac; })"
+  device_mac="$(bluetoothctl devices | bemenu -p system/bluetooth -l 30 |
+    { read _ device_mac; echo $device_mac; })"
   bluetoothctl disconnect "$device_mac"
   bluetoothctl untrust "$device_mac"
   bluetoothctl remove "$device_mac"
@@ -26,8 +27,9 @@ if [ "$mode" = remove ]; then
 fi
 
 bluetoothctl power on
-bluetoothctl scan on & sleep 3
-device_mac="$(bluetoothctl devices | bemenu -p system/bluetooth | { read _ device_mac; echo $device_mac; })"
+bluetoothctl scan on &
+device_mac="$({ sleep 3; bluetoothctl devices; } | bemenu -p system/bluetooth -l 30 |
+  { read _ device_mac; echo $device_mac; })"
 
 simple_agent () {
   true

@@ -4,13 +4,14 @@ set -e
 setup_wifi () {
   mode="$(printf "connect\nremove\n" | bemenu -p system/network)"
   if [ "$mode" = remove ]; then
-    ssid="$(iwctl known-networks list | tail -n +5 | bemenu -p system/network | cut -c5- | cut -d ' ' -f1)"
+    ssid="$(iwctl known-networks list | tail -n +5 | bemenu -p system/network -l 20 | cut -c5- | cut -d ' ' -f1)"
     iwctl known-networks "$ssid" forget
     exit
   fi
-  device="$(iwctl device list | tail -n +5 | bemenu -p system/network | { read first _; echo $first; })"
-  iwctl station "$device" scan
-  ssid="$(iwctl station "$device" get-networks | tail -n +5 | bemenu -p system/network | cut -c5- | cut -d ' ' -f1)"
+  device="$(iwctl device list | tail -n +5 | bemenu -p system/network -l 20 | { read first _; echo $first; })"
+  
+  ssid="$({ iwctl station "$device" scan; iwctl station "$device" get-networks; } |
+    tail -n +5 | bemenu -p system/network -l 20 | cut -c5- | cut -d ' ' -f1)"
   iwctl station "$device" connect "$ssid"
 }
 

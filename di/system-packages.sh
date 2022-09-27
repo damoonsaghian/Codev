@@ -26,31 +26,36 @@ if [ "$1" = "autoupdate" ]; then
   }
   
   metered_connection() {
-    active_net_device="$(ip route show default | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
+    active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
     is_metered=false
   	case "$active_net_device" in
-      wwan*) is_metered=true ;;
+      ww*) is_metered=true ;;
     esac
+    # todo: DHCP option 43 ANDROID_METERED
     is_metered
   }
   
   critical_battery || metered_connection && exit 0
   mode=update
 else
-  mode="$(printf 'update\ninstall\nremove\n' | bemenu -p 'system/packages' | { read first _; echo $first; })"
-  
-  [ "$mode" = install ] &&
-  package_name="$(echo | bemenu -p 'system/packages/install' |
-    { read first _; echo $(apt-query $first); } |
-    bemenu -p 'system/packages/install' | { read first _; echo $first; })"
+  mode="$(printf 'update\ninstall\nremove\n' | bemenu -p 'system/packages')"
+  [ "$mode" = install ] && {
+    search_entry="$(echo | bemenu -p 'system/packages/install')"
+    package_name="$(
+      { apt-get update --yes; apt-cache search "$search_entry"; } |
+      bemenu -p system/packages/install -l 30 |
+      { read first _; echo $first; }
+    )"
+  }
   
   [ "$mode" = remove ] && {
-    package_name="$(echo | bemenu -p 'system/packages/remove' |
-      { read first _; echo $(apt-query $first); } |
-      bemenu -p 'system/packages/remove' | { read first _; echo $first; })"
-    
-    confirm_remove="$(printf "no\nyes" | bemenu -p "system/packages/remove/$package_name" |
-      { read first _; echo $first; })"
+    search_entry="$(echo | bemenu -p 'system/packages/remove')"
+    package_name="$(
+      { apt-get update --yes; apt-cache search "$search_entry"; } |
+      bemenu -p system/packages/remove -l 30 |
+      { read first _; echo $first; }
+    )"
+    confirm_remove="$(printf "no\nyes" | bemenu -p "system/packages/remove($package_name)")"
     [ "$confirm_remove" != yes ] && exit
   }
 fi
@@ -78,11 +83,10 @@ mount --bind /var "$new_snapshot"/var
 mount --bind /boot/efi "$new_snapshot"/boot/efi
 
 chroot "$new_snapshot" /usr/bin/sh -c 'set -e
-apt-get update
 case "$1" in
-  update) apt-get dist-upgrade --yes;;
-  install) shift; apt-get install --no-install-recommends --yes -- "$2" ;;
-  remove) shift; apt-get purge --yes -- "$2" ;;
+  update) apt-get update --yes; apt-get dist-upgrade --yes ;;
+  install) apt-get install --no-install-recommends --yes -- "$2" ;;
+  remove) apt-get purge --yes -- "$2" ;;
 esac
 apt-get autoremove --purge --yes
 apt-get autoclean --yes

@@ -27,12 +27,12 @@ battery_percentage = str(int(now / full * 100))
 
 # cpu (/proc/stat) ram (/proc/meminfo) disk net (sum since login)
 
-# active_net_device="$(ip route show default | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
+# active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
 # net speed:
 #   device-path/statistics/tx_bytes
 #   device-path/statistics/rx_bytes
 #   https://github.com/i3/i3status/blob/master/contrib/net-speed.sh
-# total internet consumption
+# total internet (non'local) traffic
 # wifi signal strength
 #   iwctl station wlan0 show -> RSSI, AverageRSSI
 #   https://www.reddit.com/r/archlinux/comments/gbx3sf/iwd_users_how_do_i_get_connected_channel_strength/
