@@ -1,3 +1,5 @@
+import subprocess
+
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
@@ -27,12 +29,8 @@ from overview import Overview
 # bsdtar (libarchive-tools) (zip, iso, ...)
 # bsdtar -xf file
 
-# write an image to a device:
-# http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.OpenDevice
-# the set of file descriptors open in a process can be accessed under the path /proc/PID/fd/,
-#   where PID is the process identifier
-# open the device, and put the file descriptor in "fd"
-# cat "$image_path" >&"$fd"
+# to write an image to a storage device:
+# sd-write $image_path $device_name
 
 # https://github.com/kupferlauncher/kupfer
 # https://github.com/muflone/gnome-appfolders-manager
