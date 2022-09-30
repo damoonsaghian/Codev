@@ -1,19 +1,12 @@
-apt-get install --no-install-recommends --yes dosfstools exfatprogs btrfs-progs udisks2 polkitd
+apt-get install --no-install-recommends --yes dosfstools exfatprogs btrfs-progs udisks2
 
-echo -n 'set -e
-format () {
-  mkfs.btrfs /dev/"$1"
-}
-mount () {
-  mkdir -p /run/mount/"$1"
-  mount -o noexec,nosuid,nodev /dev/$1 /run/mount/"$1"
-  cp --no-clobber --preserve=all /home/ /run/mount/"$1"
-}
-case "$1" in
-  format) shift; format "$@" ;;
-  mount) shift; mount "$@" ;;
-esac
-' > /usr/local/share/sd-internal.sh
+echo -n '#!/usr/bin/pkexec /bin/sh
+mkdir -p /run/mount/"$1"
+result=$"(findmnt --mountpoint /run/mount/"$1")"
+[ -z "$result" ] && mount -o nosuid,nodev,noexec,nofail /dev/$1 /run/mount/"$1"
+cp --no-clobber --preserve=all /home/ /run/mount/"$1"
+' > /usr/local/bin/sd-internal
+chmod +x /usr/local/bin/sd-internal
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
@@ -28,6 +21,8 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
   </action>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/comshell.sd.policy
+
+cp /mnt/comshell/di/sd-write /usr/local/bin/
 
 mkdir -p /etc/polkit-1/localauthority/50-local.d
 echo -n '[udisks]

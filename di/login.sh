@@ -1,4 +1,4 @@
-apt-get install --no-install-recommends --yes dbus-user-session kbd pkexec
+apt-get install --no-install-recommends --yes dbus-user-session kbd
 # kbd is needed for its chvt and openvt
 
 echo -n '#!/usr/bin/pkexec /bin/sh

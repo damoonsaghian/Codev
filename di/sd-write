@@ -1,0 +1,13 @@
+#!env python3
+
+image_path=
+device_name=
+
+# if the device mounted, unmount it
+
+# http://storaged.org/doc/udisks2-api/latest/UDisksBlock.html#udisks-block-call-open-device
+#"/org/freedesktop/UDisks2/block_devices/"+device_name
+#'w'
+#['O_EXCL','O_SYNC','O_CLOEXEC']
+#fd
+# read from image_path, write into fd

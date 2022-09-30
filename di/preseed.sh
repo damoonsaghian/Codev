@@ -3,9 +3,9 @@ set -e
 . /mnt/comshell/di/bootloader.sh
 
 apt-get update
-# some statndard packages, plus wget and python
+# some statndard packages, plus polkit, pkexec , iproute, wget and python-gi
 apt-get install --no-install-recommends --yes libnss-systemd systemd-timesyncd file bash-completion \
-  iproute2 wget2 python3-minimal libpython3-stdlib
+  polkitd pkexec iproute2 wget2 python3-gi
 
 apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth
 [ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
@@ -27,7 +27,7 @@ apt-get install --no-install-recommends --yes openssh-client gpg attr
 cp /mnt/comshell/di/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev
 
-apt-get install --no-install-recommends --yes python3-gi python3-gi-cairo \
+apt-get install --no-install-recommends --yes  python3-gi-cairo \
   gir1.2-gtksource-5 gir1.2-webkit2-5.0 gir1.2-poppler-0.18 \
   libgtk-4-media-gstreamer gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav heif-gdk-pixbuf \
   libarchive-tools
