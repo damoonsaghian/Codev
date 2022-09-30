@@ -7,7 +7,7 @@ anything which needs a kernel'based operating system can use Debian:
 the following instructions show how to prepare an installation media, in a Unix'like operating system
 if you don't have access to an installed Unix'like operating system,
   you can use Debian (or any other Linux distro) live image
-first make sure that these packages are installed: sed wget2/wget libarchive-tools xorriso udisks2
+first make sure that these packages are installed: sed wget2/wget libarchive-tools xorriso udisks2 python3-gi
 download the files of this project:
 ; wget2 -r -np -nH --cut-dirs=1 https://hashbang.sh/~damoonsaghian/Comshell/
 ensure that the downloaded files aren't malicious
