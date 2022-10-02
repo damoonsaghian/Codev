@@ -44,7 +44,7 @@ else
     package_name="$(
       { apt-get update --yes; apt-cache search "$search_entry"; } |
       bemenu -p system/packages/install -l 30 |
-      { read first _; echo $first; }
+      { read first _rest; echo $first; }
     )"
   }
   
@@ -53,7 +53,7 @@ else
     package_name="$(
       { apt-get update --yes; apt-cache search "$search_entry"; } |
       bemenu -p system/packages/remove -l 30 |
-      { read first _; echo $first; }
+      { read first _rest; echo $first; }
     )"
     confirm_remove="$(printf "no\nyes" | bemenu -p "system/packages/remove($package_name)")"
     [ "$confirm_remove" != yes ] && exit

@@ -1,22 +1,27 @@
-import dbus
-import gobject
-from dbus.mainloop.glib import DBusGMainLoop
+from gi.repository import Gio, GLib
 
-DBusGMainLoop(set_as_default=True) # integrate into main loob
-bus = dbus.SystemBus()
+connection = Gio.DBus.system
 
-# "%Y-%m-%d  %a  %p  %I:%M"
-# calculate full minute
-sec_til_full_minute = 60 -
-# monitor for resume and timezone via dbus
+# https://manpages.debian.org/unstable/sway/swaybar-protocol.7.en.html
+# https://github.com/i3/i3status/tree/main/contrib
 
-def handle_resume_callback():
-  print "System just resumed from hibernate or suspend"
-bus.add_signal_receiver(handle_resume_callback, 'Resuming', 'org.freedesktop.UPower', 'org.freedesktop.UPower')
-
-# https://www.freedesktop.org/software/systemd/man/org.freedesktop.timedate1.html
-# whenever the Timezone and LocalRTC settings are changed via the daemon,
-#   PropertyChanged signals are sent out to which clients can subscribe
+def datetime():
+  # "%Y-%m-%d  %a  %p  %I:%M"
+  # calculate full minute
+  sec_til_full_minute = 60 -
+  # monitor for resume and timezone via dbus
+  
+  # https://stackoverflow.com/questions/13527451/how-can-i-catch-a-system-suspend-event-in-python
+  def on_system_resume():
+    print "System just resumed from hibernate or suspend"
+  connection.add_signal_receiver(
+    'org.freedesktop.UPower', 'org.freedesktop.UPower', 'Resuming',
+    '/org/freedesktop/UPower', None, Gio.DBusSignalFlags.NONE,
+    on_system_resume)
+  
+  # https://www.freedesktop.org/software/systemd/man/org.freedesktop.timedate1.html
+  # whenever the Timezone and LocalRTC settings are changed via the daemon,
+  #   PropertyChanged signals are sent out to which clients can subscribe
 
 # battery
 with open("/sys/class/power_supply/BAT0/energy_full") as f:
@@ -47,9 +52,9 @@ battery_percentage = str(int(now / full * 100))
 # font-awesome
 
 # https://github.com/enkore/i3pystatus
+# https://github.com/greshake/i3status-rust
 # libgtop
 # https://gitlab.gnome.org/GNOME/gnome-usage
-
 
 # package manager indicator: in'progress, system upgraded
 # https://github.com/enkore/i3pystatus/wiki/Restart-reminder

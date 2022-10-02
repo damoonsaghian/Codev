@@ -104,7 +104,7 @@ xorriso -indev "$debian_image" -outdev debian-modified-"$1"-netinst.iso \
   -map "$project_path"/comshell-py/ '/comshell/comshell-py/'
 
 # write the generated image to the storage device:
-python3 "$project_path"/di/sd-write.py "debian-modified-$1-netinst.iso" "$2"
+python3 "$project_path"/di/sd-write "debian-modified-$1-netinst.iso" "$2"
 
 #org.freedesktop.UDisks2 \
 #/org/freedesktop/UDisks2/block_devices/"$devicename"

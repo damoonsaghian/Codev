@@ -65,15 +65,15 @@ ask() {
 		# ask the question
 		echo ""
 		printf "%s [%s] " "$1" "$prompt"
-		read -r REPLY
+		read -r reply
 
 		# default?
-		if [ -z "$REPLY" ]; then
+		if [ -z "$reply" ]; then
 			REPLY=$default
 		fi
 
 		# check if the reply is valid
-		case "$REPLY" in
+		case "$reply" in
 			Y*|y*) return 0 ;;
 			N*|n*) return 1 ;;
 		esac
