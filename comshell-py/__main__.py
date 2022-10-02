@@ -1,14 +1,13 @@
 import subprocess
 
 import gi
-gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
-gi.require_version("Gio", "2.0")
-gi.require_version("GLib", "2.0")
+gi.require_version("Gtk", "4.0")
 gi.require_version("GtkSource", "5.0")
 gi.require_version("Webkit2", "5.0")
 gi.require_version("Gst", "1.0")
-from gi.repository import Gtk, Gdk, Gio, GLib
+
+from gi.repository import GLib, Gio, Gdk, Gtk
 
 from overview import Overview
 

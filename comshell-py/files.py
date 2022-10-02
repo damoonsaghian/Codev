@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk, Gio, GLib
+from gi.repository import GLib, Gio, Gdk, Gtk
 
 # https://stackoverflow.com/questions/23433819/creating-a-simple-file-browser-using-python-and-gtktreeview
 # https://github.com/tchx84/Portfolio

@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk, Gio, GLib
+from gi.repository import GLib, Gio, Gdk, Gtk
 
 from files import Files
 from editor import Editor

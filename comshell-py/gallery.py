@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk, Gio, GLib, Gst
+from gi.repository import GLib, Gio, Gdk, Gtk, Gst
 
 # for gallery view: gtk::FlowBox, gtk::Scrollable
 # https://github.com/karlch/vimiv

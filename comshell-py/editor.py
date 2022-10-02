@@ -1,6 +1,4 @@
-import gi
-gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk, Gdk, Gio, GLib, GtkSource
+from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 
 # https://gitlab.gnome.org/GNOME/gtk/-/blob/main/docs/text_widget_internals.txt
 # https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/
