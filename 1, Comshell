@@ -41,7 +41,8 @@ Comshell is a unified computing environment, utilizing command based user interf
 ".data/comshell.png"
 
 project directories reside in directories named "projects" or "projects.*",
-  inside home directory or mounted disks
+  inside the user's home directory, or the user's directory inside internal storage devices
+in addition, the project directories can be at the root of removable storage devices
 list of all projects will appear in a floating layer, at the center of screen
 each group of projects (which are in the same directory) will be shown in a separate tab
 
