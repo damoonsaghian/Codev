@@ -19,7 +19,8 @@ from project import Project
 # , internal: sd-internal $device_name
 #   the device will be mounted in /run/mount/$device_name
 #
-# after mounting do backup: codev backup mount_path
+# after mounting a removable device, ask the user to do a backup: codev backup mount_path
+# when copying to a removable device, create .cache/codev/backup-uuid
 
 class ProjectsList:
   project_dir
@@ -28,8 +29,7 @@ class ProjectsList:
     this.project_dir = Gio.File.new_for_path(project_dir_path)
     this.project_dir.enumerate_children(
       "", Gio.FileQueryInfoFlags.NONE, null,
-      this.cb
-    )
+      this.cb)
 
   cb(file_enumerator, result):
 
