@@ -368,21 +368,13 @@ pull() {
 }
 
 backup() {
-  # if $1 is init, ask the user to select disks to store backups
-
-  # if $1 is a path, do backup only for that path
-
-  # a disk with the file ".codev-backup/.uuid" matching "~/.config/codev/backup-uuid"
-  # "~/.config/codev/backup" keeps backup paths for projects
+  # for all directories in $1
+  # .cache/codev/backup-uuid
 
   # do not follow mount points when making backups
 
-  # backup will include ".cache" directory
+  # backup (encrypted) private keys, plus public keys of trusted pairs
 }
-
-import_backup() {}
-
-# backup (encrypted) private keys, plus public keys of trusted pairs
 
 # add or remove a user that can push
 # ; codev add username
