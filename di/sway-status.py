@@ -23,6 +23,17 @@ def datetime():
   # whenever the Timezone and LocalRTC settings are changed via the daemon,
   #   PropertyChanged signals are sent out to which clients can subscribe
 
+  # when networks changes, check timezone, and if it's different from the system's timezone,
+  #   show an additional date'time for that timezone, plus the timezone
+  # https://gitlab.com/craftyguy/networkd-dispatcher
+  # tz_system="$(timedatectl show --value --property Timezone)"
+  # tz_geoip="$(wget2 -q -O- http://ip-api.com/line/?fields=timezone)"
+  # continent="$(printf "$tz" | cut -d / -f1)"
+  # city="$(printf "$tz" | cut -d / -f2)"
+  # if [ "$tz_geoip" != "$tz_system" ]; then
+  #   #show an additional date'time for that timezone, plus the timezone
+  # fi
+
 # battery
 with open("/sys/class/power_supply/BAT0/energy_full") as f:
     full = float(f.read())

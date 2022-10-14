@@ -36,7 +36,7 @@ fi
 cp /etc/skel/.bash_profile /home/"$(id -nu 1000)"/
 
 groupadd su
-# add the first user to su group
+# add the first user to the "su" group
 usermod -aG su "$(id -nu 1000)"
 
 # this can't be written in shell because of security concerns

@@ -1,17 +1,72 @@
 set -e
 
-case "$1" in
-  riscv64) ;;
-  arm64) ;;
-  armhf) ;;
-  amd64) ;;
-  i386) ;;
-  ppc64el) ;;
-  *) echo "\"$1\" architecture is not supported"
-    echo "supported architectures are:"
-    echo "riscv64 arm64 armhf amd64 i386 ppc64el"
-    exit ;;
-esac
+echo 'this script will create a Debian installer on the storage device you choose'
+echo '\e[1mwarning!\e[0m all data on the selected storage device will be deleted'
+echo
+
+choose () {
+  # the list of choices with the indents removed
+  list="$(printf "$2" | sed -r 's/^[[:blank:]]+//')"
+  count="$(printf "$2" | wc -l)"
+  index=1
+  selected_line=""
+  key=""
+  while true; do
+    # print the lines, highlight the selected one
+    printf "$list" | {
+      i=1
+      while read line; do
+        if [ $i = $index ]; then
+          selected_line="$line"
+          printf "  \e[7m$line\e[0m\n" # highlight
+        else
+          printf "  $line\n"
+        fi
+        i=$((i+1))
+      done
+    }
+
+    if [ $index -eq 0 ]; then
+      selected_line=""
+      printf "\e[7mexit\e[0m" # highlighted
+    else
+      printf "\e[8mexit\e[0m" #hidden
+    fi
+
+    read -s -n1 key # wait for user to press a key
+    
+    # if key is empty, it means the read delimiter, ie the "enter" key was pressed
+    [ -z "$key" ] && break
+
+    if [ "$key" = "\177" ]; then
+      index=0
+    elif [ "$key" = " " ]; then
+      index=$((index+1))
+      [ $index -gt $count ] && i=1
+    else
+      # find the next line which its first character is "$key", and put the line's number in "index"
+      i=index
+      while true; do
+        i=$((i+1))
+        [ $i -gt $count ] && i=1
+        [ $i -eq $index ] && break
+        if [ "$(echo "$list" | sed -n "$i"p | cut -c1)" = "$key" ]; then
+          index=i
+          break
+        fi
+      done
+    fi
+    
+    echo -en "\e[${count}A" # go up to the beginning to re'render
+  done
+
+  [ $index -eq 0 ] && echo
+  eval "$1=\"$selected_line\""
+  [ $index -eq 0 ] && exit
+}
+
+echo 'select a CPU architecture:'
+choose arch 'amd64\nriscv64\nppc64el\narm64\narmhf\ni386\n'
 
 wget2 -v &> /dev/null && alias wget=wget2
 
@@ -22,21 +77,21 @@ cd "$project_path"/.cache/di
 
 # download and verify latest Debian installation iso
 rm -f SHA512SUMS
-wget https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/SHA512SUMS
-debian_image="$(printf debian-*-"$1"-netinst.iso)"
-wget --continue https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/"$debian_image" 2> /dev/null || true
+wget https://cdimage.debian.org/debian-cd/current/"$arch"/iso-cd/SHA512SUMS
+debian_image="$(printf debian-*-"$arch"-netinst.iso)"
+wget --continue https://cdimage.debian.org/debian-cd/current/"$arch"/iso-cd/"$debian_image" 2> /dev/null || true
 if [ -f "$debian_image" ] && sha512sum --check --status --ignore-missing SHA512SUMS; then
   true
 else
-  rm -f debian-*-"$1"-netinst.iso
+  rm -f debian-*-"$arch"-netinst.iso
   wget --recursive --level=1 --no-directories \
-    --accept "debian-*-$1-netinst.iso" --reject "debian-*-*-$1-netinst.iso" \
-    https://cdimage.debian.org/debian-cd/current/"$1"/iso-cd/
+    --accept "debian-*-$arch-netinst.iso" --reject "debian-*-*-$arch-netinst.iso" \
+    https://cdimage.debian.org/debian-cd/current/"$arch"/iso-cd/
   sha512sum --check --status --ignore-missing SHA512SUMS || {
     echo "verifying the checksum of the downloaded installation image failed; try again"
     exit 1
   }
-  debian_image="$(printf debian-*-"$1"-netinst.iso)"
+  debian_image="$(printf debian-*-"$arch"-netinst.iso)"
 fi
 
 # download and extract firmware archive
@@ -64,6 +119,9 @@ xorriso -osirrox on -indev "$debian_image" -extract_l / ./ '/install*/initrd.gz'
 xorriso -osirrox on -indev "$debian_image" -extract_l / ./ '/install*/gtk/initrd.gz'
 initrd_rpath="$(printf install*/initrd.gz)"
 initrd_gtk_rpath="$(printf install*/gtk/initrd.gz)"
+
+mkdir -p extracted-files
+bsdtar -xf "$debian_image" -C ./extracted-files
 
 # add "preseed.cfg" to "initrd.gz", and force Debian installer to use text frontend
 rm -rf initrd
@@ -95,24 +153,31 @@ sed -n "/initrd.gz/d" md5sum.txt
 # add the md5sum of the new initrd files
 md5sum ./"$initrd_rpath" ./"$initrd_gtk_rpath" >> md5sum.txt
 
-# generate the modified iso file
-[ -f debian-modified-"$1"-netinst.iso ] && rm -f debian-modified-"$1"-netinst.iso
-xorriso -indev "$debian_image" -outdev debian-modified-"$1"-netinst.iso \
-  -overwrite on -pathspecs off -cd / \
-  -add firmware "$initrd_rpath" "$initrd_gtk_rpath" md5sum.txt \
-  -map "$project_path"/di/ '/comshell/di/' \
-  -map "$project_path"/comshell-py/ '/comshell/comshell-py/'
+case "$arch" in amd64|ppc64el|i386)
+  printf 'do you want the installer to support legacy boot firmwares, ie BIOS and OpenFirmware (y/N):'
+  read legacy_boot_firmwares
+;; esac
 
-# write the generated image to the storage device:
-python3 "$project_path"/di/sd-write "debian-modified-$1-netinst.iso" "$2"
+removable_devices="$(lsblk --nodep --noheadings -o RM,NAME,SIZE,MODEL | sed -nr 's/^[[:blank:]]+1[[:blank:]]+//p')"
+echo 'select a storage device:'
+echo '\e[1mwarning!\e[0m all data on the selected storage device will be deleted'
+choose device "$(printf "$removable_devices")"
+device="$(printf "$device" | cut -d ' ' -f1)"
 
-#org.freedesktop.UDisks2 \
-#/org/freedesktop/UDisks2/block_devices/"$devicename"
-#org.freedesktop.UDisks2.Block.OpenDevice
-#'w'
-#['O_EXCL','O_SYNC','O_CLOEXEC']
-#fd
-# read from image, write into fd
-"
+if [ "$legacy_boot_firmwares" = y ]; then
+  # create a vfat efi partition, and copy the files
+  # dbus-send
+else
+  # generate the modified iso file
+  [ -f debian-modified-"$arch"-netinst.iso ] && rm -f debian-modified-"$arch"-netinst.iso
+  xorriso -indev "$debian_image" -outdev debian-modified-"$arch"-netinst.iso \
+    -overwrite on -pathspecs off -cd / \
+    -add firmware "$initrd_rpath" "$initrd_gtk_rpath" md5sum.txt \
+    -map "$project_path"/di/ '/comshell/di/' \
+    -map "$project_path"/comshell-py/ '/comshell/comshell-py/'
+  
+  #.cache/di/debian-modified-amd64-netinst.iso /dev/"$device"
+  # dbus-send OpenDevice
+fi
 
 echo 'Debian installation media created successfully'

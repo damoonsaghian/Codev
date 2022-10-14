@@ -1,0 +1,117 @@
+#!/bin/sh
+set -e
+
+choose () {
+  # the list of choices with the indents removed
+  list="$(printf "$2" | sed -r 's/^[[:blank:]]+//')"
+  count="$(printf "$2" | wc -l)"
+  index=1
+  selected_line=""
+  key=""
+  while true; do
+    # print the lines, highlight the selected one
+    printf "$list" | {
+      i=1
+      while read line; do
+        if [ $i = $index ]; then
+          selected_line="$line"
+          printf "  \e[7m$line\e[0m\n" # highlight
+        else
+          printf "  $line\n"
+        fi
+        i=$((i+1))
+      done
+    }
+
+    if [ $index -eq 0 ]; then
+      selected_line=""
+      printf "\e[7mexit\e[0m" # highlighted
+    else
+      printf "\e[8mexit\e[0m" #hidden
+    fi
+
+    read -s -n1 key # wait for user to press a key
+    
+    # if key is empty, it means the read delimiter, ie the "enter" key was pressed
+    [ -z "$key" ] && break
+
+    if [ "$key" = "\177" ]; then
+      index=0
+    elif [ "$key" = " " ]; then
+      index=$((index+1))
+      [ $index -gt $count ] && i=1
+    else
+      # find the next line which its first character is "$key", and put the line's number in "index"
+      i=index
+      while true; do
+        i=$((i+1))
+        [ $i -gt $count ] && i=1
+        [ $i -eq $index ] && break
+        if [ "$(echo "$list" | sed -n "$i"p | cut -c1)" = "$key" ]; then
+          index=i
+          break
+        fi
+      done
+    fi
+    
+    echo -en "\e[${count}A" # go up to the beginning to re'render
+  done
+
+  [ $index -eq 0 ] && echo
+  eval "$1=\"$selected_line\""
+  [ $index -eq 0 ] && exit
+}
+
+set_timezone () {
+  choose continent "$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)"
+  choose city "$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)"
+  timedatectl set-timezone "${continent}/${city}"
+}
+# https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/gdbus-org.freedesktop.ModemManager1.Modem.Time.html
+# https://manpages.debian.org/bullseye/modemmanager/mmcli.1.en.html
+# https://lazka.github.io/pgi-docs/ModemManager-1.0/classes/NetworkTimezone.html
+# https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/
+
+configure_radio_devices () {
+  lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
+  echo 'select a radio device:'
+  choose device "$lines"
+  device="$(printf "$device" | cut -d " " -f1)"
+  echo 'select action:'
+  choose action "block\nunblock\n"
+  pkexec /usr/sbin/rfkill "$action" "$device"
+}
+
+manage_packages () {
+  echo 'packages:'
+  choose mode 'update\ninstall\nremove\n'
+  [ "$mode" = install ] && {
+    search_entry="$(echo | bemenu -p 'system/packages/install')"
+    package_name="$(
+      { apt-get update --yes; apt-cache search "$search_entry"; } |
+      bemenu -p system/packages/install -l 30 |
+      { read first _rest; echo $first; }
+    )"
+  }
+
+  [ "$mode" = remove ] && {
+    search_entry="$(echo | bemenu -p 'system/packages/remove')"
+    package_name="$(
+      { apt-get update --yes; apt-cache search "$search_entry"; } |
+      bemenu -p system/packages/remove -l 30 |
+      { read first _rest; echo $first; }
+    )"
+    confirm_remove="$(printf "no\nyes" | bemenu -p "system/packages/remove($package_name)")"
+    [ "$confirm_remove" != yes ] && exit
+  }
+  system-packages "$mode" "$package_name"
+}
+
+choose selected_option "timezone\nnetwork\nbluetooth\nradio\npackages\n"
+case "$selected_option" in
+  timezone) set_timezone ;;
+  network) . /usr/local/share/system-network.sh ;;
+  bluetooth) . /usr/local/share/system-bluetooth.sh ;;
+  radio) configure_radio_devices ;;
+  packages) manage_packages ;;
+esac
