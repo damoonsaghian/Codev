@@ -28,9 +28,6 @@ from overview import Overview
 # bsdtar (libarchive-tools) (zip, iso, ...)
 # bsdtar -xf file
 
-# to write an image to a storage device:
-# sd-write $image_path $device_name
-
 # https://github.com/kupferlauncher/kupfer
 # https://github.com/muflone/gnome-appfolders-manager
 
@@ -46,11 +43,6 @@ from overview import Overview
 # https://cairocffi.readthedocs.io/en/stable/
 # at startup scan email boxes of projects, and show notifications
 # during the runtime add/remove notifications
-
-# key bindings:
-# keycont = Gtk.EventControllerKey()
-# keycont.connect('key-pressed', lol, win)
-# win.add_controller(keycont)
 
 Gtk.init(null)
 

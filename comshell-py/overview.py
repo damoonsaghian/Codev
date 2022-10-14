@@ -8,19 +8,39 @@ from project import Project
 #
 # if the device is removable and not formated with VFAT/exFAT, ask the user if she wants to format it
 #   format with VFAT (or exFAT if there would be files bigger than 4GB)
-#   http://storaged.org/doc/udisks2-api/latest/UDisksBlock.html#udisks-block-call-format
+#   # http://storaged.org/doc/udisks2-api/latest/UDisksBlock.html#udisks-block-call-format
 # if the device is not removable and not formated with BTRFS, ask the user if she wants to format it
 #   su mkfs.btrfs /dev/"$1"
 #
-# project groups on other storage devices:
+# project groups on attached storage devices:
 # , removable device: mount it if it's not
 #   http://storaged.org/doc/udisks2-api/latest/UDisksFilesystem.html
 #   unmount
-# , internal: sd-internal $device_name
+# , internal: mount-internal $device_name
 #   the device will be mounted in /run/mount/$device_name
 #
 # after mounting a removable device, ask the user to do a backup: codev backup mount_path
 # when copying to a removable device, create .cache/codev/backup-uuid
+
+# press a key to open session management menu
+# swaymsg mode session
+# {
+#   killall tofi &> /dev/null
+#   printf 'lock\nexit\nsuspend\nreboot\npoweroff\ | tofi -c /usr/local/share/tofi.cfg
+#   swaymsg mode default &> /dev/null
+# } | {
+#   read answer &&
+#   case $answer in \
+#     lock) loginctl lock-session ;;
+#     exit) swaymsg exit ;;
+#     suspend) systemctl suspend ;;
+#     reboot) systemctl reboot ;;
+#     poweroff) systemctl poweroff ;;
+#   esac
+# }
+
+# press a key to open terminal view
+# pressing "" key in normal mode terminates the running program
 
 class ProjectsList:
   project_dir
