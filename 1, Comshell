@@ -31,9 +31,9 @@ Kinesis Advantage 2 keyboard
 
 for compatibility with other applications, we may still need a mouse,
   plus these extra keys which can be put in the middle of the keyboard:
-, arrow keys, "page up", "page down", "home", "end", "tab", "esc"
-, "ctrl", "shift", and an extra modifier key for inserting punctuations
-also we can have a row of function keys, plus the "delete" key
+, arrow keys, "page up", "page down", "home", "end"
+, "alt", "ctrl", "shift", and an extra modifier key for inserting punctuations
+also we can have a row of function keys, plus "esc" and "delete" keys
 
 = Comshell
 Comshell is a unified computing environment, utilizing command based user interface
@@ -65,7 +65,7 @@ web pages: move caret between visual elements (ignoring structural elements)
 
 modal key'bindings
 modes (normal mode and insert mode) must be visually distinctive
-press "alt" to go to normal mode
+press "tab" to go to normal mode
 in normal mode we can:
 , press "enter" to go to insert mode
 , next/previous word, line, paragraph, section (righ/left middle row keys)
@@ -81,7 +81,7 @@ in normal mode we can:
 , completion
 
 "enter" (in insert mode): selection, completion
-"space" or punctuations or empty line, then "enter": new line
+"space" or punctuations or empty line, then "enter": delete space (if any), then insert new line
 
 codev: collaborative development without the need to keep the whole history
 flaws of version control systems:
@@ -96,8 +96,11 @@ codev clone
 codev pull
 and after merging: codev push
 
-in system menu you can do session management (poweroff, reboot, suspend, exit, lock),
-  or configure timezone, network, bluetooth, installed packages
+in projects list view:
+, press "" key to open session management menu (poweroff, reboot, suspend, exit, lock)
+, press "" key to open terminal view
+"system" is a command line program which can be used to configure:
+  timezone, network, bluetooth, installed packages
 
 for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
 Lua LGI is good too, and actually better, if all we need is libraries based on GObject
