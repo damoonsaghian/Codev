@@ -15,11 +15,11 @@ bluetoothctl; exit
 
 # Bluetooth keyboards must have an already paired Bluetooth dongle, or an additional USB connection
 
-mode="$(printf "add\nremove\n" | bemenu -p system/bluetooth)"
+choose mode "add\nremove"
 
 if [ "$mode" = remove ]; then
-  device_mac="$(bluetoothctl devices | bemenu -p system/bluetooth -l 30 |
-    { read _first device_mac; echo $device_mac; })"
+  choose device_mac "$(bluetoothctl devices)"
+  device_mac="$(echo "$device_mac" | { read _first device_mac; echo $device_mac; })"
   bluetoothctl disconnect "$device_mac"
   bluetoothctl untrust "$device_mac"
   bluetoothctl remove "$device_mac"
@@ -28,23 +28,23 @@ fi
 
 bluetoothctl power on
 bluetoothctl scan on &
-device_mac="$({ sleep 3; bluetoothctl devices; } | bemenu -p system/bluetooth -l 30 |
-  { read _first device_mac; echo $device_mac; })"
+sleep 3
+choose device_mac "$(bluetoothctl devices)"
+device_mac="$(echo "$device_mac" | { read _first device_mac; echo $device_mac; })"
 
-simple_agent () {
+simple_agent() {
   true
   # https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/test/simple-agent
   # https://ukbaz.github.io/howto/python_gio_1.html
   # https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
 }
 
-temp_file="$(mktemp -q)"
+bluetoothctl connect "$device_mac" &&
+bluetoothctl trust "$device_mac" ||
+bluetoothctl untrust "$device_mac"
 
-{
-  bluetoothctl connect "$device_mac" &&
-  bluetoothctl trust "$device_mac" ||
-  bluetoothctl untrust "$device_mac"
-} &> $temp_file &
 simple_agent
+
+temp_file="$(mktemp -q)"
 cat $temp_file
 rm $temp_file

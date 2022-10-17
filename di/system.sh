@@ -3,6 +3,12 @@ apt-get install --no-install-recommends --yes systemd-resolved iwd wireless-regd
 cp /mnt/comshell/di/system /usr/local/bin/
 chmod +x /usr/local/bin/system
 
+# todo
+# https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/gdbus-org.freedesktop.ModemManager1.Modem.Time.html
+# https://manpages.debian.org/bullseye/modemmanager/mmcli.1.en.html
+# https://lazka.github.io/pgi-docs/ModemManager-1.0/classes/NetworkTimezone.html
+# https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/
+
 cp /mnt/comshell/di/system-network.sh /usr/local/share/
 echo -n '[Match]
 Name=en*

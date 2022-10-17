@@ -225,7 +225,7 @@ update_key() {
   user=$2
 }
 
-create () {
+create() {
   remote_host=$1
   # if it's empty, ask for it
 

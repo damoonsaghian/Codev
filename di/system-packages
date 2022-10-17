@@ -36,7 +36,6 @@ if [ "$mode" = "autoupdate" ]; then
   }
   
   critical_battery || metered_connection && exit 0
-  mode=update
 fi
 
 old_snapshot="$(realpath /0)"
@@ -63,9 +62,10 @@ mount --bind /boot/efi "$new_snapshot"/boot/efi
 
 chroot "$new_snapshot" /usr/bin/sh -c 'set -e
 case "$1" in
-  update) apt-get update --yes; apt-get dist-upgrade --yes ;;
-  install) apt-get update --yes; apt-get install --no-install-recommends --yes -- "$2" ;;
-  remove) apt-get purge --yes -- "$2" ;;
+  autoupdate) apt-get update --yes; apt-get dist-upgrade --yes ;;
+  update) apt-get update; apt-get dist-upgrade ;;
+  install) apt-get install --no-install-recommends -- "$2" ;;
+  remove) apt-get purge -- "$2" ;;
 esac
 apt-get autoremove --purge --yes
 apt-get autoclean --yes

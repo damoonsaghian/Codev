@@ -4,20 +4,35 @@ echo 'this script will create a Debian installer on the storage device you choos
 echo '\e[1mwarning!\e[0m all data on the selected storage device will be deleted'
 echo
 
-choose () {
+choose() {
   # the list of choices with the indents removed
-  list="$(printf "$2" | sed -r 's/^[[:blank:]]+//')"
-  count="$(printf "$2" | wc -l)"
+  list="$(echo "$2" | sed -r 's/^[[:blank:]]+//')"
+  count="$(echo "$2" | wc -l)"
   index=1
-  selected_line=""
   key=""
+
+  terminal_height="$(stty size | cut -d ' ' -f1)"
+  max_height=15
+  [ $max_height -gt $terminal_height ] && max_height=$terminal_height
+  scrolled=false
+  [ $((count+2)) -gt $max_height ] && scrolled=true
+
+  # if a default option is provided, find its index
+  [ -z "$3" ] || {
+    i="$(printf "$list" | sed -n "/$3/=" | head -n 1)"
+    [ -z "$i" ] || index=i
+  }
+
   while true; do
     # print the lines, highlight the selected one
     printf "$list" | {
       i=1
+      j=$((index-max_height/2))
       while read line; do
+        d=$((i-index))
+        $scrolled && { [ $i -lt $j ] || [ $i -gt $((j+max_height-2)) ]; } && break
+
         if [ $i = $index ]; then
-          selected_line="$line"
           printf "  \e[7m$line\e[0m\n" # highlight
         else
           printf "  $line\n"
@@ -27,10 +42,9 @@ choose () {
     }
 
     if [ $index -eq 0 ]; then
-      selected_line=""
-      printf "\e[7mexit\e[0m" # highlighted
+      printf "\e[7mexit\e[0m\n" # highlighted
     else
-      printf "\e[8mexit\e[0m" #hidden
+      printf "\e[8mexit\e[0m\n" # hidden
     fi
 
     read -s -n1 key # wait for user to press a key
@@ -57,16 +71,20 @@ choose () {
       done
     fi
     
-    echo -en "\e[${count}A" # go up to the beginning to re'render
+    if $scrolled; then
+      echo -en "\e[$((max_height-1))A"
+    else
+      echo -en "\e[$((count+1))A" # go up to the beginning to re'render
+    fi
   done
 
-  [ $index -eq 0 ] && echo
+  [ $index -eq 0 ] && { echo; exit; }
+  selected_line="$(echo "$list" | sed -n "${index}p")"
   eval "$1=\"$selected_line\""
-  [ $index -eq 0 ] && exit
 }
 
 echo 'select a CPU architecture:'
-choose arch 'amd64\nriscv64\nppc64el\narm64\narmhf\ni386\n'
+choose arch 'amd64\nriscv64\nppc64el\narm64\narmhf\ni386'
 
 wget2 -v &> /dev/null && alias wget=wget2
 
@@ -161,7 +179,7 @@ case "$arch" in amd64|ppc64el|i386)
 removable_devices="$(lsblk --nodep --noheadings -o RM,NAME,SIZE,MODEL | sed -nr 's/^[[:blank:]]+1[[:blank:]]+//p')"
 echo 'select a storage device:'
 echo '\e[1mwarning!\e[0m all data on the selected storage device will be deleted'
-choose device "$(printf "$removable_devices")"
+choose device "$removable_devices"
 device="$(printf "$device" | cut -d ' ' -f1)"
 
 if [ "$legacy_boot_firmwares" = y ]; then

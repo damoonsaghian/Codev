@@ -36,7 +36,7 @@ command -v flash-kernel &>/dev/null && {
 
 # to have atomic upgrades for BIOS and OpenFirmware based systems,
 #   the bootloader is installed once, and never updated
-lock_grub () {
+lock_grub() {
   # since we will lock root, recovery entries are useless
   printf '\nGRUB_DISABLE_RECOVERY=true\nGRUB_DISABLE_OS_PROBER=true\nGRUB_TIMEOUT=0\n' >> /etc/default/grub
   # disable menu editing and other admin operations in Grub:
