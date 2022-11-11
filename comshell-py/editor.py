@@ -18,7 +18,12 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 # slightly dim unfocused pannels
 
 # indentation guides:
-# https://raw.githubusercontent.com/daa84/neovim-gtk/master/screenshots/neovimgtk-screen.png
+# change the background color of leading tabs; interchange between 2 colors
+
+# white space (space, tab, new line) + space -> tab
+
+# elastic tabstops: "http://nickgravgaard.com/elastic-tabstops/"
+# https://docs.gtk.org/gtk4/property.TextTag.tabs.html
 
 # https://stackoverflow.com/questions/76096/undo-with-gtk-textview
 

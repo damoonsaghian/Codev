@@ -4,20 +4,18 @@ from project import Project
 
 # https://docs.gtk.org/gio/class.VolumeMonitor.html
 #
-# http://storaged.org/doc/udisks2-api/latest/UDisksDrive.html#udisks-drive-get-removable
-#
 # if the device is removable and not formated with VFAT/exFAT, ask the user if she wants to format it
-#   format with VFAT (or exFAT if there would be files bigger than 4GB)
-#   # http://storaged.org/doc/udisks2-api/latest/UDisksBlock.html#udisks-block-call-format
+# format with VFAT (or exFAT if there would be files bigger than 4GB)
+# ; sd format /dev/"$1"
 # if the device is not removable and not formated with BTRFS, ask the user if she wants to format it
-#   su mkfs.btrfs /dev/"$1"
+# ; su mkfs.btrfs /dev/"$1"
 #
 # project groups on attached storage devices:
-# , removable device: mount it if it's not
-#   http://storaged.org/doc/udisks2-api/latest/UDisksFilesystem.html
-#   unmount
-# , internal: mount-internal $device_name
-#   the device will be mounted in /run/mount/$device_name
+# mount it if it's not:
+# ; sd mount $device_name $mount_point
+# the device will be mounted in /run/mount/$device_name
+# to unmount:
+# ; sd unmount $device_name
 #
 # after mounting a removable device, ask the user to do a backup: codev backup mount_path
 # when copying to a removable device, create .cache/codev/backup-uuid
@@ -25,9 +23,9 @@ from project import Project
 # press a key to open session management menu
 # swaymsg mode session
 # {
-#   killall tofi &> /dev/null
-#   printf 'lock\nexit\nsuspend\nreboot\npoweroff\ | tofi -c /usr/local/share/tofi.cfg
-#   swaymsg mode default &> /dev/null
+#	killall tofi &> /dev/null
+#	printf 'lock\nexit\nsuspend\nreboot\npoweroff\ | tofi -c /usr/local/share/tofi.cfg
+#	swaymsg mode default &> /dev/null
 # } | {
 #   read answer &&
 #   case $answer in \

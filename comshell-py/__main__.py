@@ -1,6 +1,6 @@
 import subprocess
 
-import gi
+import 'gi'
 gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
 gi.require_version("GtkSource", "5.0")
@@ -12,16 +12,14 @@ from gi.repository import GLib, Gio, Gdk, Gtk
 from overview import Overview
 
 # https://pygobject.readthedocs.io/en/latest/
+# https://github.com/GNOME/pygobject/tree/master/examples/demo/demos
 # https://lazka.github.io/pgi-docs/main.html
 # https://www.gtk.org/docs/apis/
 
 # create a project group -> ask user for the disk
 
-# there are two key configurations:
-#   one for comshell keyboards (the one shown above), and one for conventional keyboards
-# Comshell keyboards have product name "Comshell"
-# so Comshell can detect Comshell keyboards (using eg "xinput"),
-#   and selects the right configuration automatically
+# in addition to the modal keybindings, there should be traditional keybindings (Ctrl+...),
+#   to work with Comshell using conventional keyboards
 
 # floating layer to view web'pages, images and videos
 
