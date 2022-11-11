@@ -1,0 +1,50 @@
+#!pkexec /bin/sh
+set -e
+
+# https://docs.alpinelinux.org/user-handbook/0.1a/Working/apk.html
+# https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+# https://www.reddit.com/r/AlpineLinux/comments/y6ezvo/interactive_installationremoval_of_packages_using/
+
+mode="$1"
+package_name="$2"
+
+[ -f /tmp/apm-lock ] && {
+	echo 'another instance is running; wait for it to finish, or reboot the system'
+	exit 1
+}
+trap "rm -f /tmp/apm-lock; trap - EXIT; exit" EXIT HUP INT QUIT ABRT TERM
+touch /tmp/apm-lock
+
+[ "$mode" = "install-firmware" ] && {
+	local device_name="$2"
+	# find and install required firmwares
+	# https://salsa.debian.org/debian/isenkram
+	exit
+}
+
+if [ "$mode" = "autoupdate" ]; then
+	critical_battery() {
+		local battery_capacity="/sys/class/power_supply/BAT0/capacity"
+		[ -f "$battery_capacity" ] || battery_capacity="/sys/class/power_supply/BAT1/capacity"
+		[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
+	}
+	
+	metered_connection() {
+		local active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
+		local is_metered=false
+		case "$active_net_device" in
+			ww*) is_metered=true ;;
+		esac
+		# todo: DHCP option 43 ANDROID_METERED
+		is_metered
+	}
+	
+	critical_battery || metered_connection && exit 0
+fi
+
+case "$mode" in
+  autoupdate) apk update; apk upgrade --clean-protected --prune;;
+  update) apk update; apk upgrade --clean-protected --prune;;
+  install) apk add --clean-protected -- "$package_name" ;;
+  remove) apk del -r --purge -- "$package_name" ;;
+esac

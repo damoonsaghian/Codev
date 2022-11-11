@@ -1,5 +1,7 @@
 #!/bin/sh -e
 
+# https://digint.ch/btrbk/
+
 # codev only acts on projects residing in non-removable BTRFS'formated disks
 
 # for syncing we use an index file, and rename all files to their MD5 hash
@@ -323,8 +325,7 @@ push() {
   # delete those remote files which are not in index file
   # snapshot the ".cache/codev/remote" into ".cache/codev/pristine"
 
-  # create an html web'page (named "name-of-the-project.html"), showing the files in the project
-  # create hard'links in the "~/Public/project_name"
+  # create an html web'page "~/Public/project_name/index.html", showing the files in the project
   # https://nanoc.app/about/
   # https://github.com/nanoc/nanoc
   # https://docs.antora.org/
@@ -341,7 +342,7 @@ pull() {
   user=
 
   # download the index file from the "~/Public" directory of the remote, into ".cache/codev/index"
-  # sync down the files mentioned in the index file (wget2 -c ...)
+  # sync down the files mentioned in the index file
   # snapshot ".cache/codev/indexed" to ".cache/codev/temp"
   # delete the index file and ".cache/codev/tmp/.cache/"
   # rename the files in ".cache/codev/temp" based on the index file ".cache/codev/indexed/index"
