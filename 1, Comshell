@@ -1,18 +1,18 @@
 = command based user interface
 command based user interfaces (using keyboard, voice, gesture) are faster, more convenient and more powerful,
-  than pointer based user interfaces (using mouse, touch, pen)
+	than pointer based user interfaces (using mouse, touch, pen)
 pointer based interface seems appealing at first sight, because of its discoverability
 but with simple uniform GUI (ie the oposite of what we see in websites),
-  there is no need for a pointer based user interface
+	there is no need for a pointer based user interface
 
 touch interface has an additional problem: interaction at a distance is not possible
 but it can still be useful in simple or special applications
 
 detection of voice commands is a relatively simple process (compared to general speech recognition),
-  because we only need to match against a relatively small set of commands
+	because we only need to match against a relatively small set of commands
 a headset with near range microphone can be used, to exclude far away sound sources
 also it is better to put battery and transmitter of the headset in a separate unit which can be put in a pocket
-  this makes the headset lighter and safer
+	this makes the headset lighter and safer
 
 for those who neither can use all their fingers, nor can talk, gesture based (2d) input can be implemented
 
@@ -30,10 +30,10 @@ Kinesis Advantage 2 keyboard
 "http://www.allthingsergo.com/the-best-ergonomic-mechanical-keyboards/"
 
 for compatibility with other applications, we may still need a mouse,
-  plus these extra keys which can be put in the middle of the keyboard:
-, arrow keys, "page up", "page down", "home", "end"
+	plus these extra keys which can be put in the middle of the keyboard:
+, arrow keys, "page up", "page down", "home", "end", "tab"
 , "alt", "ctrl", "shift", and an extra modifier key for inserting punctuations
-also we can have a row of function keys, plus "esc" and "delete" keys
+also we can have a row of function keys, plus the "delete" key
 
 = Comshell
 Comshell is a unified computing environment, utilizing command based user interface
@@ -41,7 +41,7 @@ Comshell is a unified computing environment, utilizing command based user interf
 ".data/comshell.png"
 
 project directories reside in directories named "projects" or "projects.*",
-  inside the user's home directory, or the user's directory inside internal storage devices
+	inside the user's home directory, or the user's directory inside internal storage devices
 in addition, the project directories can be at the root of removable storage devices
 list of all projects will appear in a floating layer, at the center of screen
 each group of projects (which are in the same directory) will be shown in a separate tab
@@ -60,14 +60,13 @@ directories with ".g" suffixes, will be opened in a gallery view
 files and directories inside a gallery, will be opened in a floating layer
 
 non'local projects, web pages, PDF documents, etc, accessed from links inside the main project,
-  will be opened in a floating layer
+	will be opened in a floating layer
 web pages: move caret between visual elements (ignoring structural elements)
 
 modal key'bindings
 modes (normal mode and insert mode) must be visually distinctive
-press "tab" to go to normal mode
+press "esc" to go to normal mode
 in normal mode we can:
-, press "enter" to go to insert mode
 , next/previous word, line, paragraph, section (righ/left middle row keys)
 , next/previous file (ask for confirmation)
 , next/previous section view, opened file
@@ -81,17 +80,17 @@ in normal mode we can:
 , completion
 
 "enter" (in insert mode): selection, completion
-"space" or punctuations or empty line, then "enter": delete space (if any), then insert new line
+"space" or empty line, then "enter": delete space (if any), then insert new line
 
 codev: collaborative development without the need to keep the whole history
 flaws of version control systems:
 , they double the storage (working directory, local repository)
 , their design makes it difficult to modify the history
-  so in practice, the whole history must be kept indefinitely, even if not needed
+	so in practice, the whole history must be kept indefinitely, even if not needed
 codev init:
-  initialize a remote host (for "hashbang.sh" hosts, if login fails, it will try to sign you up)
+	initialize a remote host (for "hashbang.sh" hosts, if login fails, it will try to sign you up)
 codev create:
-  create a remote repository from the current project directory
+	create a remote repository from the current project directory
 codev clone
 codev pull
 and after merging: codev push
@@ -100,8 +99,9 @@ in projects list view:
 , press "" key to open session management menu (poweroff, reboot, suspend, exit, lock)
 , press "" key to open terminal view
 "system" is a command line program which can be used to configure:
-  timezone, network, bluetooth, installed packages
+	timezone, network, bluetooth, installed packages
 
 for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
-Lua LGI is good too, and actually better, if all we need is libraries based on GObject
-but Python is more suitable, if we want a simple unified object'oriented interface for almost anything
+Lua LGI is good too, and maybe better, if all we need is libraries based on GObject
+but Python is more suitable, if we want a simple object'oriented glue for almost anything
+"https://github.com/TomNicholas/Python-for-Scientists"

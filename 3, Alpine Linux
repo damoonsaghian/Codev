@@ -1,0 +1,59 @@
+using Alpine Linux we can easily setup a Linux based operating system
+anything which needs a kernel'based operating system can use Alpine Linux:
+, it supports a wide range of processor architectures
+, it's suitable for systems with limited resources
+, the stable release provides a highly tested system for sensitive use cases
+
+the following instructions show how to create a customized Alpine live system on a USB storage device
+first download an Alpine live image, and write it on a USB storage, and then boot into it
+download the files of this project:
+; apk add wget
+; wget -r -np -nH --cut-dirs=1 https://hashbang.sh/~damoonsaghian/Comshell/
+; cd Comshell
+ensure that the downloaded files aren't malicious, then:
+; sh alpine/mklive.sh
+this will asks you to choose a removable storage device (which can even be the one we have booted into),
+	and then writes the customized live system onto it
+
+now just boot into the customized live system
+it will ask a few questions, and then installs Alpine on the system
+after reboot, you can login to the installed system
+
+press "alt+space" to open app launcher menu
+in app launcher menu press "alt+space" again to open session management menu:
+	poweroff, reboot, suspend, exit, lock
+press "alt+tab" to switch between the first app (usually Comshell) and the prior app
+press "alt+a" to switch between windows of a workspace
+press "alt+escape" to close focused window
+press "alt+enter" to open a terminal window
+
+"system" is a command line program which can be used to configure:
+	timezone, network, bluetooth, installed packages
+
+to switch between users, disconnect and reconnect your keyboard,
+	or first lock the session, and then press "esc"
+
+to run a command as root:
+; su command
+this will switch to the first available virtual terminal, shows the command at top,
+	and asks for root password
+if the entered password is correct it returns back to previous virtual terminal,
+	and runs the command as root
+
+note that you can't login as root; actually root account is locked,
+	and root password provided during installation, is used only for "su"
+also you must never type the user's password anywhere except at the login prompt
+	(and make sure that the login prompt isn't fake, by disconnecting and reconnecting your keyboard)
+this means that if a malicious program steals root password (eg by faking the password entry),
+	it still can't run programs as root (because it can't enter the password in a virtual terminal)
+take a look at these:
+"https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
+"https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
+
+to protect the computer from physical attacks, don't leave the computer with an unlocked session
+in addition you must:
+, somehow prevent tampering with hardware
+, protect boot firmware by a password
+, disable changing the storage device used for booting
+these can make physical attacks more difficult, but keep this in mind:
+	physical access to a computer is root access, given enough time and resources
