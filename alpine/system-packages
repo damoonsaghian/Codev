@@ -42,9 +42,13 @@ if [ "$mode" = "autoupdate" ]; then
 	critical_battery || metered_connection && exit 0
 fi
 
+[ -d /var/cache/apk ] || mkdir -p /var/cache/apk
+[ -L /etc/apk/cache ] || ln -s /var/cache/apk /etc/apk/cache
+
 case "$mode" in
-  autoupdate) apk update; apk upgrade --clean-protected --prune;;
-  update) apk update; apk upgrade --clean-protected --prune;;
-  install) apk add --clean-protected -- "$package_name" ;;
-  remove) apk del -r --purge -- "$package_name" ;;
+	autoupdate) apk update; apk upgrade --clean-protected --prune;;
+	update) apk update; apk upgrade --clean-protected --prune;;
+	install) apk add --clean-protected -- "$package_name" ;;
+	remove) apk del -r --purge -- "$package_name" ;;
 esac
+apk cache clean

@@ -17,8 +17,6 @@ set -e
 # ask if the user wants to install a new system, or fix an existing system
 # apk fix --root /mnt
 
-# to have atomic upgrades for BIOS and OpenFirmware based systems,
-#   the bootloader is installed once, and never updated
 lock_grub() {
 	# since we will lock root, recovery entries are useless
 	printf '\nGRUB_DISABLE_RECOVERY=true\nGRUB_DISABLE_OS_PROBER=true\nGRUB_TIMEOUT=0\n' >> /etc/default/grub
@@ -36,16 +34,16 @@ lock_grub() {
 <<#
 despite using BTRFS, in-place writing is needed in two situations:
 , in-place first write for preallocated space, like in torrents
-  we don't want to disable COW for these files
-  apparently supported by BTRFS, isn't it?
-  https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
-  https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
-  https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
+	we don't want to disable COW for these files
+	apparently supported by BTRFS, isn't it?
+	https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
+	https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
+	https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
 , virtual machines and databases (eg the one used in Webkit)
-  COW must be disabled for these files
-  generally it's done automatically by the program itself (eg systemd-journald)
-  otherwise we must do it manually: chattr +C ...
-  apparently Webkit uses SQLite in WAL mode
+	COW must be disabled for these files
+	generally it's done automatically by the program itself (eg systemd-journald)
+	otherwise we must do it manually: chattr +C ...
+	apparently Webkit uses SQLite in WAL mode
 #
 
 apk add alpine-base linux-lts
@@ -57,40 +55,39 @@ apk add doas wget2 py3-gobject3
 # https://wiki.alpinelinux.org/wiki/PipeWire
 apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth
 [ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
-  cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
+	cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
 
 # ask the user to provide different passwords for root and for the user
 
 groupadd su
 adduser user1 -G netdev
 
-# this can't be written in shell because of security concerns
-# i couldn't find a good way to prevent salt from being exposed as a process parameter
-# https://askubuntu.com/questions/611580/how-to-check-the-password-entered-is-a-valid-password-for-this-user
-# https://wiki.debian.org/Hardening#Mounting_.2Fproc_with_hidepid
-echo -n 'import sys, re, crypt, getpass
-# root password hashed
-root_hash = ""
-with open("/etc/shadow","r") as file:
-	for line in file:
-		if re.search("root", line):
-			root_hash = line.split(":")[1]
-			break
-root_hash_split = root_hash.split("$")
-# the head of root hash, containing the hash method and the salt
-root_hash_head = "$" + root_hash_split[1] + "$" + root_hash_split[2]
-print(sys.argv[1])
-entered_passwd = getpass.getpass("enter root password: ")
-entered_passwd_hashed = crypt.crypt(entered_passwd, root_hash_head)
-if entered_passwd_hashed != root_hash:
-  sys.exit(1)
-' > /usr/localshare/su-chkpasswd.py
+cat <<'__EOF__' > /usr/local/share/su-chkpasswd.sh
+set -e
+root_passwd_hashed="$(sed -n '/root/p' /etc/shadow | cut -d ':' -f2)"
+hash_method="$(echo "$root_passwd_hashed" | cut -d '$' -f2)"
+case "$hashtype" in
+	1) hashtype=md5 ;;
+	5) hashtype=sha-256 ;;
+	6) hashtype=sha-512 ;;
+	*) echo "error: password hash type is unsupported"; exit 1 ;;
+esac
+salt="$(echo $root_passwd_hashed | cut -d '$' -f3)"
+printf "enter root password: "
+IFS= read -rs entered_passwd
+entered_passwd_hashed="$(echo "$entered_passwd" | cryptpw -s --method="$hash_method" --salt="$salt")"
+if [ "$entered_passwd_hashed" = "$root_passwd_hashed" ]; then
+  exit 0
+else
+  exit 1
+fi
+__EOF__
 
-echo -n '#!/usr/bin/pkexec /bin/sh
+echo -n '#!doas /bin/sh
 set -e
 # switch to the first available virtual terminal and ask for root password,
 #   and if successful, run the given command
-if openvt -sw -- /usr/bin/python3 /usr/localshare/su-chkpasswd.sh "$@"; then
+if openvt -sw -- /bin/sh /usr/localshare/su-chkpasswd.sh "$@"; then
 	$@
 else
 	echo "authentication failure"
@@ -130,9 +127,11 @@ echo 'permit nopass :su cmd /bin/sh args /usr/local/bin/system-packages' >> /etc
 
 # install the corresponding firmwares when new hardware is inserted into the machine
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/system-packages install-firmware %k"' >
-  /etc/udev/rules.d/80-install-firmware.rules
+	/etc/udev/rules.d/80-install-firmware.rules
 
-echo 'PS1="\e[7m\u@\h:\w\e[0m\n> "' > /etc/profile.d/shell-prompt.sh
+echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
+echo "enter \"system\" to configure system settings"
+' > /etc/profile.d/shell-prompt.sh
 
 cp /mnt/comshell/os/sd.sh /usr/local/bin/sd
 chmod +x /usr/local/bin/sd
@@ -246,9 +245,8 @@ apk add openssh-client-default attr
 cp /mnt/comshell/di/codev /usr/local/bin/
 chmod +x /usr/local/bin/codev
 
-apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 \
-  gst-plugins-good gst-libav \
-  libarchive-tools exfatprogs btrfs-progs
+apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 gst-plugins-good gst-libav \
+	libarchive-tools exfatprogs btrfs-progs
 # heif-gdk-pixbuf
 cp -r /mnt/comshell/comshell-py /usr/local/share/
 mkdir -p /usr/local/share/applications
