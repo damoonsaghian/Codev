@@ -27,15 +27,9 @@ press "alt+a" to switch between windows of a workspace
 press "alt+escape" to close focused window
 press "alt+enter" to open a terminal window
 
-"system" is a command line program which can be used to configure:
-	timezone, network, bluetooth, installed packages
-
-to switch between users, disconnect and reconnect your keyboard,
-	or first lock the session, and then press "esc"
-
 to run a command as root:
 ; su command
-this will switch to the first available virtual terminal, shows the command at top,
+this will switch to the first available virtual terminal, shows the command at the top,
 	and asks for root password
 if the entered password is correct it returns back to previous virtual terminal,
 	and runs the command as root

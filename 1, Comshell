@@ -98,8 +98,6 @@ and after merging: codev push
 in projects list view:
 , press "" key to open session management menu (poweroff, reboot, suspend, exit, lock)
 , press "" key to open terminal view
-"system" is a command line program which can be used to configure:
-	timezone, network, bluetooth, installed packages
 
 for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
 Lua LGI is good too, and maybe better, if all we need is libraries based on GObject
