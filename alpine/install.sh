@@ -50,54 +50,35 @@ apk add alpine-base linux-lts
 [  ] && apk add intel-ucode
 [  ] && apk add amd-ucode
 
-apk add doas wget2 py3-gobject3
-
-# https://wiki.alpinelinux.org/wiki/PipeWire
-apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth
-[ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
-	cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
+apk add doas wget py3-gobject3
 
 # ask the user to provide different passwords for root and for the user
 
-groupadd su
-adduser user1 -G netdev
-
-cat <<'__EOF__' > /usr/local/share/su-chkpasswd.sh
-set -e
-root_passwd_hashed="$(sed -n '/root/p' /etc/shadow | cut -d ':' -f2)"
-hash_method="$(echo "$root_passwd_hashed" | cut -d '$' -f2)"
-case "$hashtype" in
-	1) hashtype=md5 ;;
-	5) hashtype=sha-256 ;;
-	6) hashtype=sha-512 ;;
-	*) echo "error: password hash type is unsupported"; exit 1 ;;
-esac
-salt="$(echo $root_passwd_hashed | cut -d '$' -f3)"
-printf "enter root password: "
-IFS= read -rs entered_passwd
-entered_passwd_hashed="$(echo "$entered_passwd" | cryptpw -s --method="$hash_method" --salt="$salt")"
-if [ "$entered_passwd_hashed" = "$root_passwd_hashed" ]; then
-  exit 0
-else
-  exit 1
-fi
-__EOF__
+adduser user1 netdev
 
 echo -n '#!doas /bin/sh
 set -e
+user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
 # switch to the first available virtual terminal and ask for root password,
 #   and if successful, run the given command
-if openvt -sw -- /bin/sh /usr/localshare/su-chkpasswd.sh "$@"; then
+if openvt -sw /bin/sh /usr/localshare/su-chkpasswd.sh "$@"; then
+	chvt "$user_vt"
 	$@
 else
+	chvt "$user_vt"
 	echo "authentication failure"
 fi
 ' > /usr/local/bin/su
 chmod +x /usr/local/bin/su
 
-echo 'permit nopass :su cmd /bin/sh args /usr/local/bin/su' >> /etc/doas.conf
+echo 'permit nopass user1 cmd /bin/sh args /usr/local/bin/su' >> /etc/doas.conf
 # lock root account
 passwd --lock root
+
+# https://wiki.alpinelinux.org/wiki/PipeWire
+apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth
+[ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
+	cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
 
 # guess time'zone but let the user to confirm it
 # wget -q -O- http://ip-api.com/line/?fields=timezone)
@@ -107,7 +88,7 @@ read timezone
 ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime
 ' > /usr/local/bin/tzset
 chmod +x /usr/local/bin/tzset
-echo 'permit nopass :users cmd /bin/sh args /usr/local/bin/tzset' >> /etc/doas.conf
+echo 'permit nopass user1 cmd /bin/sh args /usr/local/bin/tzset' >> /etc/doas.conf
 
 apk add connman iwd wireless-regdb ofono bluez
 cp /mnt/comshell/di/system /usr/local/bin/
@@ -117,7 +98,7 @@ chmod +x /usr/local/bin/system
 
 cp /mnt/comshell/di/system-packages /usr/local/bin/
 chmod +x /usr/local/bin/system-packages
-echo 'permit nopass :su cmd /bin/sh args /usr/local/bin/system-packages' >> /etc/doas.conf
+echo 'permit nopass user1 cmd /bin/sh args /usr/local/bin/system-packages' >> /etc/doas.conf
 
 # cronjob for automatic update
 # /usr/local/bin/system-packages autoupdate
@@ -133,13 +114,40 @@ echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-cp /mnt/comshell/os/sd.sh /usr/local/bin/sd
+cat <<'__EOF__' > /usr/local/bin/sd
+#!doas /bin/sh
+set -e
+case "$1" in
+	format) mkfs."$2" /dev/"$3" ;;
+	part) umount /dev/"$2" && sfdisk "$2" "$3" ;;
+	write) umount /dev/"$3" && cp "$2" /dev/"$3" ;;
+	mount) mkdir -p /run/mount/"$2"
+		mount -o nosuid,nodev,noexec,nofail,uid="$(id -u "$DOAS_USER")",gid="$(id -g "$DOAS_USER")" \
+			/dev/"$2" /run/mount/"$2" &>/dev/null &&
+		mount -o nosuid,nodev,noexec,nofail /dev/"$2" /run/mount/"$2" ;;
+	unmount) umount /run/mount/"$2" ;;
+	*) echo "storage device management"
+		echo "usage:"
+		echo "	sd format FORMAT_TYPE DEVICE_NAME"
+		echo "	sd part SFDISK_SCRIPT DEVICE_NAME"
+		echo "	sd write IMAGE_PATH DEVICE_NAME"
+		echo "	sd mount DEVICE_NAME"
+		echo "	sd unmount DEVICE_NAME" ;;
+esac
+__EOF__
 chmod +x /usr/local/bin/sd
-echo 'permit nopass :users cmd /bin/sh args /usr/local/bin/sd' >> /etc/doas.conf
-
-apk add sway swayidle swaylock xwayland psmisc fuzzel foot font-hack font-noto
+echo 'permit nopass user1 cmd /bin/sh args /usr/local/bin/sd' >> /etc/doas.conf
 
 # https://wiki.alpinelinux.org/wiki/Sway
+apk add sway swayidle swaylock xwayland psmisc fuzzel foot font-hack font-noto
+
+echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
+# run sway (if this script is not called by a display manager)
+elif [ -z $DISPLAY ]; then
+	[ -f "$HOME/.profile" ] && . "$HOME/.profile"
+	exec sway -c /usr/local/share/sway.conf
+fi
+' > /etc/profile.d/zzz.sh
 
 # https://codeberg.org/dnkl/fuzzel
 
@@ -233,20 +241,9 @@ padding-bottom = 20%
 result-spacing = 25
 ' > /usr/local/share/tofi.cfg
 
-echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
-# run sway (if this script is not called by a display manager)
-elif [ -z $DISPLAY ]; then
-	[ -f "$HOME/.profile" ] && . "$HOME/.profile"
-	exec sway -c /usr/local/share/sway.conf
-fi
-' > /etc/profile.d/zzz.sh
-
-apk add openssh-client-default attr
-cp /mnt/comshell/di/codev /usr/local/bin/
-chmod +x /usr/local/bin/codev
-
 apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 gst-plugins-good gst-libav \
-	libarchive-tools exfatprogs btrfs-progs
+	libarchive-tools exfatprogs btrfs-progs sfdisk \
+	openssh-client-default attr
 # heif-gdk-pixbuf
 cp -r /mnt/comshell/comshell-py /usr/local/share/
 mkdir -p /usr/local/share/applications
