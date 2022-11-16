@@ -2,23 +2,27 @@ from gi.repository import GLib, Gio, Gdk, Gtk
 
 from project import Project
 
+# left panel
+#
+# attached devices:
 # https://docs.gtk.org/gio/class.VolumeMonitor.html
 #
-# if the device is removable and not formated with VFAT/exFAT, ask the user if she wants to format it
-# format with VFAT (or exFAT if there would be files bigger than 4GB)
-# ; sd format /dev/"$1"
-# if the device is not removable and not formated with BTRFS, ask the user if she wants to format it
-# ; su mkfs.btrfs /dev/"$1"
+# format: sd format vfat /dev/sdx
+# , vfat
+# , exfat if there would be files bigger than 4GB
+# , btrfs
 #
-# project groups on attached storage devices:
+# projects on VFAT/exFAT devices will be opened as read'only
+# when you try to edit them, you will be asked to copy them on to a BTRFS device
+#
 # mount it if it's not:
 # ; sd mount $device_name $mount_point
 # the device will be mounted in /run/mount/$device_name
 # to unmount:
 # ; sd unmount $device_name
 #
-# after mounting a removable device, ask the user to do a backup: codev backup mount_path
-# when copying to a removable device, create .cache/codev/backup-uuid
+# to backup a project group: codev backup mount_path
+# create projects-group/.backup-uuid
 
 # press a key to open session management menu
 # swaymsg mode session
