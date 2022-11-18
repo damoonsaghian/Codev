@@ -3,15 +3,15 @@ set -e
 
 choose() {
 	# the list of choices with the indents removed
-	list="$(echo "$2" | sed -r 's/^[[:blank:]]+//')"
-	count="$(echo "$2" | wc -l)"
-	index=1
-	key=""
+	local list="$(echo "$2" | sed -r 's/^[[:blank:]]+//')"
+	local count="$(echo "$2" | wc -l)"
+	local index=1
+	local key=
 	
-	terminal_height="$(stty size | cut -d ' ' -f1)"
-	max_height=15
+	local terminal_height="$(stty size | cut -d ' ' -f1)"
+	local max_height=15
 	[ $max_height -gt $terminal_height ] && max_height=$terminal_height
-	scrolled=false
+	local scrolled=false
 	[ $((count+2)) -gt $max_height ] && scrolled=true
 	
 	# if a default option is provided, find its index
@@ -81,13 +81,19 @@ choose() {
 }
 
 set_timezone() {
-	auto_timezone="$(wget2 -q -O- http://ip-api.com/line/?fields=timezone)"
-	auto_continent="$(printf "$auto_timezone" | cut -d / -f1)"
-	auto_city="$(printf "$auto_timezone" | cut -d / -f2)"
+	local auto_timezone="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
+	local auto_continent="$(printf "$auto_timezone" | cut -d / -f1)"
+	local auto_city="$(printf "$auto_timezone" | cut -d / -f2)"
 	
 	choose continent "$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)" $auto_continent
 	choose city "$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)" $auto_city
 	tzset "${continent}/${city}"
+}
+
+add_language() {
+	echo "not ye implemented"
+	# add keyboard layout
+	# add corresponding noto font
 }
 
 manage_packages() {
@@ -111,9 +117,10 @@ manage_packages() {
 	system-packages "$mode" "$package_name"
 }
 
-choose selected_option "timezone\nconnections\npackages"
+choose selected_option "timezone\nconnections\nlanguage\npackages"
 case "$selected_option" in
 	timezone) set_timezone ;;
 	connections) . /usr/local/share/system-connections.sh ;;
+	language) add_language ;;
 	packages) manage_packages ;;
 esac

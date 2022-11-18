@@ -1,5 +1,3 @@
-set -e
-
 # https://git.kernel.org/pub/scm/network/connman/connman.git/tree/
 # https://wiki.archlinux.org/title/ConnMan
 # https://github.com/liamw9534/pyconnman
@@ -76,7 +74,7 @@ setup_bluetooth() {
 
 configure_radio_devices() {
 	# wifi, cellular, bluetooth, gps
-	lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
+	local lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
 	echo 'select a radio device:'
 	choose device "$lines"
 	device="$(printf "$device" | cut -d " " -f1)"

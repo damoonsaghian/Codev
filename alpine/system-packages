@@ -15,13 +15,6 @@ package_name="$2"
 trap "rm -f /tmp/apm-lock; trap - EXIT; exit" EXIT HUP INT QUIT ABRT TERM
 touch /tmp/apm-lock
 
-[ "$mode" = "install-firmware" ] && {
-	local device_name="$2"
-	# find and install required firmwares
-	# https://salsa.debian.org/debian/isenkram
-	exit
-}
-
 if [ "$mode" = "autoupdate" ]; then
 	critical_battery() {
 		local battery_capacity="/sys/class/power_supply/BAT0/capacity"
