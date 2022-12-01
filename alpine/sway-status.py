@@ -2,6 +2,8 @@ from gi.repository import Gio, GLib
 
 connection = Gio.DBus.system
 
+# https://bootlin.com/pub/conferences/2016/meetup/dbus/josserand-dbus-meetup.pdf#page=26
+
 # https://github.com/Templarian/MaterialDesign-Font
 
 # https://py3status.readthedocs.io/en/latest/user-guide/modules/#netdata

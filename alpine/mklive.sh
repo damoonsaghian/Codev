@@ -27,6 +27,33 @@ printf 'choose a storage device to make a live system on it: '
 read device
 ask_yesno "all data on \"$device\" will be deleted; do you want to continue? (y/n)" || exit
 
+# usage: setup_partitions <diskdev> size1,type1 [size2,type2 ...]
+setup_partitions() {
+	local diskdev="$1" start=1M line=
+	shift
+
+	# create clean disk label
+	echo "label: $DISKLABEL" | sfdisk --quiet $diskdev
+
+	# initialize MBR for syslinux only
+	if [ "$BOOTLOADER" = "syslinux" ] && [ -f "$MBR" ]; then
+		cat "$MBR" > $diskdev
+	fi
+
+	# create new partitions
+	(
+		for line in "$@"; do
+			case "$line" in
+			0M*) ;;
+			*) echo "$start,$line"; start= ;;
+			esac
+		done
+	) | sfdisk --quiet --wipe-partitions always --label $DISKLABEL $diskdev || return 1
+
+	# create device nodes if not exist
+	$MOCK mdev -s
+}
+
 # create partition table (ppc64le and s390x need additional partitions)
 # if available do it with "sd"
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
@@ -35,14 +62,15 @@ ask_yesno "all data on \"$device\" will be deleted; do you want to continue? (y/
 # download and extract the latest iso into the usb storage
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-bootable.in
 
-mkdir /mnt/boot/initramfs-extract
-cd /mnt/boot/initramfs-extract
-bsdcat ../initramfs* | bsdcpio -i
 
-# include the comshell files into the initramfs
-cp -r "$(dirname "$0")" /mnt/boot/initramfs-extract
+project_path="$(dirname "$0")"/..
+mkdir -p "$initrd_append_path"
 
-# manipulate initramfs to login as root, and run "sh /comshell/install.sh" automatically
+# include the comshell files into the initrd
+cp -r "$(dirname "$0")" initramfs-append
+
+# manipulate initramfs to automatically login as root
+mkdir -p /mnt/boot/initramfs-append/etc
 cat <<__EOF__ > /etc/inittab
 # /etc/inittab
 ::sysinit:/sbin/openrc sysinit
@@ -63,12 +91,15 @@ tty6::respawn:/sbin/getty 38400 tty6
 # Stuff to do before rebooting
 ::shutdown:/sbin/openrc shutdown
 __EOF__
-echo 'sh /alpine/setup.sh' > /etc/profile.d/zzz-install.sh
 
-rm -f ../initramfs*
-find . | bsdcpio -oz --format=newc > ../initramfs*
+# manipulate initramfs to automatically run "sh /comshell/install.sh"
+mkdir -p /mnt/boot/initramfs-append/etc/profile.d
+echo 'sh /alpine/setup.sh' > /mnt/boot/initramfs-append/etc/profile.d/zzz-setup.sh
+
+cd "$project_path"/.cache/initrd-append
+find . | cpio -oz --format=newc >> /mnt/boot/initramfs-lts
 cd ~
-rm -rf /mnt/boot/initramfs-extract
+rm -rf "$project_path"/.cache/initrd-append
 
 # bootloader
 # https://wiki.alpinelinux.org/wiki/Create_a_Bootable_Device

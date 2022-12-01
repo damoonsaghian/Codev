@@ -71,7 +71,7 @@ fi
 ' > /usr/local/bin/su
 chmod +x /usr/local/bin/su
 
-echo 'permit nopass user1 cmd /bin/sh args /usr/local/bin/su' >> /etc/doas.conf
+echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/su' >> /etc/doas.conf
 # lock root account
 passwd --lock root
 
@@ -88,7 +88,7 @@ read timezone
 ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime
 ' > /usr/local/bin/tzset
 chmod +x /usr/local/bin/tzset
-echo 'permit nopass user1 cmd /bin/sh args /usr/local/bin/tzset' >> /etc/doas.conf
+echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/tzset' >> /etc/doas.conf
 
 apk add connman iwd wireless-regdb ofono bluez
 cp /mnt/comshell/di/system /usr/local/bin/
@@ -98,7 +98,7 @@ chmod +x /usr/local/bin/system
 
 cp /mnt/comshell/di/system-packages /usr/local/bin/
 chmod +x /usr/local/bin/system-packages
-echo 'permit nopass user1 cmd /bin/sh args /usr/local/bin/system-packages' >> /etc/doas.conf
+echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/system-packages' >> /etc/doas.conf
 
 # cronjob for automatic update
 # /usr/local/bin/system-packages autoupdate
@@ -114,12 +114,30 @@ echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
+apk add exfatprogs btrfs-progs sfdisk
 cat <<'__EOF__' > /usr/local/bin/sd
 #!doas /bin/sh
 set -e
+
+create_partitions() {
+	local dev_name="$1" disk_label="$2" start=1M line=
+	shift; shift
+	umount /dev/"$dev_name" || return 1
+	# create clean disk label
+	echo "label: gpt" | sfdisk --quiet /dev/"$dev_name"
+	(
+		for line in "$@"; do
+			case "$line" in
+			0M*) ;;
+			*) echo "$start,$line"; start= ;;
+			esac
+		done
+	) | sfdisk --quiet --wipe-partitions always --label "$disk_label"
+}
+
 case "$1" in
-	format) mkfs."$2" /dev/"$3" ;;
-	part) umount /dev/"$2" && sfdisk "$2" "$3" ;;
+	format) mkfs."$3" /dev/"$2" ;;
+	part) shift; create_partitions "$@";;
 	write) umount /dev/"$3" && cp "$2" /dev/"$3" ;;
 	mount) mkdir -p /run/mount/"$2"
 		mount -o nosuid,nodev,noexec,nofail,uid="$(id -u "$DOAS_USER")",gid="$(id -g "$DOAS_USER")" \
@@ -128,15 +146,19 @@ case "$1" in
 	unmount) umount /run/mount/"$2" ;;
 	*) echo "storage device management"
 		echo "usage:"
-		echo "	sd format FORMAT_TYPE DEVICE_NAME"
-		echo "	sd part SFDISK_SCRIPT DEVICE_NAME"
+		echo "	sd format DEVICE_NAME FORMAT_TYPE"
+		echo "		FORMAT_TYPE: btrfs, vfat, exfat, ..."
+		echo "	sd part DEVICE_NAME DISK_LABEL SIZE1,TYPE1 [SIZE2,TYPE2 ...]"
+		echo "		DISK_LABEL: gpt, dos, eckd, ..."
+		echo "		TYPE: linux, swap, uefi"
+		echo "		example: "
 		echo "	sd write IMAGE_PATH DEVICE_NAME"
 		echo "	sd mount DEVICE_NAME"
 		echo "	sd unmount DEVICE_NAME" ;;
 esac
 __EOF__
 chmod +x /usr/local/bin/sd
-echo 'permit nopass user1 cmd /bin/sh args /usr/local/bin/sd' >> /etc/doas.conf
+echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/sd' >> /etc/doas.conf
 
 # https://wiki.alpinelinux.org/wiki/Sway
 apk add sway swayidle swaylock xwayland psmisc fuzzel foot font-hack font-noto
@@ -242,8 +264,7 @@ result-spacing = 25
 ' > /usr/local/share/tofi.cfg
 
 apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 gst-plugins-good gst-libav \
-	libarchive-tools exfatprogs btrfs-progs sfdisk \
-	openssh-client-default attr
+	py3-libarchive-c openssh-client-default attr
 # heif-gdk-pixbuf
 cp -r /mnt/comshell/comshell-py /usr/local/share/
 mkdir -p /usr/local/share/applications
