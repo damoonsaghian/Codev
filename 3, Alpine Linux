@@ -4,17 +4,16 @@ anything which needs a kernel'based operating system can use Alpine Linux:
 , it's suitable for systems with limited resources
 , the stable release provides a highly tested system for sensitive use cases
 
-the following instructions show how to create a customized Alpine live system on a USB storage device
-first download an Alpine image, and write it on a USB storage
-boot into the USB storage, and login as root
-download the files of this project:
+the following shows how to create an Alpine live system, on a USB storage device,
+	customized with some useful scripts
+first you already need to be in an Alpine system (either installed or live)
+then download the files of this project:
 ; apk add wget
 ; wget -r -np -nH --cut-dirs=1 https://hashbang.sh/~damoonsaghian/Comshell/
 ; cd Comshell
 ensure that the downloaded files aren't malicious, then:
 ; sh alpine/mklive.sh
-this will asks you to choose a storage device (which can even be the one we have booted into),
-	and then writes the customized live system onto it
+this will asks you to choose a storage device, and then writes the customized live system onto it
 
 now just boot into the customized live system
 it will ask a few questions, and then installs Alpine on the system

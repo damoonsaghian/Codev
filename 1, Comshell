@@ -58,7 +58,7 @@ there we can create new view corresponding to a section
 sections with views will be slightly highlighted
 
 text files will be opened in a text editor
-directories with ".g" suffixes, will be opened in a gallery view
+directories containing media files, will be opened in a gallery view
 files and directories inside a gallery, will be opened in a floating layer
 
 non'local projects, web pages, PDF documents, etc, accessed from links inside the main project,
