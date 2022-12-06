@@ -1,0 +1,50 @@
+#!doas /bin/sh
+set -e
+
+create_partitions() {
+	local dev_name="$1" disk_label="$2" start=1M line=
+	shift; shift
+	umount /dev/"$dev_name" || return 1
+	# create clean disk label
+	echo "label: gpt" | sfdisk --quiet /dev/"$dev_name"
+	(
+		for line in "$@"; do
+			case "$line" in
+			0M*) ;;
+			*) echo "$start,$line"; start= ;;
+			esac
+		done
+	) | sfdisk --quiet --wipe-partitions always --label "$disk_label"
+}
+
+sd_mount() {
+	local loop
+	[ "$2" = /run/mount/loop ] && loop="loop,"
+	mkdir -p "$2"
+	mount -o "$loop"nosuid,nodev,noexec,nofail,uid="$(id -u "$DOAS_USER")",gid="$(id -g "$DOAS_USER")" \
+		"$1" "$2" &>/dev/null &&
+	mount -o "$loop"nosuid,nodev,noexec,nofail "$1" "$2"
+}
+
+case "$1" in
+	format) mkfs."$3" /dev/"$2" ;;
+	part) shift; create_partitions "$@" ;;
+	write) umount /dev/"$3" && cp "$2" /dev/"$3" ;;
+	loop) sd_mount "$2" /run/mount/loop ;;
+	unloop) umount /run/mount/loop ;;
+	mount) sd_mount /dev/"$2" /run/mount/"$2" ;;
+	unmount) umount /run/mount/"$2" ;;
+	*) echo "storage device management"
+		echo "usage:"
+		echo "	sd format DEVICE_NAME FORMAT_TYPE"
+		echo "		FORMAT_TYPE: btrfs, vfat, exfat, ..."
+		echo "	sd part DEVICE_NAME DISK_LABEL SIZE1,TYPE1 [SIZE2,TYPE2 ...]"
+		echo "		DISK_LABEL: gpt, dos, eckd, ..."
+		echo "		TYPE: linux, swap, uefi"
+		echo "		example: "
+		echo "	sd write IMAGE_PATH DEVICE_NAME"
+		echo "	sd loop IMAGE_PATH"
+		echo "	sd unloop"
+		echo "	sd mount DEVICE_NAME"
+		echo "	sd unmount DEVICE_NAME" ;;
+esac

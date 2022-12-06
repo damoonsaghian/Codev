@@ -24,8 +24,8 @@ show_block_devices() {
 echo 'storage devices:'
 show_block_devices
 printf 'choose a storage device to make a live system on it: '
-read device
-ask_yesno "all data on \"$device\" will be deleted; do you want to continue? (y/n)" || exit
+read device_name
+ask_yesno "all data on \"$device_name\" will be deleted; do you want to continue? (y/n)" || exit
 
 # usage: setup_partitions <diskdev> size1,type1 [size2,type2 ...]
 setup_partitions() {
@@ -54,24 +54,36 @@ setup_partitions() {
 	$MOCK mdev -s
 }
 
+sd=sd
+sd >/dev/null || sd="sh \"$(dirname "$0")/sd\""
+
 # create partition table (ppc64le and s390x need additional partitions)
-# if available do it with "sd"
+$sd part
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
 # format it with VFAT
 
+# bootloader
+# https://wiki.alpinelinux.org/wiki/Create_a_Bootable_Device
+# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
+
+$sd mount "$device_name"
+
 # download and extract the latest iso into the usb storage
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-bootable.in
+$sd loop "$project_path/.cache/$iso_file"
+cp -r /run/mount/loop/* /run/mount/"$device_name"
+$sd unloop
 
+project_path="$(dirname "$0")/.."
+initramfs_append_path="$project_path/.cache/initramfs-append"
 
-project_path="$(dirname "$0")"/..
-mkdir -p "$initrd_append_path"
-
-# include the comshell files into the initrd
-cp -r "$(dirname "$0")" initramfs-append
+# include the comshell files into the initramfs
+mkdir -p "$initramfs_append_path/comshell"
+cp -r "$project_path"/* "$initramfs_append_path/comshell/"
 
 # manipulate initramfs to automatically login as root
-mkdir -p /mnt/boot/initramfs-append/etc
-cat <<__EOF__ > /etc/inittab
+mkdir -p "$initramfs_append_path/etc"
+cat <<__EOF__ > "$initramfs_append_path/etc/inittab"
 # /etc/inittab
 ::sysinit:/sbin/openrc sysinit
 ::sysinit:/sbin/openrc boot
@@ -92,15 +104,11 @@ tty6::respawn:/sbin/getty 38400 tty6
 ::shutdown:/sbin/openrc shutdown
 __EOF__
 
-# manipulate initramfs to automatically run "sh /comshell/install.sh"
-mkdir -p /mnt/boot/initramfs-append/etc/profile.d
-echo 'sh /alpine/setup.sh' > /mnt/boot/initramfs-append/etc/profile.d/zzz-setup.sh
+# manipulate initramfs to automatically run "setup.sh"
+mkdir -p "$initramfs_append_path/etc/profile.d"
+echo 'sh /comshell/alpine/setup.sh' > "$initramfs_append_path/etc/profile.d/zzz-setup.sh"
 
-cd "$project_path"/.cache/initrd-append
-find . | cpio -oz --format=newc >> /mnt/boot/initramfs-lts
-cd ~
-rm -rf "$project_path"/.cache/initrd-append
-
-# bootloader
-# https://wiki.alpinelinux.org/wiki/Create_a_Bootable_Device
-# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
+# append the files to initramfs
+cd "$initramfs_append_path"
+find . | cpio -H newc -o | gzip >> "/run/mount/$device_name/boot/initramfs-lts"
+rm -rf "$initrd_append_path"
