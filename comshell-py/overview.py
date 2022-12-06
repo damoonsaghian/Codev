@@ -16,7 +16,7 @@ from project import Project
 # when you try to edit them, you will be asked to copy them on to a BTRFS device
 #
 # mount it if it's not:
-# ; sd mount $device_name $mount_point
+# ; sd mount $device_name
 # the device will be mounted in /run/mount/$device_name
 # to unmount:
 # ; sd unmount $device_name
