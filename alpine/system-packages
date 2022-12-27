@@ -8,13 +8,6 @@ set -e
 mode="$1"
 package_name="$2"
 
-[ -f /tmp/apm-lock ] && {
-	echo 'another instance is running; wait for it to finish, or reboot the system'
-	exit 1
-}
-trap "rm -f /tmp/apm-lock; trap - EXIT; exit" EXIT HUP INT QUIT ABRT TERM
-touch /tmp/apm-lock
-
 if [ "$mode" = "autoupdate" ]; then
 	critical_battery() {
 		local battery_capacity="/sys/class/power_supply/BAT0/capacity"

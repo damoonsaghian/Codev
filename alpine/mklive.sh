@@ -1,9 +1,15 @@
 set -e
-. /lib/libalpine.sh
 
-# copy kernel modules from modloop and unmount loopback device
+project_path="$(dirname "$0")/.."
+
+printf "choose the architecture of the live system you want: "
+read arch
+
+wget $arch $project_path
+
+# if we're on on a live Alpine system, copy kernel modules from modloop and unmount loopback device
 # so we can create the customized live system on the booted device itself
-DO_UMOUNT=1 copy-modloop
+DO_UMOUNT=1 copy-modloop || true
 
 show_block_devices() {
 	local p= dev= disks= disk= model= d= size=
@@ -25,34 +31,9 @@ echo 'storage devices:'
 show_block_devices
 printf 'choose a storage device to make a live system on it: '
 read device_name
-ask_yesno "all data on \"$device_name\" will be deleted; do you want to continue? (y/n)" || exit
-
-# usage: setup_partitions <diskdev> size1,type1 [size2,type2 ...]
-setup_partitions() {
-	local diskdev="$1" start=1M line=
-	shift
-
-	# create clean disk label
-	echo "label: $DISKLABEL" | sfdisk --quiet $diskdev
-
-	# initialize MBR for syslinux only
-	if [ "$BOOTLOADER" = "syslinux" ] && [ -f "$MBR" ]; then
-		cat "$MBR" > $diskdev
-	fi
-
-	# create new partitions
-	(
-		for line in "$@"; do
-			case "$line" in
-			0M*) ;;
-			*) echo "$start,$line"; start= ;;
-			esac
-		done
-	) | sfdisk --quiet --wipe-partitions always --label $DISKLABEL $diskdev || return 1
-
-	# create device nodes if not exist
-	$MOCK mdev -s
-}
+printf "all data on \"$device_name\" will be deleted; do you want to continue? (y/N): "
+read answer
+[ "$answer" = y ] || exit
 
 sd=sd
 sd >/dev/null || sd="sh \"$(dirname "$0")/sd\""
@@ -65,16 +46,19 @@ $sd part
 # bootloader
 # https://wiki.alpinelinux.org/wiki/Create_a_Bootable_Device
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
+# initialize MBR for syslinux only
+#if [ "$BOOTLOADER" = "syslinux" ] && [ -f "$MBR" ]; then
+#	cat "$MBR" > $diskdev
+#fi
 
 $sd mount "$device_name"
 
-# download and extract the latest iso into the usb storage
+# extract the latest iso into the usb storage
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-bootable.in
 $sd loop "$project_path/.cache/$iso_file"
 cp -r /run/mount/loop/* /run/mount/"$device_name"
 $sd unloop
 
-project_path="$(dirname "$0")/.."
 initramfs_append_path="$project_path/.cache/initramfs-append"
 
 # include the comshell files into the initramfs

@@ -1,18 +1,27 @@
 set -e
 
+# https://www.skarnet.org/software/s6/overview.html
+# https://wiki.gentoo.org/wiki/OpenRC/supervise-daemon
+# https://git.alpinelinux.org/aports/tree/main/alpine-baselayout/inittab
+# https://git.alpinelinux.org/aports/tree/main/openrc?h=master
+# eudev-openrc
+# dbus-openrc
+# elogind-openrc, seatd-openrc
+# iwd-openrc
+# ofono-openrc
+# bluez-openrc
+# clamav-daemon-openrc
+
 # https://wiki.alpinelinux.org/wiki/Installation
 # https://gitlab.alpinelinux.org/alpine/alpine-conf
+# https://wiki.alpinelinux.org/wiki/How_to_make_a_custom_ISO_image_with_mkimage
+# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/scripts
+# https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/scripts/mkimg.base.sh
+# https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/scripts/mkimage.sh
+# https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/
 
-# https://github.com/davmac314/dinit
-# https://github.com/davmac314/dinit/blob/master/doc/getting_started.md
-# https://davmac.org/projects/dinit/man-pages-html/dinit.8.html
-# https://davmac.org/projects/dinit/man-pages-html/dinit-service.5.html
-# https://davmac.org/projects/dinit/alpine-demo/
-# https://github.com/ndowens/alpine-dinit-scripts
-# https://github.com/mohamad-supangat/dinit.d
-# https://wiki.artixlinux.org/Main/dinit
-# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/openrc
-# https://pkgs.alpinelinux.org/package/edge/main/x86_64/alpine-base
+# https://git.busybox.net/busybox/tree/
+# https://git.alpinelinux.org/aports/tree/main/busybox?h=master
 
 # ask if the user wants to install a new system, or fix an existing system
 # apk fix --root /mnt
@@ -76,6 +85,8 @@ echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/su' >> /etc/doas
 passwd --lock root
 
 # https://wiki.alpinelinux.org/wiki/PipeWire
+# pipewire: support mdev + libudev-zero:
+# https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/2398
 apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth
 [ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
 	cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
@@ -90,6 +101,7 @@ ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime
 chmod +x /usr/local/bin/tzset
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/tzset' >> /etc/doas.conf
 
+# https://pkgs.alpinelinux.org/package/edge/main/x86_64/ifupdown-ng
 apk add connman iwd wireless-regdb ofono bluez
 cp /mnt/comshell/alpine/system /usr/local/bin/
 chmod +x /usr/local/bin/system
@@ -101,6 +113,7 @@ chmod +x /usr/local/bin/system-packages
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/system-packages' >> /etc/doas.conf
 
 # cronjob for automatic update
+# cronie cronie-openrc
 # /usr/local/bin/system-packages autoupdate
 # OnBootSec=5min
 # OnUnitInactiveSec=24h
@@ -109,6 +122,8 @@ echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/system-packages'
 # install the corresponding firmwares when new hardware is inserted into the machine
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/system-packages install-firmware %k"' >
 	/etc/udev/rules.d/80-install-firmware.rules
+
+# alpine-base eudev udev-init-scripts-openrc
 
 echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
 echo "enter \"system\" to configure system settings"
@@ -222,9 +237,15 @@ padding-bottom = 20%
 result-spacing = 25
 ' > /usr/local/share/tofi.cfg
 
-apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 gst-plugins-good gst-libav \
-	py3-libarchive-c openssh-client-default attr
-# heif-gdk-pixbuf
+apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 py3-cairo \
+	libjxl libavif webp-pixbuf-loader librsvg \
+	gst-plugins-good gst-plugins-ugly gst-plugin-pipewire gst-libav \
+	libarchive-tools openssh-client-default attr
+# gst-plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
+# gst-libav is needed till
+# , h264(openh264), h265(libde265), and aac(fdk-aac) go into gst-plugins-ugly
+# , and av1(aom-libs) goes into gst-plugins-good
+# libjxl and libavif are not compiled with gdk-pixbuf loaders (-DJPEGXL_ENABLE_PLUGINS -DAVIF_BUILD_GDK_PIXBUF)
 cp -r /mnt/comshell/comshell-py /usr/local/share/
 mkdir -p /usr/local/share/applications
 echo -n '[Desktop Entry]
