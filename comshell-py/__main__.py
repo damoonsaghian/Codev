@@ -15,6 +15,7 @@ from overview import Overview
 # https://github.com/GNOME/pygobject/tree/master/examples/demo/demos
 # https://lazka.github.io/pgi-docs/main.html
 # https://www.gtk.org/docs/apis/
+# https://developer.gnome.org/documentation/
 
 # create a project group -> ask user for the disk
 
@@ -36,7 +37,7 @@ from overview import Overview
 
 # notifications:
 # create a layer in the bottom'left corner, to print notifications, using:
-#   python3-cffi + wlroots (layer-shell) + python3-cairocffi
+# python3-cffi + wlroots (layer-shell) + python3-cairocffi
 # https://cffi.readthedocs.io/en/latest/
 # https://cairocffi.readthedocs.io/en/stable/
 # at startup scan email boxes of projects, and show notifications

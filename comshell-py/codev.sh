@@ -331,7 +331,7 @@ push() {
 	# https://github.com/nanoc/nanoc
 	# https://docs.antora.org/
 	
-	# we can keep a directory tree made from the history of specific changes made by pushers,
+	# we can keep a directory tree (under ".meta" directory) of the history of specific changes made by pushers,
 	# and requests made by pull-requests, a history that shows who has done what
 	# it can be used, for example, to track down backdoors introduced in the code
 	

@@ -1,5 +1,10 @@
 from gi.repository import GLib, Gio, Gdk, Gtk, Gst
 
+# use gio plugin to send and receive from gstreamer
+# use glib udp to transfer it over network
+# use pipewire plugin to access camera
+# use gtk4 mediafile to put it on gui
+
 # for gallery view: gtk::FlowBox, gtk::Scrollable
 # https://github.com/karlch/vimiv
 # https://gitlab.com/Strit/griffith

@@ -33,7 +33,8 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 # "https://github.com/gaphor/gaphor"
 # https://github.com/jrfonseca/xdot.py
 # make graphical elements from Gsk cairo and opengl nodes, inside transform nodes
-#   "https://docs.gtk.org/gtk4/class.Snapshot.html"
+# "https://docs.gtk.org/gtk4/class.Snapshot.html"
+
 # "https://en.wikipedia.org/wiki/List_of_3D_graphics_libraries#High-level_3D_API"
 # "https://github.com/jslee02/awesome-graphics-libraries"
 # "https://wiki.freecadweb.org/Pivy"
