@@ -5,24 +5,24 @@ anything which needs a kernel'based operating system can use Alpine Linux:
 , the stable release provides a highly tested system for sensitive use cases
 
 the following shows how to create an Alpine live system, on a USB storage device,
-	customized with some useful scripts
-first you already need to be in an Alpine system (either installed or live)
-then download the files of this project:
+	customized for installing a minimal graphical system
+first you need to already be in an Alpine system (either installed or live)
+then if you need to download the files of this project, run these commands:
 ; apk add wget
 ; wget -r -np -nH --cut-dirs=1 https://hashbang.sh/~damoonsaghian/Comshell/
 ; cd Comshell
 ensure that the downloaded files aren't malicious, then:
 ; sh alpine/mklive.sh
-this will asks you to choose a storage device, and then writes the customized live system onto it
+this will ask you to choose a storage device, and then creates the customized live system
 
 now just boot into the customized live system
-it will ask a few questions, and then installs Alpine on the system
+it will ask a few questions, and then installs Void
 after reboot, you can login to the installed system
 
 press "alt+space" to open app launcher menu
-in app launcher menu press "alt+space" again to open session management menu:
+in app launcher menu, press "alt+space" again to open session management menu:
 	poweroff, reboot, suspend, exit, lock
-press "alt+tab" to switch between the first app (usually Comshell) and the prior app
+press "alt+tab" to switch between the primary app (usually Comshell) and the prior app
 press "alt+a" to switch between windows of a workspace
 press "alt+escape" to close focused window
 press "alt+enter" to open a terminal window
