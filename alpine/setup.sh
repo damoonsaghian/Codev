@@ -1,7 +1,16 @@
 set -e
 
+# s6-rc inhibit shutdown
+# https://packages.debian.org/sid/molly-guard
+# https://blog.craftyguy.net/alpine-openrc-reboot/
+# https://fitzcarraldoblog.wordpress.com/2018/01/13/running-a-shell-script-at-shutdown-only-not-at-reboot-a-comparison-between-openrc-and-systemd/
+
 # https://www.skarnet.org/software/s6/overview.html
-# https://wiki.gentoo.org/wiki/OpenRC/supervise-daemon
+# https://skarnet.org/software/s6-rc/why.html
+# https://skarnet.org/software/s6/
+# https://skarnet.org/software/s6-rc/
+# https://github.com/just-containers/s6-overlay
+# https://skarnet.org/software/s6-linux-init/s6-linux-init-maker.html
 # https://git.alpinelinux.org/aports/tree/main/alpine-baselayout/inittab
 # https://git.alpinelinux.org/aports/tree/main/openrc?h=master
 # eudev-openrc
@@ -12,19 +21,15 @@ set -e
 # bluez-openrc
 # clamav-daemon-openrc
 
-# https://wiki.alpinelinux.org/wiki/Installation
-# https://gitlab.alpinelinux.org/alpine/alpine-conf
-# https://wiki.alpinelinux.org/wiki/How_to_make_a_custom_ISO_image_with_mkimage
-# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/scripts
-# https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/scripts/mkimg.base.sh
-# https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/scripts/mkimage.sh
-# https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/
-
 # https://git.busybox.net/busybox/tree/
 # https://git.alpinelinux.org/aports/tree/main/busybox?h=master
 
 # ask if the user wants to install a new system, or fix an existing system
+# ask for the device to repair
+# mount /dev/sdx /mnt
 # apk fix --root /mnt
+# live media can be used to fix a systems which is corrupted because of a powerloss during system upgrade
+# for critical systems and for servers we can use a UPS
 
 lock_grub() {
 	# since we will lock root, recovery entries are useless
@@ -102,6 +107,11 @@ chmod +x /usr/local/bin/tzset
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/tzset' >> /etc/doas.conf
 
 # https://pkgs.alpinelinux.org/package/edge/main/x86_64/ifupdown-ng
+# https://manpages.debian.org/testing/ifupdown/interfaces.5.en.html
+# https://wiki.debian.org/Modem/3G
+# https://github.com/ifupdown-ng/ifupdown-ng/blob/main/doc/interfaces-ppp.scd
+# https://github.com/ifupdown-ng/ifupdown-ng/blob/main/doc/interfaces-wifi.scd
+# https://github.com/ifupdown-ng/ifupdown-ng/tree/main/doc
 apk add connman iwd wireless-regdb ofono bluez
 cp /mnt/comshell/alpine/system /usr/local/bin/
 chmod +x /usr/local/bin/system
@@ -124,6 +134,14 @@ echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/system-packages
 	/etc/udev/rules.d/80-install-firmware.rules
 
 # alpine-base eudev udev-init-scripts-openrc
+
+# s6-rc inhibit shutdown
+# https://skarnet.org/software/s6-linux-init/s6-linux-init-shutdownd.html
+# https://git.skarnet.org/cgi-bin/cgit.cgi/s6-linux-init/tree/skel/rc.shutdown
+# https://skarnet.org/software/s6-linux-init/
+# https://pkgs.alpinelinux.org/package/edge/main/riscv64/s6-linux-init
+# https://skarnet.org/software/s6-linux-init/s6-linux-init-maker.html
+# s6-init-maker ->
 
 echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
 echo "enter \"system\" to configure system settings"

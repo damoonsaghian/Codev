@@ -1,13 +1,30 @@
 set -e
 
 project_path="$(dirname "$0")/.."
+mkdir -p "$project_path/.cache/alpine"
 
-printf "choose the architecture of the live system you want: "
+echo "available architectures:
+	riscv64
+	ppc64le
+	aarch64
+	armv7
+	x86_64
+	x86
+	s390x"
+printf "choose one: "
 read arch
 
-wget $arch $project_path
+cd "$project_path/.cache/alpine"
+wget --recursive --level=1 -no-host-directories -no-directories \
+	--accept "alpine-standard-*.iso*" --reject "*_rc*" \
+	"https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$arch/"
+sha256sum --check --status alpine-*.iso.sha256 || {
+	echo "verifying the checksum of the downloaded file failed; try again"
+	exit 1
+}
+# when Alpine starts to sign the checksum files with alpine-keys, verify the signature too
 
-# if we're on on a live Alpine system, copy kernel modules from modloop and unmount loopback device
+# if we're on a live Alpine system, copy kernel modules from modloop and unmount loopback device
 # so we can create the customized live system on the booted device itself
 DO_UMOUNT=1 copy-modloop || true
 
@@ -27,19 +44,25 @@ show_block_devices() {
 	done
 }
 
-echo 'storage devices:'
+echo "storage devices:"
 show_block_devices
-printf 'choose a storage device to make a live system on it: '
+printf "choose a storage device to make a live system on it: "
 read device_name
 printf "all data on \"$device_name\" will be deleted; do you want to continue? (y/N): "
 read answer
 [ "$answer" = y ] || exit
 
-sd=sd
-sd >/dev/null || sd="sh \"$(dirname "$0")/sd\""
+# if "sd" command is available use it, cause it can be run by non'root users
+sd_command_exists=false
+sd >/dev/null && sd_command_exists=true
 
 # create partition table (ppc64le and s390x need additional partitions)
-$sd part
+if $sd_command_exists; then
+	sd part
+else
+	apk add sfdisk
+	sfdisk
+fi
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
 # format it with VFAT
 
@@ -51,13 +74,20 @@ $sd part
 #	cat "$MBR" > $diskdev
 #fi
 
-$sd mount "$device_name"
+if $sd_command_exists; then
+	sd mount "$device_name"
+else
+	mount /dev/"$device_name" /mnt
+fi
 
 # extract the latest iso into the usb storage
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-bootable.in
-$sd loop "$project_path/.cache/$iso_file"
-cp -r /run/mount/loop/* /run/mount/"$device_name"
-$sd unloop
+if $sd_command_exists; then
+	sd loop "$project_path/.cache/$iso_file"
+	cp -r /run/mount/loop/* /run/mount/"$device_name"
+	sd unloop "$project_path/.cache/$iso_file"
+else
+fi
 
 initramfs_append_path="$project_path/.cache/initramfs-append"
 

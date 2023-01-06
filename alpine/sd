@@ -1,10 +1,16 @@
 #!doas /bin/sh
 set -e
 
+format() {
+	mkfs."$2" "$1"
+	mount "$1" /mnt
+	chmod 777 /mnt
+	umount /mnt
+}
+
 create_partitions() {
 	local dev_name="$1" disk_label="$2" start=1M line=
 	shift; shift
-	umount /dev/"$dev_name" || return 1
 	# create clean disk label
 	echo "label: gpt" | sfdisk --quiet /dev/"$dev_name"
 	(
@@ -18,22 +24,43 @@ create_partitions() {
 }
 
 sd_mount() {
-	local loop
-	[ "$2" = /run/mount/loop ] && loop="loop,"
-	mkdir -p "$2"
+	local dev_path="$1" mount_path="/home/$DOAS_USER/.local/sd-mount/$1" loop
+	[ "$2" = loop ] && loop="loop,"
+	doas -u "$DOAS_USER" mkdir -p "$mount_path"
+	# for filesystems like vfat and exfat
 	mount -o "$loop"nosuid,nodev,noexec,nofail,uid="$(id -u "$DOAS_USER")",gid="$(id -g "$DOAS_USER")" \
-		"$1" "$2" &>/dev/null &&
-	mount -o "$loop"nosuid,nodev,noexec,nofail "$1" "$2"
+		"$dev_path" "$mount_path" &>/dev/null ||
+	# for linux filesystems
+	mount -o "$loop"nosuid,nodev,noexec,nofail "$dev_name" "$mount_path"
+}
+
+sd_unmount() {
+	local mount_path="/home/$DOAS_USER/.local/sd-mount/$1"
+	umount "$mount_path"
+	doas -u "$DOAS_USER" rmdir --ignore-fail-on-non-empty -p "$mount_path"
+}
+
+device_name="$(basename "$2")"
+[ "$1" = loop ] || [ "$1" = unloop ] || {
+	[ -f "/dev/$device_name" ] || exit 1
+	# if the parent of "$2" is the device that the system is installed on, exit
+	parent_device="$(readlink -f "/sys/class/block/$device_name/..")"
+	parent_device="$(basename "$parent_device")"
+	[ "$parent_device" = block ] && parent_device="$device_name"
+	root_device="$(rdev)"
+	root_device="$(basename "$root_device")"
+	[ -z "$root_device" ] && exit 1
+	[ "$root_device" = "$parent_device" ] && exit 1
 }
 
 case "$1" in
-	format) mkfs."$3" /dev/"$2" ;;
-	part) shift; create_partitions "$@" ;;
-	write) umount /dev/"$3" && cp "$2" /dev/"$3" ;;
-	loop) sd_mount "$2" /run/mount/loop ;;
-	unloop) umount /run/mount/loop ;;
-	mount) sd_mount /dev/"$2" /run/mount/"$2" ;;
-	unmount) umount /run/mount/"$2" ;;
+	format) format /dev/"$device_name" "$3" ;;
+	part) shift; shift; create_partitions "$device_name" "$@" ;;
+	flash) dd if="$3" of=/dev/"$device_name" ;;
+	loop) sd_mount "$2" loop ;;
+	unloop) sd_unmount "$2" ;;
+	mount) sd_mount /dev/"$device_name" ;;
+	unmount) sd_unmount /dev/"$devicename" ;;
 	*) echo "storage device management"
 		echo "usage:"
 		echo "	sd format DEVICE_NAME FORMAT_TYPE"
@@ -42,7 +69,7 @@ case "$1" in
 		echo "		DISK_LABEL: gpt, dos, eckd, ..."
 		echo "		TYPE: linux, swap, uefi"
 		echo "		example: "
-		echo "	sd write IMAGE_PATH DEVICE_NAME"
+		echo "	sd flash DEVICE_NAME IMAGE_PATH"
 		echo "	sd loop IMAGE_PATH"
 		echo "	sd unloop"
 		echo "	sd mount DEVICE_NAME"
