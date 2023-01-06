@@ -27,6 +27,12 @@ from overview import Overview
 # bsdtar (libarchive-tools) (zip, iso, ...)
 # bsdtar -xf file
 
+# .iso file: ask for a device to write it into, then:
+# ; sd flash devicename isofile
+# .osi file (operating system installer) is actually a "tar.gz" file,
+# containing "efi/boot/bootx64.efi" which is a unified kernel image
+# ask to write to a device, then create a VFAT EFI partiton, and copy files into it
+
 # https://github.com/kupferlauncher/kupfer
 # https://github.com/muflone/gnome-appfolders-manager
 

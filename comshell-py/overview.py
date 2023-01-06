@@ -8,16 +8,16 @@ from project import Project
 # https://docs.gtk.org/gio/class.VolumeMonitor.html
 #
 # format: sd format vfat /dev/sdx
-# , vfat
-# , exfat if there would be files bigger than 4GB
-# , btrfs
+# , removable: vfat
+# , removable containing files bigger than 4GB: exfat
+# , internal: btrfs
 #
 # projects on VFAT/exFAT devices will be opened as read'only
 # when you try to edit them, you will be asked to copy them on to a BTRFS device
 #
 # mount it if it's not:
 # ; sd mount $device_name
-# the device will be mounted in /run/mount/$device_name
+# the device will be mounted in ~/.local/sd-mount/$device_name
 # to unmount:
 # ; sd unmount $device_name
 #

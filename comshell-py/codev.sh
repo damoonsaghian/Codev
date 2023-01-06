@@ -331,6 +331,8 @@ push() {
 	# https://github.com/nanoc/nanoc
 	# https://docs.antora.org/
 	
+	# when converting to html, convert tabs to html tables, to have elastic tabstops
+	
 	# we can keep a directory tree (under ".meta" directory) of the history of specific changes made by pushers,
 	# and requests made by pull-requests, a history that shows who has done what
 	# it can be used, for example, to track down backdoors introduced in the code
@@ -376,6 +378,7 @@ backup() {
 	# do not follow mount points when making backups
 	
 	# backup (encrypted) private keys, plus public keys of trusted pairs
+	# key update between pairs occures only when the backup device is connected
 }
 
 # add or remove a user that can push
