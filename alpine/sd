@@ -2,17 +2,18 @@
 set -e
 
 format() {
-	mkfs."$2" "$1"
+	mkfs."$2" "/dev/$1"
 	mount "$1" /mnt
 	chmod 777 /mnt
 	umount /mnt
 }
 
 create_partitions() {
-	local dev_name="$1" disk_label="$2" start=1M line=
+	local dev_path="/dev/$1" disk_label="$2"
+	local start=1M line=
 	shift; shift
 	# create clean disk label
-	echo "label: gpt" | sfdisk --quiet /dev/"$dev_name"
+	echo "label: gpt" | sfdisk --quiet "$dev_path"
 	(
 		for line in "$@"; do
 			case "$line" in
@@ -24,21 +25,35 @@ create_partitions() {
 }
 
 sd_mount() {
-	local dev_path="$1" mount_path="/home/$DOAS_USER/.local/sd-mount/$1" loop
-	[ "$2" = loop ] && loop="loop,"
+	local dev_path="/dev/$1"
+	local mount_path="/home/$DOAS_USER/.local/mount/$1"
 	doas -u "$DOAS_USER" mkdir -p "$mount_path"
 	# for filesystems like vfat and exfat
-	mount -o "$loop"nosuid,nodev,noexec,nofail,uid="$(id -u "$DOAS_USER")",gid="$(id -g "$DOAS_USER")" \
+	mount -o nosuid,nodev,noexec,nofail,uid="$(id -u "$DOAS_USER")",gid="$(id -g "$DOAS_USER")" \
 		"$dev_path" "$mount_path" &>/dev/null ||
 	# for linux filesystems
-	mount -o "$loop"nosuid,nodev,noexec,nofail "$dev_name" "$mount_path"
+	mount -o nosuid,nodev,noexec,nofail "$dev_name" "$mount_path"
 }
 
 sd_unmount() {
-	local mount_path="/home/$DOAS_USER/.local/sd-mount/$1"
+	local mount_path="/home/$DOAS_USER/.local/mount/$1"
 	umount "$mount_path"
 	doas -u "$DOAS_USER" rmdir --ignore-fail-on-non-empty -p "$mount_path"
 }
+
+mount_loop() {
+	local image_path="$1"
+	local mount_path="$1-loop"
+	doas -u "$DOAS_USER" mkdir -p "$mount_path"
+	mount -o loop,nosuid,nodev,noexec,nofail "$image_name" "$mount_path"
+}
+
+unmount_loop() {
+	local mount_path="$1-loop"
+	umount "$mount_path"
+	doas -u "$DOAS_USER" rmdir --ignore-fail-on-non-empty -p "$mount_path"
+}
+
 
 device_name="$(basename "$2")"
 [ "$1" = loop ] || [ "$1" = unloop ] || {
@@ -54,13 +69,13 @@ device_name="$(basename "$2")"
 }
 
 case "$1" in
-	format) format /dev/"$device_name" "$3" ;;
+	format) format "$device_name" "$3" ;;
 	part) shift; shift; create_partitions "$device_name" "$@" ;;
-	flash) dd if="$3" of=/dev/"$device_name" ;;
-	loop) sd_mount "$2" loop ;;
-	unloop) sd_unmount "$2" ;;
-	mount) sd_mount /dev/"$device_name" ;;
-	unmount) sd_unmount /dev/"$devicename" ;;
+	flash) dd if="$3" of="/dev/$device_name" ;;
+	loop) mount_loop "$2" ;;
+	unloop) unmount_loop "$2" ;;
+	mount) sd_mount "$device_name" ;;
+	unmount) sd_unmount "$devicename" ;;
 	*) echo "storage device management"
 		echo "usage:"
 		echo "	sd format DEVICE_NAME FORMAT_TYPE"
@@ -71,7 +86,7 @@ case "$1" in
 		echo "		example: "
 		echo "	sd flash DEVICE_NAME IMAGE_PATH"
 		echo "	sd loop IMAGE_PATH"
-		echo "	sd unloop"
+		echo "	sd unloop IMAGE_PATH"
 		echo "	sd mount DEVICE_NAME"
 		echo "	sd unmount DEVICE_NAME" ;;
 esac

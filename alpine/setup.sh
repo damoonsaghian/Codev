@@ -147,7 +147,7 @@ echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-apk add exfatprogs btrfs-progs sfdisk
+apk add dosfstools exfatprogs btrfs-progs sfdisk
 cp /mnt/comshell/alpine/sd /usr/local/bin/
 chmod +x /usr/local/bin/sd
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/sd' >> /etc/doas.conf

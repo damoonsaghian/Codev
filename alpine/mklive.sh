@@ -52,7 +52,7 @@ printf "all data on \"$device_name\" will be deleted; do you want to continue? (
 read answer
 [ "$answer" = y ] || exit
 
-# if "sd" command is available use it, cause it can be run by non'root users
+# if "sd" command is available use that, cause it can be run by non'root users
 sd_command_exists=false
 sd >/dev/null && sd_command_exists=true
 
@@ -65,6 +65,12 @@ else
 fi
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
 # format it with VFAT
+if $sd_command_exists; then
+	sd format "$device_name" vfat
+else
+	apk add dosfstools
+	mkfs.vfat "/dev/$device_name"
+fi
 
 # bootloader
 # https://wiki.alpinelinux.org/wiki/Create_a_Bootable_Device
@@ -77,14 +83,15 @@ fi
 if $sd_command_exists; then
 	sd mount "$device_name"
 else
-	mount /dev/"$device_name" /mnt
+	mkdir -p "~/.local/mount/$device_name"
+	mount "/dev/$device_name" "~/.local/mount/$device_name"
 fi
 
 # extract the latest iso into the usb storage
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-bootable.in
 if $sd_command_exists; then
 	sd loop "$project_path/.cache/$iso_file"
-	cp -r /run/mount/loop/* /run/mount/"$device_name"
+	cp -r "$project_path/.cache/$iso_file"-loop/* "~/.local/mount/$device_name"
 	sd unloop "$project_path/.cache/$iso_file"
 else
 fi
@@ -124,5 +131,5 @@ echo 'sh /comshell/alpine/setup.sh' > "$initramfs_append_path/etc/profile.d/zzz-
 
 # append the files to initramfs
 cd "$initramfs_append_path"
-find . | cpio -H newc -o | gzip >> "/run/mount/$device_name/boot/initramfs-lts"
+find . | cpio -H newc -o | gzip >> "~/.local/mount/$device_name"
 rm -rf "$initrd_append_path"
