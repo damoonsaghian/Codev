@@ -29,11 +29,15 @@ for those who neither can use all their fingers, nor can talk, gesture based (2d
 Kinesis Advantage 2 keyboard
 "http://www.allthingsergo.com/the-best-ergonomic-mechanical-keyboards/"
 
-for compatibility with other applications, we may still need a mouse,
-	plus these extra keys which can be put in the middle of the keyboard:
-, arrow keys, "page up", "page down", "home", "end", "tab"
-, "alt", "ctrl", "shift", and an extra modifier key for inserting punctuations
+for compatibility with other applications, we may still need a mouse
+plus these extra keys which can be put in the middle of the keyboard:
+	"alt", "ctrl", "shift", and an extra modifier key for inserting punctuations
 also we can have a row of function keys, plus the "delete" key
+
+keyboard has two modes: text entering mode and action mode
+in action mode keys are mapped to navigation keys (like arrows, page up, page down, home, end, tab),
+	and ctrl/alt based keybindings
+press "action" key to go to action mode
 
 = Comshell
 Comshell is a unified computing environment, utilizing command based user interface
@@ -65,10 +69,7 @@ non'local projects, web pages, PDF documents, etc, accessed from links inside th
 	will be opened in a floating layer
 web pages: move caret between visual elements (ignoring structural elements)
 
-modal key'bindings
-modes (normal mode and insert mode) must be visually distinctive
-press "esc" to go to normal mode
-in normal mode we can:
+actions:
 , next/previous word, line, paragraph, section (righ/left middle row keys)
 , next/previous file (ask for confirmation)
 , next/previous section view, opened file

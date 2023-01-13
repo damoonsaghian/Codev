@@ -16,7 +16,11 @@ ensure that the downloaded files aren't malicious, then:
 this will ask you to choose a storage device, and then creates the customized live system
 
 now just boot into the customized live system
-it will ask a few questions, and then installs Void
+it will ask for:
+, a root password, and a user account (provide different passwords for root and for the user)
+, confirmation for auto'detected time'zone
+, the network configuration (if it's not a simple DHCP wired connection)
+, the target device (if there is more than one device), and then installs Alpine on it
 after reboot, you can login to the installed system
 
 press "alt+space" to open app launcher menu
@@ -26,6 +30,9 @@ press "alt+tab" to switch between the primary app (usually Comshell) and the pri
 press "alt+a" to switch between windows of a workspace
 press "alt+escape" to close focused window
 press "alt+enter" to open a terminal window
+
+"system" is a command line program which can be used to configure:
+	timezone, language, connections, and installed packages
 
 to run a command as root:
 ; su command
