@@ -17,10 +17,6 @@ also it is better to put battery and transmitter of the headset in a separate un
 for those who neither can use all their fingers, nor can talk, gesture based (2d) input can be implemented
 
 ".data/keyboard.png"
-, comma followed by a letter -> the symbol on its bottom right corner
-, ";" followed by "psi" followed by space or comma -> "ψ" followed by one space or nothing
-, two apostrophes then an alphabetical letter -> capital letter
-, "aBcd" then two apostrophes followed by space -> "AbCD" followed by space
 "https://github.com/abstracthat/dactyl-manuform"
 "https://zealot.hu/absolem/"
 "https://github.com/foostan/crkbd"
@@ -29,15 +25,28 @@ for those who neither can use all their fingers, nor can talk, gesture based (2d
 Kinesis Advantage 2 keyboard
 "http://www.allthingsergo.com/the-best-ergonomic-mechanical-keyboards/"
 
-for compatibility with other applications, we may still need a mouse
-plus these extra keys which can be put in the middle of the keyboard:
-	"alt", "ctrl", "shift", and an extra modifier key for inserting punctuations
-also we can have a row of function keys, plus the "delete" key
-
-keyboard has two modes: text entering mode and action mode
+keyboard has two modes: insert mode and action mode
 in action mode keys are mapped to navigation keys (like arrows, page up, page down, home, end, tab),
 	and ctrl/alt based keybindings
-press "action" key to go to action mode
+press "esc" key to go to action mode
+in action mode press "space" to go to insert mode
+
+to enter capital letters:
+, two apostrophes then an alphabetical letter -> capital letter
+, "aBcd" then two apostrophes followed by space -> "AbCD" followed by space
+
+some examples to show how to enter other charactors:
+comma followed by dot will be replaced by colon
+comma followed by apostrophe will be replaced by quotation mark
+:(){}[]_|=?!<>+-*/\&^%$#@~`
+two commas will be replaced by a semicolon
+semicolon followed by dot will be replaced by ::
+mathematical symbols
+
+for compatibility with other applications, we may still need a mouse
+modifier keys (alt, ctrl, shift) can be put in the middle of the keyboard
+also we need extra keys to be able to directly enter all punctuation charactors
+lastly we can have a row of function keys, plus the "delete" key
 
 = Comshell
 Comshell is a unified computing environment, utilizing command based user interface
