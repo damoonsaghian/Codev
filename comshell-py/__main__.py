@@ -19,13 +19,9 @@ from overview import Overview
 
 # create a project group -> ask user for the disk
 
-# in addition to the modal keybindings, there should be traditional keybindings (Ctrl+...),
-#   to work with Comshell using conventional keyboards
-
 # floating layer to view web'pages, images and videos
 
-# bsdtar (libarchive-tools) (zip, iso, ...)
-# bsdtar -xf file
+# libarchive (zip, iso, ...)
 
 # .iso file: ask for a device to write it into, then:
 # ; sd flash devicename isofile
@@ -48,6 +44,8 @@ from overview import Overview
 # https://cairocffi.readthedocs.io/en/stable/
 # at startup scan email boxes of projects, and show notifications
 # during the runtime add/remove notifications
+
+# when "esc" is pressed create a flash which shows the active panel and the location of the cursor
 
 Gtk.init(null)
 

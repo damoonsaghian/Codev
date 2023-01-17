@@ -41,5 +41,9 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 # "https://pymadcad.readthedocs.io/en/latest/index.html"
 # goffice goocanvas
 
+# keyboard layout must be visible near cursor (when it's different from the surrounding text),
+# and managed for each entry separately
+
+
 class Editor:
   __init__():
