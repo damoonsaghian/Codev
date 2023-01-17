@@ -9,11 +9,9 @@ format() {
 }
 
 create_partitions() {
-	local dev_path="/dev/$1" disk_label="$2"
+	local dev_path="/dev/$1"
 	local start=1M line=
-	shift; shift
-	# create clean disk label
-	echo "label: gpt" | sfdisk --quiet "$dev_path"
+	shift
 	(
 		for line in "$@"; do
 			case "$line" in
@@ -21,7 +19,7 @@ create_partitions() {
 			*) echo "$start,$line"; start= ;;
 			esac
 		done
-	) | sfdisk --quiet --wipe-partitions always --label "$disk_label"
+	) | sfdisk --quiet --wipe always --label gpt "$dev_path"
 }
 
 sd_mount() {
@@ -80,10 +78,8 @@ case "$1" in
 		echo "usage:"
 		echo "	sd format DEVICE_NAME FORMAT_TYPE"
 		echo "		FORMAT_TYPE: btrfs, vfat, exfat, ..."
-		echo "	sd part DEVICE_NAME DISK_LABEL SIZE1,TYPE1 [SIZE2,TYPE2 ...]"
-		echo "		DISK_LABEL: gpt, dos, eckd, ..."
+		echo "	sd part DEVICE_NAME SIZE1,TYPE1 [SIZE2,TYPE2 ...]"
 		echo "		TYPE: linux, swap, uefi"
-		echo "		example: "
 		echo "	sd flash DEVICE_NAME IMAGE_PATH"
 		echo "	sd loop IMAGE_PATH"
 		echo "	sd unloop IMAGE_PATH"

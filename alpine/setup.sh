@@ -85,6 +85,18 @@ fi
 ' > /usr/local/bin/su
 chmod +x /usr/local/bin/su
 
+<<#
+while ! passwd ; do
+	echo "try again"
+done
+
+echo -n "choose a username: "; read username
+useradd -m $username
+while ! passwd user1; do
+	echo "try again"
+done
+#
+
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/su' >> /etc/doas.conf
 # lock root account
 passwd --lock root
@@ -153,11 +165,11 @@ chmod +x /usr/local/bin/sd
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/sd' >> /etc/doas.conf
 
 # https://wiki.alpinelinux.org/wiki/Sway
-apk add sway swayidle swaylock xwayland psmisc fuzzel foot font-hack font-noto
+apk add sway swayidle swaylock xwayland psmisc fuzzel foot
 
 echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
-# run sway (if this script is not called by a display manager)
-elif [ -z $DISPLAY ]; then
+# run sway (if this script is not called by a display manager, and this is the first tty)
+if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
 	[ -f "$HOME/.profile" ] && . "$HOME/.profile"
 	exec sway -c /usr/local/share/sway.conf
 fi
@@ -170,6 +182,18 @@ fi
 # https://github.com/ii8/havoc
 
 cp /mnt/comshell/alpine/{sway.conf,sway-status.py} /usr/local/share/
+
+apk add font-noto font-hack
+# mono'space fonts:
+# , wide characters are forced to squeeze
+# , narrow characters are forced to stretch
+# , bold characters don’t have enough room
+# proportional font for code:
+# , generous spacing
+# , large punctuation
+# , and easily distinguishable characters
+# , while allowing each character to take up the space that it needs
+# "https://input.djr.com/"
 
 mkdir -p /etc/fonts
 echo -n '<?xml version="1.0"?>
@@ -189,17 +213,6 @@ echo -n '<?xml version="1.0"?>
 	</alias>
 </fontconfig>
 ' > /etc/fonts/local.conf
-
-# mono'space fonts:
-# , wide characters are forced to squeeze
-# , narrow characters are forced to stretch
-# , bold characters don’t have enough room
-# proportional font for code:
-# , generous spacing
-# , large punctuation
-# , and easily distinguishable characters
-# , while allowing each character to take up the space that it needs
-# "https://input.djr.com/"
 
 echo -n '[Desktop Entry]
 Type=Application

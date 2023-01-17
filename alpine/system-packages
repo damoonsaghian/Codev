@@ -1,4 +1,4 @@
-#!pkexec /bin/sh
+#!doas /bin/sh
 set -e
 
 # https://docs.alpinelinux.org/user-handbook/0.1a/Working/apk.html

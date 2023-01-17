@@ -57,6 +57,7 @@ sd_command_exists=false
 sd >/dev/null && sd_command_exists=true
 
 # create partition table (ppc64le and s390x need additional partitions)
+# on s390x, DASD is not supported use SCSI instead
 if $sd_command_exists; then
 	sd part
 else
