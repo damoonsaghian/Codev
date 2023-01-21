@@ -6,7 +6,7 @@ but with simple uniform GUI (ie the oposite of what we see in websites),
 	there is no need for a pointer based user interface
 
 touch interface has an additional problem: interaction at a distance is not possible
-but it can still be useful in simple or special applications
+it can be useful in some special cases, but is not a good choice as a general interface
 
 detection of voice commands is a relatively simple process (compared to general speech recognition),
 	because we only need to match against a relatively small set of commands
@@ -25,28 +25,22 @@ for those who neither can use all their fingers, nor can talk, gesture based (2d
 Kinesis Advantage 2 keyboard
 "http://www.allthingsergo.com/the-best-ergonomic-mechanical-keyboards/"
 
-keyboard has two modes: insert mode and action mode
-in action mode keys are mapped to navigation keys (like arrows, page up, page down, home, end, tab),
+the keyboard has two modes: insert mode and action mode
+in action mode keys are mapped to navigation keys (arrows, page up, page down, home, end, esc),
 	and ctrl/alt based keybindings
-press "esc" key to go to action mode
-in action mode press "space" to go to insert mode
+when "action" or "insert" is pressed keyboard sends a special key combination,
+	which can be used by applications, eg to flash the location of the cursor
 
-to enter capital letters:
+to insert capital letters:
 , two apostrophes then an alphabetical letter -> capital letter
 , "aBcd" then two apostrophes followed by space -> "AbCD" followed by space
-
-some examples to show how to enter other charactors:
-comma followed by dot will be replaced by colon
-comma followed by apostrophe will be replaced by quotation mark
-:(){}[]_|=?!<>+-*/\&^%$#@~`
-two commas will be replaced by a semicolon
-semicolon followed by dot will be replaced by ::
-mathematical symbols
+to enter punctuations, press "pun"
+	after entering a punctuation charactor, it automatically returns to normal insert mode
+to insert numbers, press and hold "num"
 
 for compatibility with other applications, we may still need a mouse
-modifier keys (alt, ctrl, shift) can be put in the middle of the keyboard
-also we need extra keys to be able to directly enter all punctuation charactors
-lastly we can have a row of function keys, plus the "delete" key
+and we need these extra keys which can be put in the middle of the keyboard: alt, ctrl, shift, tab
+also we can have a row of function keys, plus the "delete" key, to have full compatibility
 
 = Comshell
 Comshell is a unified computing environment, utilizing command based user interface
