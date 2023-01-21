@@ -92,8 +92,6 @@ set_timezone() {
 
 add_language() {
 	echo "not yet implemented"
-	# add keyboard layout
-	# https://github.com/rvaiya/keyd
 	# add corresponding noto font: font-noto-arabic, font-noto-cjk, ...
 }
 
