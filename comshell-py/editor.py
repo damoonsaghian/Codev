@@ -13,10 +13,6 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 # https://gitlab.gnome.org/GNOME/meld/-/tree/master/meld
 # https://github.com/MightyCreak/diffuse
 
-# highlight paragraph and line when moving
-
-# slightly dim unfocused pannels
-
 # indentation guides:
 # change the background color of leading tabs; interchange between 2 colors
 
@@ -29,6 +25,9 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 
 # https://gitlab.gnome.org/GNOME/gspell
 
+# mathematical symbols
+# ";" followed by "psi" followed by space -> "ψ"
+
 # https://github.com/alexhuntley/Plots
 # "https://github.com/gaphor/gaphor"
 # https://github.com/jrfonseca/xdot.py
@@ -40,10 +39,6 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 # "https://wiki.freecadweb.org/Pivy"
 # "https://pymadcad.readthedocs.io/en/latest/index.html"
 # goffice goocanvas
-
-# keyboard layout must be visible near cursor (when it's different from the surrounding text),
-# and managed for each entry separately
-
 
 class Editor:
   __init__():

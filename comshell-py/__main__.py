@@ -45,7 +45,12 @@ from overview import Overview
 # at startup scan email boxes of projects, and show notifications
 # during the runtime add/remove notifications
 
-# when "esc" is pressed create a flash which shows the active panel and the location of the cursor
+# slightly dim unfocused panels
+# when moving or when "action/insert" is pressed, create a flash which shows the location of the cursor
+
+# keyboard layout must be visible near cursor (when it's different from the surrounding text),
+# and managed for each entry separately
+# https://en.wikipedia.org/wiki/Input_method
 
 Gtk.init(null)
 
