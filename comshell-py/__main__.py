@@ -29,9 +29,6 @@ from overview import Overview
 # containing "efi/boot/bootx64.efi" which is a unified kernel image
 # ask to write to a device, then create a VFAT EFI partiton, and copy files into it
 
-# https://github.com/kupferlauncher/kupfer
-# https://github.com/muflone/gnome-appfolders-manager
-
 # screenshot ...
 # sleep 3; grim .data/...
 # show countdown in status'bar
@@ -46,7 +43,7 @@ from overview import Overview
 # during the runtime add/remove notifications
 
 # slightly dim unfocused panels
-# when moving or when "action/insert" is pressed, create a flash which shows the location of the cursor
+# when moving or when "action" is pressed, create a flash which shows the location of the cursor
 
 # keyboard layout must be visible near cursor (when it's different from the surrounding text),
 # and managed for each entry separately

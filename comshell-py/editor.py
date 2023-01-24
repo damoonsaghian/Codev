@@ -26,7 +26,8 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 # https://gitlab.gnome.org/GNOME/gspell
 
 # mathematical symbols
-# ";" followed by "psi" followed by space -> "ψ"
+# comma followed by "psi" followed by space will be replaced by "ψ"
+# comma followed by "a" followed by space will be replaced by "->"
 
 # https://github.com/alexhuntley/Plots
 # "https://github.com/gaphor/gaphor"
