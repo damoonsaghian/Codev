@@ -28,19 +28,20 @@ Kinesis Advantage 2 keyboard
 the keyboard has two modes: insert mode and action mode
 in action mode keys are mapped to navigation keys (arrows, page up, page down, home, end, esc),
 	and ctrl/alt based keybindings
-when "action" or "insert" is pressed keyboard sends a special key combination,
+in action mode, press "space" to go to insert mode
+when "action" is pressed keyboard sends a special key combination,
 	which can be used by applications, eg to flash the location of the cursor
 
 to insert capital letters:
 , two apostrophes then an alphabetical letter -> capital letter
 , "aBcd" then two apostrophes followed by space -> "AbCD" followed by space
-to enter punctuations, press "pun"
+to insert punctuations (in insert mode), press "pun"
 	after entering a punctuation charactor, it automatically returns to normal insert mode
 to insert numbers, press and hold "num"
 
-for compatibility with other applications, we may still need a mouse
-and we need these extra keys which can be put in the middle of the keyboard: alt, ctrl, shift, tab
-also we can have a row of function keys, plus the "delete" key, to have full compatibility
+for compatibility with other applications, we may still need a mouse,
+	and these extra keys which can be put in the middle of the keyboard: alt, ctrl, shift, tab
+for full compatibility we can add a row of function keys plus the "delete" key
 
 = Comshell
 Comshell is a unified computing environment, utilizing command based user interface
