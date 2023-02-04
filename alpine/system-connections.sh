@@ -10,10 +10,10 @@
 
 # https://iwd.wiki.kernel.org/
 setup_wifi() {
-	choose mode "connect\nremove"
+	pick mode "connect\nremove"
 	if [ "$mode" = remove ]; then
 		echo 'select a network to remove:'
-		choose ssid "$(iwctl known-networks list)"
+		pick ssid "$(iwctl known-networks list)"
 		ssid="$(echo "$ssid" | cut -c5- | cut -d ' ' -f1)"
 		
 		printf "remove $ssid (y/N)? "
@@ -29,7 +29,7 @@ setup_wifi() {
 	device="$(echo "$device" | { read first _; echo $first; })"
 	
 	echo 'select a network to connect:'
-	choose ssid "$(iwctl station "$device" scan; iwctl station "$device" get-networks)"
+	pick ssid "$(iwctl station "$device" scan; iwctl station "$device" get-networks)"
 	ssid="$(echo "$ssid" | cut -c5- | cut -d ' ' -f1)"
 	iwctl station "$device" connect "$ssid"
 }
@@ -55,6 +55,7 @@ setup_router() {
 }
 
 # https://wiki.archlinux.org/title/Mobile_broadband_modem
+# https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/
 # https://man.archlinux.org/man/extra/modemmanager/mmcli.1.en
 # https://gitlab.archlinux.org/archlinux/archiso/-/blob/master/configs/releng/airootfs/etc/systemd/network/20-wwan.network
 # https://github.com/systemd/systemd/issues/20370
@@ -63,27 +64,53 @@ setup_cell() {
 }
 
 setup_bluetooth() {
-	# the correct usage domain for Bluetooth is personal devices like headsets
-	# it perfectly makes sense to pair them per user
-	# since keyboards are used for login, they must be paired globally
-	# still, even pairing of keyboards doesn't need root access
-	# because in this system, when a keyboard is connected, others are disabled, and current session gets locked
+	echo "not yet implemented"; exit
 	
-	# Bluetooth keyboards must have an already paired Bluetooth dongle, or an additional USB connection
+	# https://forum.endeavouros.com/t/how-to-script-bluetoothctl-commands/18225/10
+	# https://gist.github.com/RamonGilabert/046727b302b4d9fb0055
+	# "echo '' | ..." or expect
+	
+	# https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/test/simple-agent
+	# https://ukbaz.github.io/howto/python_gio_1.html
+	# https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
+
+	pick mode "add\nremove"
+	
+	if [ "$mode" = remove ]; then
+		echo "select a device:"
+		pick device "$(bluetoothctl devices)"
+		device="$(echo "$device" | { read _first mac_address; echo $mac_address; })"
+		bluetoothctl disconnect "$device"
+		bluetoothctl untrust "$device"
+		exit
+	fi
+	
+	bluetoothctl scan on &
+	sleep 3
+	echo "select a device:"
+	pick device "$(bluetoothctl devices)"
+	device="$(echo "$device" | { read _first mac_address; echo $mac_address; })"
+	
+	if bluetoothctl --agent -- pair "$device"; then
+		bluetoothctl trust "$device"
+		bluetoothctl connect "$device"
+	else
+		bluetoothctl untrust "$device"
+	fi
 }
 
 configure_radio_devices() {
 	# wifi, cellular, bluetooth, gps
 	local lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
 	echo 'select a radio device:'
-	choose device "$lines"
+	pick device "$lines"
 	device="$(printf "$device" | cut -d " " -f1)"
 	echo "$device:"
-	choose action "block\nunblock"
+	pick action "block\nunblock"
 	doas /usr/sbin/rfkill "$action" "$device"
 }
 
-choose selected_option "wifi\naccess-point\nrouter\ncellular\nbluetooth\nradio"
+pick selected_option "wifi\naccess-point\nrouter\ncellular\nbluetooth\nradio"
 
 case "$selected_option" in
 	wifi) setup_wifi ;;

@@ -43,7 +43,8 @@ lock_grub() {
 	chmod +x /etc/grub.d/09_user
 	grub-mkconfig -o /boot/grub/grub.cfg
 }
-[ grub is installed ] && lock_grub
+# disable editing entries in Grub for security
+[ -f /boot/grub/grub.cfg ] && lock_grub
 
 <<#
 despite using BTRFS, in-place writing is needed in two situations:
@@ -118,6 +119,14 @@ ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime
 chmod +x /usr/local/bin/tzset
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/tzset' >> /etc/doas.conf
 
+echo '#!doas /bin/sh
+# add relevant noto font: font-noto-arabic, font-noto-cjk, ...
+' >/usr/local/bin/install-font
+chmod +x /usr/local/bin/install-font
+echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/install-font' >> /etc/doas.conf
+
+cp /mnt/comshell/alpine/pick.sh /usr/local/share/
+
 # https://pkgs.alpinelinux.org/package/edge/main/x86_64/ifupdown-ng
 # https://manpages.debian.org/testing/ifupdown/interfaces.5.en.html
 # https://wiki.debian.org/Modem/3G
@@ -129,6 +138,8 @@ cp /mnt/comshell/alpine/system /usr/local/bin/
 chmod +x /usr/local/bin/system
 # connman service files:
 # https://git.alpinelinux.org/aports/tree/community/connman
+
+cp /mnt/comshell/alpine/system-connections.sh /usr/local/share/
 
 cp /mnt/comshell/alpine/system-packages /usr/local/bin/
 chmod +x /usr/local/bin/system-packages
@@ -250,23 +261,6 @@ bright5=b854d4
 bright6=1fad83
 bright7=fefbec
 ' > /usr/local/share/foot.cfg
-
-echo -n 'history = false
-require-match = true
-drun-launch = false
-font = monospace
-background-color = #000A
-prompt-text = ""
-width = 100%
-height = 100%
-border-width = 0
-outline-width = 0
-padding-left = 35%
-padding-right = 35%
-padding-top = 20%
-padding-bottom = 20%
-result-spacing = 25
-' > /usr/local/share/tofi.cfg
 
 apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 py3-cairo \
 	libjxl libavif webp-pixbuf-loader librsvg \

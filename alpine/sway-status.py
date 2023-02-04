@@ -12,34 +12,34 @@ connection = Gio.DBus.system
 # https://github.com/i3/i3status/tree/main/contrib
 
 def datetime():
-  # "%Y-%m-%d  %a  %p  %I:%M"
-  # calculate full minute
-  sec_til_full_minute = 60 -
-  # monitor for resume and timezone via dbus
-  
-  # https://stackoverflow.com/questions/13527451/how-can-i-catch-a-system-suspend-event-in-python
-  def on_system_resume():
-    print "System just resumed from hibernate or suspend"
-  connection.add_signal_receiver(
-    'org.freedesktop.UPower', 'org.freedesktop.UPower', 'Resuming',
-    '/org/freedesktop/UPower', None, Gio.DBusSignalFlags.NONE,
-    on_system_resume)
-  
-  # https://www.freedesktop.org/software/systemd/man/org.freedesktop.timedate1.html
-  # whenever the Timezone and LocalRTC settings are changed via the daemon,
-  #   PropertyChanged signals are sent out to which clients can subscribe
-
-  # when networks changes, check timezone, and if it's different from the system's timezone,
-  #   show an additional date'time for that timezone, plus the timezone
-  # https://gitlab.com/craftyguy/networkd-dispatcher
-  # https://github.com/a-sk/connman-dispatcher
-  # tz_system="$(timedatectl show --value --property Timezone)"
-  # tz_geoip="$(wget2 -q -O- http://ip-api.com/line/?fields=timezone)"
-  # continent="$(printf "$tz" | cut -d / -f1)"
-  # city="$(printf "$tz" | cut -d / -f2)"
-  # if [ "$tz_geoip" != "$tz_system" ]; then
-  #   #show an additional date'time for that timezone, plus the timezone
-  # fi
+	# "%Y-%m-%d  %a  %p  %I:%M"
+	# calculate full minute
+	sec_til_full_minute = 60 -
+	# monitor for resume and timezone via dbus
+	
+	# https://stackoverflow.com/questions/13527451/how-can-i-catch-a-system-suspend-event-in-python
+	def on_system_resume():
+		print "System just resumed from hibernate or suspend"
+	connection.add_signal_receiver(
+		'org.freedesktop.UPower', 'org.freedesktop.UPower', 'Resuming',
+		'/org/freedesktop/UPower', None, Gio.DBusSignalFlags.NONE,
+		on_system_resume)
+	
+	# https://www.freedesktop.org/software/systemd/man/org.freedesktop.timedate1.html
+	# whenever the Timezone and LocalRTC settings are changed via the daemon,
+	# PropertyChanged signals are sent out to which clients can subscribe
+	
+	# when networks changes, check timezone, and if it's different from the system's timezone,
+	#   show an additional date'time for that timezone, plus the timezone
+	# https://gitlab.com/craftyguy/networkd-dispatcher
+	# https://github.com/a-sk/connman-dispatcher
+	# tz_system="$(timedatectl show --value --property Timezone)"
+	# tz_geoip="$(wget2 -q -O- http://ip-api.com/line/?fields=timezone)"
+	# continent="$(printf "$tz" | cut -d / -f1)"
+	# city="$(printf "$tz" | cut -d / -f2)"
+	# if [ "$tz_geoip" != "$tz_system" ]; then
+	#   #show an additional date'time for that timezone, plus the timezone
+	# fi
 
 # battery
 with open("/sys/class/power_supply/BAT0/energy_full") as f:
@@ -51,18 +51,21 @@ battery_percentage = str(int(now / full * 100))
 # cpu (/proc/stat) ram (/proc/meminfo) disk net (sum since login)
 
 # active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
+#
 # net speed:
-#   device-path/statistics/tx_bytes
-#   device-path/statistics/rx_bytes
-#   https://github.com/i3/i3status/blob/master/contrib/net-speed.sh
+# device-path/statistics/tx_bytes
+# device-path/statistics/rx_bytes
+# https://github.com/i3/i3status/blob/master/contrib/net-speed.sh
+#
 # total internet (non'local) traffic
+#
 # wifi signal strength
-#   iwctl station wlan0 show -> RSSI, AverageRSSI
-#   https://www.reddit.com/r/archlinux/comments/gbx3sf/iwd_users_how_do_i_get_connected_channel_strength/
-#   https://wireless.wiki.kernel.org/en/users/documentation/iw
+# iwctl station wlan0 show -> RSSI, AverageRSSI
+# https://www.reddit.com/r/archlinux/comments/gbx3sf/iwd_users_how_do_i_get_connected_channel_strength/
+# https://wireless.wiki.kernel.org/en/users/documentation/iw
+#
 # https://github.com/greshake/i3status-rust/blob/master/src/blocks/net.rs
-# https://man.archlinux.org/man/core/systemd/org.freedesktop.network1.5.en
-#   BitRates
+# BitRates: https://man.archlinux.org/man/core/systemd/org.freedesktop.network1.5.en
 # https://github.com/Alexays/Waybar/wiki/Module:-Network
 
 # bluetooth

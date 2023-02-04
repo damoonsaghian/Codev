@@ -1,25 +1,26 @@
 set -e
 
+. "$(dirname "$0")/pick.sh"
+
 project_path="$(dirname "$0")/.."
+
+echo 'select a CPU architecture:'
+pick arch 'riscv64\nppc64le\naarch64\narmv7\nx86_64\nx86\ns390x'
+
+url="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$arch"
+# find the version number of the latest stable release
+version="$(wget -q -O- "$url/latest-releases.yaml" | grep "version:" | head -1 | cut -d ':' -f 2 | cut -d ' ' -f 2)"
+
+# download and verify Alpine live iso file
 mkdir -p "$project_path/.cache/alpine"
-
-echo "available architectures:
-	riscv64
-	ppc64le
-	aarch64
-	armv7
-	x86_64
-	x86
-	s390x"
-printf "choose one: "
-read arch
-
 cd "$project_path/.cache/alpine"
-wget --recursive --level=1 -no-host-directories -no-directories \
-	--accept "alpine-standard-*.iso*" --reject "*_rc*" \
-	"https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$arch/"
-sha256sum --check --status alpine-*.iso.sha256 || {
+# remove old files
+rm -f $(echo alpine-standard-*-"$arch".iso | sed s/"alpine-standard-$version-$arch.iso"//)
+wget --continue "$url/alpine-standard-$version-$arch.iso" || true
+wget --continue "$url/alpine-standard-$version-$arch.iso.sha256"
+sha256sum --check --status "alpine-standard-$version-$arch.iso.sha256" || {
 	echo "verifying the checksum of the downloaded file failed; try again"
+	rm -f "alpine-standard-$version-$arch.iso" "alpine-standard-$version-$arch.iso.sha256"
 	exit 1
 }
 # when Alpine starts to sign the checksum files with alpine-keys, verify the signature too
@@ -43,11 +44,9 @@ show_block_devices() {
 		printf "\t%-10s %s\t%s\n" "$dev" "$size" "$model"
 	done
 }
-
-echo "storage devices:"
-show_block_devices
-printf "choose a storage device to make a live system on it: "
-read device_name
+echo "select a storage device to make an Alpine Linux live system on it:"
+pick device "$(show_block_devices)"
+device_name="$(echo "$device" | cut -d ' ' -f 1)"
 printf "all data on \"$device_name\" will be deleted; do you want to continue? (y/N): "
 read answer
 [ "$answer" = y ] || exit
@@ -59,10 +58,10 @@ sd >/dev/null && sd_command_exists=true
 # create partition table (ppc64le and s390x need additional partitions)
 # on s390x, DASD is not supported use SCSI instead
 if $sd_command_exists; then
-	sd part
+	sd part "$device_name" ",uefi"
 else
 	apk add sfdisk
-	sfdisk
+	echo "1M,,uefi" | sfdisk --quiet --wipe always --label gpt "$device_name"
 fi
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
 # format it with VFAT
@@ -84,15 +83,15 @@ fi
 if $sd_command_exists; then
 	sd mount "$device_name"
 else
-	mkdir -p "~/.local/mount/$device_name"
-	mount "/dev/$device_name" "~/.local/mount/$device_name"
+	mkdir -p "$HOME/.local/mount/$device_name"
+	mount "/dev/$device_name" "$HOME/.local/mount/$device_name"
 fi
 
-# extract the latest iso into the usb storage
+# extract the Alpine live iso file into the usb storage
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-bootable.in
 if $sd_command_exists; then
 	sd loop "$project_path/.cache/$iso_file"
-	cp -r "$project_path/.cache/$iso_file"-loop/* "~/.local/mount/$device_name"
+	cp -r "$project_path/.cache/$iso_file"-loop/* "$HOME/.local/mount/$device_name"
 	sd unloop "$project_path/.cache/$iso_file"
 else
 fi
@@ -102,6 +101,17 @@ initramfs_append_path="$project_path/.cache/initramfs-append"
 # include the comshell files into the initramfs
 mkdir -p "$initramfs_append_path/comshell"
 cp -r "$project_path"/* "$initramfs_append_path/comshell/"
+
+# add Intel and AMD microcodes to the live media
+[ "$arch" = x86_64 ] || [ "$arch" = x86 ] && {
+	apk add intel-ucode amd-ucode
+	cp /boot/intel-ucode.img "$HOME/.local/mount/$device_name/boot/intel-ucode.img"
+	cp /boot/amd-ucode.img "$HOME/.local/mount/$device_name/boot/amd-ucode.img"
+	# /boot/syslinux/syslinux.cfg
+	# INITRD /boot/intel-ucode.img,/boot/amd-ucode.img,/boot/initramfs-lts
+	# /boot/grub/grub.cfg
+	# initrd	/boot/intel-ucode.img /boot/amd-ucode.img /boot/initramfs-lts
+}
 
 # manipulate initramfs to automatically login as root
 mkdir -p "$initramfs_append_path/etc"
@@ -132,5 +142,13 @@ echo 'sh /comshell/alpine/setup.sh' > "$initramfs_append_path/etc/profile.d/zzz-
 
 # append the files to initramfs
 cd "$initramfs_append_path"
-find . | cpio -H newc -o | gzip >> "~/.local/mount/$device_name"
+find . | cpio -H newc -o | gzip >> "$HOME/.local/mount/$device_name"
 rm -rf "$initrd_append_path"
+
+if $sd_command_exists; then
+	sd unmount "$device_name"
+else
+	umount "$HOME/.local/mount/$device_name"
+fi
+echo "Alpine live media created successfully"
+echo "you can now remove the media"
