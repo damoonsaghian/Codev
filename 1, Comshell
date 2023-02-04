@@ -41,7 +41,7 @@ to insert numbers, press and hold "num"
 
 for compatibility with other applications, we may still need a mouse,
 	and these extra keys which can be put in the middle of the keyboard: alt, ctrl, shift, tab
-for full compatibility we can add a row of function keys plus the "delete" key
+for full compatibility we can add a row of function keys, plus the "delete" key
 
 = Comshell
 Comshell is a unified computing environment, utilizing command based user interface
@@ -105,8 +105,3 @@ and after merging: codev push
 in projects list view:
 , press "" key to open session management menu (poweroff, reboot, suspend, exit, lock)
 , press "" key to open terminal view
-
-for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
-Lua LGI is good too, and maybe better, if all we need is libraries based on GObject
-but Python is more suitable, if we want a simple object'oriented glue for almost anything
-"https://github.com/TomNicholas/Python-for-Scientists"

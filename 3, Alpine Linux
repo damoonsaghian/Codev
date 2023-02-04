@@ -23,13 +23,13 @@ it will ask for:
 , the target device (if there is more than one device), and then installs Alpine on it
 after reboot, you can login to the installed system
 
-press "alt+space" to open app launcher menu
+press "alt+space" ("pun+space" in action mode) to open app launcher menu
 in app launcher menu, press "alt+space" again to open session management menu:
 	poweroff, reboot, suspend, exit, lock
-press "alt+tab" to switch between the primary app (usually Comshell) and the prior app
-press "alt+a" to switch between windows of a workspace
-press "alt+escape" to close focused window
-press "alt+enter" to open a terminal window
+press "alt+tab" ("pun+t" in action mode) to switch between the primary app (usually Comshell) and the prior app
+press "alt+a" ("pun+f" in action mode) to switch between windows of a workspace
+press "alt+escape" ("pun+backspace" in action mode) to close focused window
+press "alt+enter" ("pun+enter" in action mode) to open a terminal window
 
 "system" is a command line program which can be used to configure:
 	timezone, language, connections, and installed packages
