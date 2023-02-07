@@ -105,3 +105,6 @@ and after merging: codev push
 in projects list view:
 , press "" key to open session management menu (poweroff, reboot, suspend, exit, lock)
 , press "" key to open terminal view
+
+for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
+moreover, Python provides a simple consistent glue for almost anything
