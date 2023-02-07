@@ -24,23 +24,6 @@ from project import Project
 # to backup a project group: codev backup mount_path
 # create projects-group/.backup-uuid
 
-# press a key to open session management menu
-# swaymsg mode session
-# {
-#	killall tofi &> /dev/null
-#	printf 'lock\nexit\nsuspend\nreboot\npoweroff\ | tofi -c /usr/local/share/tofi.cfg
-#	swaymsg mode default &> /dev/null
-# } | {
-#   read answer &&
-#   case $answer in \
-#     lock) loginctl lock-session ;;
-#     exit) swaymsg exit ;;
-#     suspend) systemctl suspend ;;
-#     reboot) systemctl reboot ;;
-#     poweroff) systemctl poweroff ;;
-#   esac
-# }
-
 # press a key to open terminal view
 # pressing "" key in normal mode terminates the running program
 
