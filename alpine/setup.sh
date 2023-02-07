@@ -67,40 +67,9 @@ apk add alpine-base linux-lts
 
 apk add doas wget py3-gobject3
 
-# ask the user to provide different passwords for root and for the user
+# https://wiki.debian.org/Hardening#Mounting_.2Fproc_with_hidepid
 
-adduser user1 netdev
-
-echo -n '#!doas /bin/sh
-set -e
-user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
-# switch to the first available virtual terminal and ask for root password,
-#   and if successful, run the given command
-if openvt -sw /bin/sh /usr/localshare/su-chkpasswd.sh "$@"; then
-	chvt "$user_vt"
-	$@
-else
-	chvt "$user_vt"
-	echo "authentication failure"
-fi
-' > /usr/local/bin/su
-chmod +x /usr/local/bin/su
-
-<<#
-while ! passwd ; do
-	echo "try again"
-done
-
-echo -n "choose a username: "; read username
-useradd -m $username
-while ! passwd user1; do
-	echo "try again"
-done
-#
-
-echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/su' >> /etc/doas.conf
-# lock root account
-passwd --lock root
+. /comshell/alpine/setup-user.sh
 
 # https://wiki.alpinelinux.org/wiki/PipeWire
 # pipewire: support mdev + libudev-zero:
@@ -108,6 +77,8 @@ passwd --lock root
 apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewire-alsa libspa-0.2-bluetooth
 [ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
 	cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
+
+cp /mnt/comshell/alpine/pick.sh /usr/local/share/
 
 # guess time'zone but let the user to confirm it
 # wget -q -O- http://ip-api.com/line/?fields=timezone)
@@ -118,14 +89,6 @@ ln -sf /usr/share/zoneinfo/"$timezone" /etc/localtime
 ' > /usr/local/bin/tzset
 chmod +x /usr/local/bin/tzset
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/tzset' >> /etc/doas.conf
-
-echo '#!doas /bin/sh
-# add relevant noto font: font-noto-arabic, font-noto-cjk, ...
-' >/usr/local/bin/install-font
-chmod +x /usr/local/bin/install-font
-echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/install-font' >> /etc/doas.conf
-
-cp /mnt/comshell/alpine/pick.sh /usr/local/share/
 
 # https://pkgs.alpinelinux.org/package/edge/main/x86_64/ifupdown-ng
 # https://manpages.debian.org/testing/ifupdown/interfaces.5.en.html
@@ -176,7 +139,7 @@ chmod +x /usr/local/bin/sd
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/sd' >> /etc/doas.conf
 
 # https://wiki.alpinelinux.org/wiki/Sway
-apk add sway swayidle swaylock xwayland psmisc fuzzel foot
+apk add sway swayidle swaylock xwayland fuzzel foot
 
 echo -n 'PS1="\e[7m\u@\h:\w\e[0m\n> "
 # run sway (if this script is not called by a display manager, and this is the first tty)
@@ -194,7 +157,6 @@ fi
 
 cp /mnt/comshell/alpine/{sway.conf,sway-status.py} /usr/local/share/
 
-apk add font-noto font-hack
 # mono'space fonts:
 # , wide characters are forced to squeeze
 # , narrow characters are forced to stretch
@@ -205,7 +167,12 @@ apk add font-noto font-hack
 # , and easily distinguishable characters
 # , while allowing each character to take up the space that it needs
 # "https://input.djr.com/"
-
+apk add font-noto font-hack
+echo '#!doas /bin/sh
+# add relevant noto font: font-noto-arabic, font-noto-cjk, ...
+' >/usr/local/bin/install-font
+chmod +x /usr/local/bin/install-font
+echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/install-font' >> /etc/doas.conf
 mkdir -p /etc/fonts
 echo -n '<?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">

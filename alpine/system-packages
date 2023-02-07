@@ -19,7 +19,7 @@ if [ "$mode" = "autoupdate" ]; then
 		local active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
 		local is_metered=false
 		case "$active_net_device" in
-			ww*) is_metered=true ;;
+		ww*) is_metered=true ;;
 		esac
 		# todo: DHCP option 43 ANDROID_METERED
 		is_metered
@@ -28,6 +28,7 @@ if [ "$mode" = "autoupdate" ]; then
 	critical_battery || metered_connection && exit 0
 fi
 
+# non'volatile cache can help to repaire a partial upgrade without internet 
 [ -d /var/cache/apk ] || mkdir -p /var/cache/apk
 [ -L /etc/apk/cache ] || ln -s /var/cache/apk /etc/apk/cache
 
