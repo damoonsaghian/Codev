@@ -39,20 +39,6 @@ sd_unmount() {
 	doas -u "$DOAS_USER" rmdir --ignore-fail-on-non-empty -p "$mount_path"
 }
 
-mount_loop() {
-	local image_path="$1"
-	local mount_path="$1-loop"
-	doas -u "$DOAS_USER" mkdir -p "$mount_path"
-	mount -o loop,nosuid,nodev,noexec,nofail "$image_name" "$mount_path"
-}
-
-unmount_loop() {
-	local mount_path="$1-loop"
-	umount "$mount_path"
-	doas -u "$DOAS_USER" rmdir --ignore-fail-on-non-empty -p "$mount_path"
-}
-
-
 device_name="$(basename "$2")"
 [ "$1" = loop ] || [ "$1" = unloop ] || {
 	[ -f "/dev/$device_name" ] || exit 1
@@ -70,8 +56,6 @@ case "$1" in
 	format) format "$device_name" "$3" ;;
 	part) shift; shift; create_partitions "$device_name" "$@" ;;
 	flash) dd if="$3" of="/dev/$device_name" ;;
-	loop) mount_loop "$2" ;;
-	unloop) unmount_loop "$2" ;;
 	mount) sd_mount "$device_name" ;;
 	unmount) sd_unmount "$devicename" ;;
 	*) echo "storage device management"
@@ -81,8 +65,6 @@ case "$1" in
 		echo "	sd part DEVICE_NAME SIZE1,TYPE1 [SIZE2,TYPE2 ...]"
 		echo "		TYPE: linux, swap, uefi"
 		echo "	sd flash DEVICE_NAME IMAGE_PATH"
-		echo "	sd loop IMAGE_PATH"
-		echo "	sd unloop IMAGE_PATH"
 		echo "	sd mount DEVICE_NAME"
 		echo "	sd unmount DEVICE_NAME" ;;
 esac

@@ -26,12 +26,14 @@ set -e
 
 # ask if the user wants to install a new system, or fix an existing system
 # ask for the device to repair
+# repair the bootloader
 # mount /dev/sdx /mnt
 # apk fix --root /mnt
 # live media can be used to fix a systems which is corrupted because of a powerloss during system upgrade
 # for critical systems and for servers we can use a UPS
 
-lock_grub() {
+# disable editing entries in Grub for security
+[ -f /boot/grub/grub.cfg ] && {
 	# since we will lock root, recovery entries are useless
 	printf '\nGRUB_DISABLE_RECOVERY=true\nGRUB_DISABLE_OS_PROBER=true\nGRUB_TIMEOUT=0\n' >> /etc/default/grub
 	# disable menu editing and other admin operations in Grub:
@@ -43,8 +45,6 @@ lock_grub() {
 	chmod +x /etc/grub.d/09_user
 	grub-mkconfig -o /boot/grub/grub.cfg
 }
-# disable editing entries in Grub for security
-[ -f /boot/grub/grub.cfg ] && lock_grub
 
 <<#
 despite using BTRFS, in-place writing is needed in two situations:

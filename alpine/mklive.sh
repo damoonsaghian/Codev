@@ -17,13 +17,69 @@ cd "$project_path/.cache/alpine"
 # remove old files
 rm -f $(echo alpine-standard-*-"$arch".iso | sed s/"alpine-standard-$version-$arch.iso"//)
 wget --continue "$url/alpine-standard-$version-$arch.iso" || true
-wget --continue "$url/alpine-standard-$version-$arch.iso.sha256"
+wget --continue "$url/alpine-standard-$version-$arch.iso.sha256" || true
 sha256sum --check --status "alpine-standard-$version-$arch.iso.sha256" || {
 	echo "verifying the checksum of the downloaded file failed; try again"
 	rm -f "alpine-standard-$version-$arch.iso" "alpine-standard-$version-$arch.iso.sha256"
 	exit 1
 }
 # when Alpine starts to sign the checksum files with alpine-keys, verify the signature too
+
+apk add --clean-protected xorriso
+
+# extract initramfs from the iso file
+rm -f "$project_path/.cache/alpine/initramfs-lts"
+xorriso -osirrox on -indev "$project_path/.cache/alpine/$iso_file" -extract /boot/initramfs-lts \
+	"$project_path/.cache/alpine/initramfs-lts"
+
+initramfs_append_path="$project_path/.cache/alpine/initramfs-append"
+rm -rf "$initrd_append_path"
+
+# include the comshell files into the initramfs
+mkdir -p "$initramfs_append_path/comshell"
+cp -r "$project_path"/* "$initramfs_append_path/comshell/"
+
+# manipulate initramfs to automatically login as root
+mkdir -p "$initramfs_append_path/etc"
+xorriso -osirrox on -indev "$project_path/.cache/alpine/$iso_file" -extract /etc/inittab \
+	"$initramfs_append_path/etc/inittab"
+sed "s/^tty1::respawn.*/tty1::respawn:\/bin\/login -f root/" "$initramfs_append_path/etc/inittab"
+
+# manipulate initramfs to automatically run "setup.sh"
+mkdir -p "$initramfs_append_path/etc/profile.d"
+echo 'sh /comshell/alpine/setup.sh' > "$initramfs_append_path/etc/profile.d/zzz-setup.sh"
+
+# append the files to initramfs
+cd "$initramfs_append_path"
+find . | cpio -H newc -o | gzip >> "$project_path/.cache/alpine/initramfs-lts"
+
+# generate the modified iso file
+# for x86/x86_64 add Intel and AMD microcodes too
+rm -f "$project_path/.cache/alpine/alpine-comshell.iso"
+if [ "$arch" = x86_64 ] || [ "$arch" = x86 ]; then
+	apk add intel-ucode amd-ucode
+	xorriso -osirrox on -indev "$project_path/.cache/alpine/$iso_file" \
+		-extract /boot/syslinux/syslinux.cfg "$project_path/.cache/alpine/syslinux.cfg" \
+		-extract /boot/grub/grub.cfg "$project_path/.cache/alpine/grub.cfg"
+	sed "s/INITRD.*/INITRD \/boot\/intel-ucode.img,\/boot\/amd-ucode.img,\/boot\/initramfs-lts/" \
+		"$project_path/.cache/alpine/syslinux.cfg"
+	sed "s/initrd.*/initrd	\/boot\/intel-ucode.img \/boot\/amd-ucode.img \/boot\/initramfs-lts/" \
+		"$project_path/.cache/alpine/grub.cfg"
+	
+	xorriso -indev "$project_path/.cache/alpine/$iso_file" -overwrite on \
+		-map "$project_path/.cache/alpine/initramfs-lts" /boot/initramfs-lts \
+		-map /boot/intel-ucode.img /boot/intel-ucode.img \
+		-map /boot/amd-ucode.img /boot/amd-ucode.img \
+		-map "$project_path/.cache/alpine/syslinux.cfg" /boot/syslinux/syslinux.cfg \
+		-map "$project_path/.cache/alpine/grub.cfg" /boot/grub/grub.cfg \
+		-outdev "$project_path/.cache/alpine/alpine-comshell.iso"
+else
+	xorriso -indev "$project_path/.cache/alpine/$iso_file" -overwrite on \
+		-map "$project_path/.cache/alpine/initramfs-lts" /boot/initramfs-lts \
+		-outdev "$project_path/.cache/alpine/alpine-comshell.iso"
+fi
+
+apk del -r --purge xorriso
 
 # if we're on a live Alpine system, copy kernel modules from modloop and unmount loopback device
 # so we can create the customized live system on the booted device itself
@@ -52,103 +108,8 @@ read answer
 [ "$answer" = y ] || exit
 
 # if "sd" command is available use that, cause it can be run by non'root users
-sd_command_exists=false
-sd >/dev/null && sd_command_exists=true
+sd flash "$device_name" "$project_path/.cache/alpine-comshell.iso" ||
+dd if="$project_path/.cache/alpine-comshell.iso" of="/dev/$device_name"
 
-# create partition table (ppc64le and s390x need additional partitions)
-# on s390x, DASD is not supported use SCSI instead
-if $sd_command_exists; then
-	sd part "$device_name" ",uefi"
-else
-	apk add sfdisk
-	echo "1M,,uefi" | sfdisk --quiet --wipe always --label gpt "$device_name"
-fi
-# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
-# format it with VFAT
-if $sd_command_exists; then
-	sd format "$device_name" vfat
-else
-	apk add dosfstools
-	mkfs.vfat "/dev/$device_name"
-fi
-
-# bootloader
-# https://wiki.alpinelinux.org/wiki/Create_a_Bootable_Device
-# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
-# initialize MBR for syslinux only
-#if [ "$BOOTLOADER" = "syslinux" ] && [ -f "$MBR" ]; then
-#	cat "$MBR" > $diskdev
-#fi
-
-if $sd_command_exists; then
-	sd mount "$device_name"
-else
-	mkdir -p "$HOME/.local/mount/$device_name"
-	mount "/dev/$device_name" "$HOME/.local/mount/$device_name"
-fi
-
-# extract the Alpine live iso file into the usb storage
-# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-bootable.in
-if $sd_command_exists; then
-	sd loop "$project_path/.cache/$iso_file"
-	cp -r "$project_path/.cache/$iso_file"-loop/* "$HOME/.local/mount/$device_name"
-	sd unloop "$project_path/.cache/$iso_file"
-else
-fi
-
-initramfs_append_path="$project_path/.cache/initramfs-append"
-
-# include the comshell files into the initramfs
-mkdir -p "$initramfs_append_path/comshell"
-cp -r "$project_path"/* "$initramfs_append_path/comshell/"
-
-# add Intel and AMD microcodes to the live media
-[ "$arch" = x86_64 ] || [ "$arch" = x86 ] && {
-	apk add intel-ucode amd-ucode
-	cp /boot/intel-ucode.img "$HOME/.local/mount/$device_name/boot/intel-ucode.img"
-	cp /boot/amd-ucode.img "$HOME/.local/mount/$device_name/boot/amd-ucode.img"
-	# /boot/syslinux/syslinux.cfg
-	# INITRD /boot/intel-ucode.img,/boot/amd-ucode.img,/boot/initramfs-lts
-	# /boot/grub/grub.cfg
-	# initrd	/boot/intel-ucode.img /boot/amd-ucode.img /boot/initramfs-lts
-}
-
-# manipulate initramfs to automatically login as root
-mkdir -p "$initramfs_append_path/etc"
-cat <<__EOF__ > "$initramfs_append_path/etc/inittab"
-# /etc/inittab
-::sysinit:/sbin/openrc sysinit
-::sysinit:/sbin/openrc boot
-::wait:/sbin/openrc default
-# Set up a couple of getty's
-tty1::respawn:/bin/login -f root
-#tty1::respawn:/sbin/getty 38400 tty1
-tty2::respawn:/sbin/getty 38400 tty2
-tty3::respawn:/sbin/getty 38400 tty3
-tty4::respawn:/sbin/getty 38400 tty4
-tty5::respawn:/sbin/getty 38400 tty5
-tty6::respawn:/sbin/getty 38400 tty6
-# Put a getty on the serial port
-#ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
-# Stuff to do for the 3-finger salute
-::ctrlaltdel:/sbin/reboot
-# Stuff to do before rebooting
-::shutdown:/sbin/openrc shutdown
-__EOF__
-
-# manipulate initramfs to automatically run "setup.sh"
-mkdir -p "$initramfs_append_path/etc/profile.d"
-echo 'sh /comshell/alpine/setup.sh' > "$initramfs_append_path/etc/profile.d/zzz-setup.sh"
-
-# append the files to initramfs
-cd "$initramfs_append_path"
-find . | cpio -H newc -o | gzip >> "$HOME/.local/mount/$device_name"
-rm -rf "$initrd_append_path"
-
-if $sd_command_exists; then
-	sd unmount "$device_name"
-else
-	umount "$HOME/.local/mount/$device_name"
-fi
 echo "Alpine live media created successfully"
 echo "you can now remove the media"
