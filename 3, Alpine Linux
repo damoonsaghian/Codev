@@ -1,6 +1,6 @@
 using Alpine Linux we can easily setup a Linux based operating system
 anything which needs a kernel'based operating system can use Alpine Linux:
-, it supports a wide range of processor architectures
+, it supports a wide range of hardware architectures
 , it's suitable for systems with limited resources
 , the stable release provides a highly tested system for sensitive use cases
 
