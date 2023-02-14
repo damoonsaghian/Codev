@@ -12,7 +12,7 @@ then if you need to download the files of this project, run these commands:
 ; wget -r -np -nH --cut-dirs=1 https://hashbang.sh/~damoonsaghian/Comshell/
 ; cd Comshell
 ensure that the downloaded files aren't malicious, then:
-; sh alpine/mklive.sh
+; sh alpine/alive.sh
 this will ask you to choose a storage device, and then creates the customized live system
 
 now just boot into the customized live system
