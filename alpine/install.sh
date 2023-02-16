@@ -67,7 +67,7 @@ apk add alpine-base linux-lts
 [  ] && apk add intel-ucode
 [  ] && apk add amd-ucode
 
-apk add doas wget py3-gobject3
+apk add doas py3-gobject3
 
 # https://wiki.debian.org/Hardening#Mounting_.2Fproc_with_hidepid
 
