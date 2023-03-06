@@ -64,6 +64,9 @@ set -e
 # apparently Webkit uses SQLite in WAL mode
 
 apk add alpine-base linux-lts
+# EFI_STUB
+# , linux-lts: x86_64 x86
+# , linux-edge: riscv64 aarch64 armv7
 [  ] && apk add intel-ucode
 [  ] && apk add amd-ucode
 
@@ -85,16 +88,16 @@ cp /comshell/alpine/utils.sh /usr/local/share/
 apk add connman connman-nftables wpa_supplicant wireless-regdb ofono bluez
 # https://git.kernel.org/pub/scm/network/connman/connman.git/tree/
 # https://wiki.archlinux.org/title/ConnMan
+# https://manpages.debian.org/unstable/connman/index.html
 # https://github.com/liamw9534/pyconnman
 # connman service files:
 # https://git.alpinelinux.org/aports/tree/community/connman
-ls -s /etc/init.d/connman /etc/runlevels/default
+ln -s /etc/init.d/connman /etc/runlevels/default
 
-# automatic timezone using Connman:
-# https://git.kernel.org/pub/scm/network/connman/connman.git/tree/doc/clock-api.txt
-# set "TimezoneUpdates" to "auto" using the dbus api
-# https://github.com/rilmodem/ofono/blob/master/doc/location-reporting-api.txt
+ln -s /etc/init.d/ntpd /etc/runlevels/default
+# or we can use connman time server
 
+apk add tzdata
 set_timezone
 
 echo -n '#!doas /bin/sh
@@ -258,7 +261,7 @@ bright7=fefbec
 apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 py3-cairo \
 	libjxl libavif webp-pixbuf-loader librsvg \
 	gst-plugins-good gst-plugins-ugly gst-plugin-pipewire gst-libav \
-	libarchive-tools openssh-client-default attr
+	rsync libarchive-tools openssh-client-default attr
 # gst-plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 # gst-libav is needed till
 # , h264(openh264), h265(libde265), and aac(fdk-aac) go into gst-plugins-ugly

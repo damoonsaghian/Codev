@@ -11,6 +11,21 @@ connection = Gio.DBus.system
 # https://manpages.debian.org/unstable/sway/swaybar-protocol.7.en.html
 # https://github.com/i3/i3status/tree/main/contrib
 
+# each minute calculate network timezone (using Ofono and geoip)
+# if it's not equal to the system timezone, add it as an additional date'time to the status bar
+# unfortunately it seems that Ofono does not have any dbus api to get network timezone
+# https://git.kernel.org/pub/scm/network/ofono/ofono.git/tree/doc
+# https://git.kernel.org/pub/scm/network/ofono/ofono.git/tree/src/nettime.c
+# https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/gdbus-org.freedesktop.ModemManager1.Modem.Time.html
+# https://lazka.github.io/pgi-docs/ModemManager-1.0/classes/NetworkTimezone.html
+system_tz="$(readlink /etc/localtime)"
+system_tz="$(dirname $system_tz)/$(basename $system_tz)"
+ofono_tz=
+geoip_tz="$(wget -q -O- http://ip-api.com/line/?fields=timezone)"
+net_tz=
+if [ "$net_tz" != "$system_tz" ]; then
+fi
+
 def datetime():
 	# "%Y-%m-%d  %a  %p  %I:%M"
 	# calculate full minute
@@ -30,7 +45,7 @@ def datetime():
 	# PropertyChanged signals are sent out to which clients can subscribe
 	
 	# when networks changes, check timezone, and if it's different from the system's timezone,
-	#   show an additional date'time for that timezone, plus the timezone
+	# show an additional date'time for that timezone, plus the timezone
 	# https://gitlab.com/craftyguy/networkd-dispatcher
 	# https://github.com/a-sk/connman-dispatcher
 	# tz_system="$(timedatectl show --value --property Timezone)"

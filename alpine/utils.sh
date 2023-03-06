@@ -77,14 +77,16 @@ choose() {
 	eval "$1=\"$selected_line\""
 }
 
-# guess time'zone but let the user confirm it
+# guess timezone but let the user confirm it
 set_timezone() {
-	local auto_timezone="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
-	local auto_continent="$(printf "$auto_timezone" | cut -d / -f1)"
-	local auto_city="$(printf "$auto_timezone" | cut -d / -f2)"
+	local ofono_tz=
+	local geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
+	local net_tz="$geoip_tz"
+	local net_tz_continent="$(printf "$net_tz" | cut -d / -f1)"
+	local net_tz_city="$(printf "$net_tz" | cut -d / -f2)"
 	
-	choose continent "$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)" $auto_continent
-	choose city "$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)" $auto_city
+	choose continent "$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)" $net_tz_continent
+	choose city "$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)" $net_tz_city
 	tzset "${continent}/${city}"
 }
 
