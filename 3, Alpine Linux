@@ -8,11 +8,8 @@ the following shows how to create an Alpine live system, on a USB storage device
 	customized for installing a minimal graphical system
 first you need to already be in an Alpine system (either installed or live)
 then if you need to download the files of this project, run these commands:
-; wget https://hashbang.sh/~damoonsaghian/Comshell/comshell/codev.sh
-ensure that the downloaded file isn't malicious, then:
-; sh codev.sh clone https://hashbang.sh/~damoonsaghian/Comshell
+; gnunet-download gnunet://fs/damoonsaghian/Comshell
 ; cd Comshell
-again ensure that the downloaded files aren't malicious, then:
 ; sh alpine/alive.sh
 this will ask you to choose a storage device, and then creates the customized live system
 
