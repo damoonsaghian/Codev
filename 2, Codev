@@ -1,0 +1,164 @@
+codev: collaborative development without the need to keep the whole history
+flaws of version control systems:
+, they double the storage (working directory, local repository)
+, their design makes it difficult to modify the history
+	so in practice, the whole history must be kept indefinitely, even if not needed
+codev init:
+	initialize a remote host (for "hashbang.sh" hosts, if login fails, it will try to sign you up)
+codev create:
+	create a remote repository from the current project directory
+codev clone
+codev pull
+and after merging: codev push
+
+in projects list view:
+, press "" key to open session management menu (poweroff, reboot, suspend, exit, lock)
+, press "" key to open terminal view
+
+for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
+moreover, Python provides a simple consistent glue for almost anything
+
+".cache/codev/destination": the latest
+".cache/codev/pristine": the original files which where reflinked into the project directory
+diff will be based on the working directory, pristine and publish
+
+pull requests contain 2 index files: changed and pristine
+
+branches: multiple index files
+
+we can keep a directory tree (under ".meta" directory) of the history of specific changes made by pushers,
+and requests made by pull-requests, a history that shows who has done what
+it can be used, for example, to track down backdoors introduced in the code
+
+remove a project
+
+opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key
+
+= Gnunet
+https://www.gnunet.org/en/
+https://www.gnunet.org/en/use.html
+https://docs.gnunet.org/
+https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
+
+gnunet-publish
+projects reside in non-removable BTRFS'formated disks
+when we want to publish a project, first we create ref links of the project files, in ".cache/codev/publish"
+this way gnunet can publish the files using the indexed method
+
+".cache" directory will not be published
+
+decentralized identity is elegantly implemented long time ago, and no one is talking about it
+instead everyone is talking about decentralized asset transfer systems, aka blockchians
+blockchains are inefficient and not scalable, but just look at the hype around them
+
+asset transfer is intrinsically needs some centralized parts
+trying to decentralize it by force based on an ideology, leads to hideous creatures like Bitcoin
+because of the nature of asset transfer, some level of decentralizations is unavoidable
+we need special nodes called IO nodes:
+, to import assets from the external world
+, to prevent double spending whithout consensus (a heavy process, hindering performance and scalability)
+
+to prevent sigle point of failure -> sign tokens by multiple IO
+violations made by IO nodes (double spendings, refusing valid transactions), will be reported,
+	to remove them from next release of Gnunet
+
+tokens contain two fields:
+, token type: determining if it's money, or any other kind of asset
+, value+hash (for money tokens), or an identifier encoding the physical aspects of an asset
+token file: token, timestamp, public key of the owner, signatures of IO nodes
+tokens are produced and signed by IO nodes based on real resources
+
+everyone must publish their tokens, using the token's hash as a keyword
+so if an IO node does a double spend, it will be detected
+
+no global ledger means no need for consensus, which means no need for PoW or PoS
+
+transaction request:
+, list of provided tokens
+, public key of sender
+, list of requested tokens, or the value requested in exchange, or a contract
+, public key of the receiver
+, signature of the sender
+
+first a transaction request is sent from sender to the receiver and all IO nodes
+then the receiver sends a compatible answer to IO nodes
+then IO nodes do the tranfer, and send signed tokens to sender and receiver
+then sender and receiver send back the tokens signed by themselves
+IO nodes can now discard the tranaction request/answer
+
+note that IO nodes do not have complete authority, they are just there to prevent double spendings
+you own your tokens (signed by IO nodes)
+
+transactions can request to exchange big tokens with small ones and vice versa
+
+it's clear that the motivation is not replacing the current corrupted monetery system,
+because it's simply not capable to do that by design
+it's purpose is to create a side system for criminal activity
+http://my.pages.de/illegalblockchains
+
+each transaction contains the hash address of previous transaction of the user,
+plus the hash address of the last (at that moment) transaction of the other user
+
+to improve blockchains performace and scalability some have introduced some kind of central mechanism
+eg permissioned nodes, DAGs ...
+suprisingly they still keep the global ledger and all the bad things that comes with it
+
+the more i think, the more i'm convinced that identities capable to have tokens, must be related to real persons
+otherwise, criminal can force people (by kidnapping, violance ...) to send their money/assets to anonymous persons
+nonetheless, one can always have different identities hidden from others, but identifiable by IO nodes
+
+taxes, i think, are out of the scope of transaction system
+they must be evaluated according to the kind of job and a lot of other factors (like environmental damage)
+nonetheless, because of IO nodes, some kind of surveillance can be implemented,
+	to prevent criminal activities, without violating privacy of users
+
+we can use this system for voting too
+real persons go to an IO office, and receives a (randomly generated) key pair which they can use to vote
+
+= trustless transaction
+
+blockchain -> global database -> need for consesus -> PoW/PoS ... to prevent Sybil attacks
+to add a new block, first a leader is selected that proposes the new block
+the probability that a node is elected as the leader is proportional to its PoW
+after consensus the blockchain is added to the blockchain
+
+blockchain is not capable to replace current monetary system by design
+it's purpose is to create a side system for criminal activity
+an always growing database
+the whole blockchain (hundreds of gigabytes) must be downloaded for each full node
+full nodes are necessary if you want private and trustless transactions (otherwise why bother with blockchains)
+using light nodes means we have to trust on miners; how is this better than trusting on banks
+slow transactions (10 to 30 minutes)
+when the system is completely isolated from external world, and there is no IO point,
+how can we transfer current money and assets to this system
+if we really want to replace current monetary system, this is what we have to do
+
+Oxen instant tranactions on top of the blockchain is not a real solution (makes it less secure)
+it uses PoS instead of PoW, thus transactions can be cheap
+https://en.wikipedia.org/wiki/Proof_of_stake#Attacks
+https://tokens-economy.gitbook.io/consensus/chain-based-proof-of-stake/proof-of-stake-pos
+
+DAG based solutions (Hashgraph ...):
+old transactions can be deleted
+fast and cheap transactions
+but they need to be permissioned, otherwise they will be vulnarable to Sybil attacks in low transaction rates
+https://en.wikipedia.org/wiki/Consensus_(computer_science)#Permissioned_versus_permissionless_consensus
+https://en.wikipedia.org/wiki/Consensus_(computer_science)#[Permissionless_consensus_protocols]
+
+MaidSafe Safe Network:
+why bother when we have Gnunet
+moreover, its complicated group consensus mechanism is useless
+we don't need consensus when there is no global ledger
+https://primer.safenetwork.org/
+
+Nano utilizes something called a block lattice
+there is still a global database, but it's partitioned, each account has its own blockchain
+and consequetly there is a consensus mechanism using "open representative voting" instead of PoW
+the security of this simple consensus mechanism is due to the structure of its database,
+	where each transaction is signed by both sender and receiver
+these choices make the transactions very fast
+maybe this tendency for global blockchains is to have an isolated token based system, and avoid IO nodes
+https://docs.nano.org/integration-guides/the-basics/
+https://docs.nano.org/living-whitepaper/
+
+"a survey of distributed consensus protocols for blockchain networks" https://arxiv.org/pdf/1904.04098.pdf

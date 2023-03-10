@@ -1,0 +1,58 @@
+using Alpine Linux we can easily setup a Linux based operating system
+anything which needs a kernel'based operating system can use Alpine Linux:
+, it supports a wide range of hardware architectures
+, it's suitable for systems with limited resources
+, the stable release provides a highly tested system for sensitive use cases
+
+the following shows how to create an Alpine live system, on a USB storage device,
+	customized for installing a minimal graphical system
+first you need to already be in an Alpine system (either installed or live)
+then if you need to download the files of this project, run these commands:
+; gnunet-download gnunet://fs/damoonsaghian/Comshell
+; cd Comshell
+; sh alpine/alive.sh
+this will ask you to choose a storage device, and then creates the customized live system
+
+now just boot into the customized live system
+it will ask for:
+, a root password, and a user account (provide different passwords for root and for the user)
+, confirmation for auto'detected time'zone
+, the network configuration (if it's not a simple DHCP wired connection)
+, the target device (if there is more than one device), and then installs Alpine on it
+after reboot, you can login to the installed system
+
+press "alt+space" ("pun+space" in action mode) to open app launcher menu
+in app launcher menu, press "alt+space" again to open session management menu:
+	poweroff, reboot, suspend, exit, lock
+press "alt+tab" ("pun+t" in action mode) to switch between the primary app (usually Comshell) and the prior app
+press "alt+a" ("pun+f" in action mode) to switch between windows of a workspace
+press "alt+escape" ("pun+backspace" in action mode) to close focused window
+press "alt+enter" ("pun+enter" in action mode) to open a terminal window
+
+"system" is a command line program which can be used to configure:
+	timezone, language, connections, and installed packages
+
+to run a command as root:
+; su command
+this will switch to the first available virtual terminal, shows the command at the top,
+	and asks for root password
+if the entered password is correct it returns back to previous virtual terminal,
+	and runs the command as root
+
+note that you can't login as root; actually root account is locked,
+	and root password provided during installation, is used only for "su"
+also you must never type the user's password anywhere except at the login prompt
+	(and make sure that the login prompt isn't fake, by disconnecting and reconnecting your keyboard)
+this means that if a malicious program steals root password (eg by faking the password entry),
+	it still can't run programs as root (because it can't enter the password in a virtual terminal)
+take a look at these:
+"https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
+"https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
+
+to protect the computer from physical attacks, don't leave the computer with an unlocked session
+in addition you must:
+, somehow prevent tampering with hardware
+, protect boot firmware by a password
+, disable changing the storage device used for booting
+these can make physical attacks more difficult, but keep this in mind:
+	physical access to a computer is root access, given enough time and resources

@@ -88,23 +88,3 @@ actions:
 
 "enter" (in insert mode): selection, completion
 "space" or empty line, then "enter": delete space (if any), then insert new line
-
-codev: collaborative development without the need to keep the whole history
-flaws of version control systems:
-, they double the storage (working directory, local repository)
-, their design makes it difficult to modify the history
-	so in practice, the whole history must be kept indefinitely, even if not needed
-codev init:
-	initialize a remote host (for "hashbang.sh" hosts, if login fails, it will try to sign you up)
-codev create:
-	create a remote repository from the current project directory
-codev clone
-codev pull
-and after merging: codev push
-
-in projects list view:
-, press "" key to open session management menu (poweroff, reboot, suspend, exit, lock)
-, press "" key to open terminal view
-
-for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
-moreover, Python provides a simple consistent glue for almost anything
