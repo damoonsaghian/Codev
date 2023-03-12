@@ -21,24 +21,6 @@ from overview import Overview
 
 # floating layer to view web'pages, images and videos
 
-# when renaming files or directories in comshell, watch (using inotify) the directory that
-# contains the project group which this project belongs to, and log all renames
-# there is a log file for each project; the log files are kept in a directory named ".renames",
-# inside the projects group directory
-# during backup, first rename the files according to this list then do rsync
-# https://www.linuxjournal.com/content/linux-filesystem-events-inotify
-# https://stackoverflow.com/questions/44651492/can-i-monitor-the-file-re-name-event-on-linux
-# https://pypi.org/project/inotify/
-# https://pythonhosted.org/watchdog/
-# https://stackoverflow.com/questions/26932459/linux-inotify-events-for-rename-with-overwrite
-# http://www.pkrc.net/detect-inode-moves.html
-# https://github.com/wapsi/smart-rsync-backup
-
-# keep backup path in ".cache/codev/backup-uuid"
-# do not follow mount points when making backups
-# backup (encrypted) private keys, plus public keys of trusted pairs
-# key update between pairs occures only when the backup device is connected
-
 # libarchive (zip, iso, ...)
 
 # .iso file: ask if you want to extract it, if not ask for a device to write it into, then:
