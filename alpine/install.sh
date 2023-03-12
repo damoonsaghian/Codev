@@ -261,7 +261,7 @@ bright7=fefbec
 apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 py3-cairo \
 	libjxl libavif webp-pixbuf-loader librsvg \
 	gst-plugins-good gst-plugins-ugly gst-plugin-pipewire gst-libav \
-	rsync libarchive-tools openssh-client-default attr
+	libarchive-tools
 # gst-plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 # gst-libav is needed till
 # , h264(openh264), h265(libde265), and aac(fdk-aac) go into gst-plugins-ugly
