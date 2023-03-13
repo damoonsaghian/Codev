@@ -17,27 +17,7 @@ from overview import Overview
 # https://www.gtk.org/docs/apis/
 # https://developer.gnome.org/documentation/
 
-# create a project group -> ask user for the disk
-
-# floating layer to view web'pages, images and videos
-
-# libarchive (zip, iso, ...)
-
-# .iso file: ask if you want to extract it, if not ask for a device to write it into, then:
-# ; sd flash devicename isofile
-
-# screenshot ...
-# sleep 3; grim .data/...
-# show countdown in status'bar
-# insert the image path in buffer
-
-# notifications:
-# create a layer in the bottom'left corner, to print notifications, using:
-# python3-cffi + wlroots (layer-shell) + python3-cairocffi
-# https://cffi.readthedocs.io/en/latest/
-# https://cairocffi.readthedocs.io/en/stable/
-# at startup scan email boxes of projects, and show notifications
-# during the runtime add/remove notifications
+# notifications will be added/removed in/from "~/.local/state/codev/notifications"
 
 # slightly dim unfocused panels
 # when moving or when "action" is pressed, create a flash which shows the location of the cursor
