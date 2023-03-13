@@ -8,8 +8,10 @@ the following shows how to create an Alpine live system, on a USB storage device
 	customized for installing a minimal graphical system
 first you need to already be in an Alpine system (either installed or live)
 then if you need to download the files of this project, run these commands:
-; gnunet-download gnunet://fs/damoonsaghian/Comshell
-; cd Comshell
+; apk add gnunet
+; gnunet-download gnunet://fs/damoonsaghian/Codev
+; cd Codev
+then:
 ; sh alpine/alive.sh
 this will ask you to choose a storage device, and then creates the customized live system
 
@@ -21,13 +23,12 @@ it will ask for:
 , the target device (if there is more than one device), and then installs Alpine on it
 after reboot, you can login to the installed system
 
-press "alt+space" ("pun+space" in action mode) to open app launcher menu
-in app launcher menu, press "alt+space" again to open session management menu:
-	poweroff, reboot, suspend, exit, lock
-press "alt+tab" ("pun+t" in action mode) to switch between the primary app (usually Comshell) and the prior app
-press "alt+a" ("pun+f" in action mode) to switch between windows of a workspace
-press "alt+escape" ("pun+backspace" in action mode) to close focused window
-press "alt+enter" ("pun+enter" in action mode) to open a terminal window
+press "alt+enter" ("pun+enter" in action mode) to open app launcher menu
+in app launcher menu press "alt+enter" again to open session management menu:
+	lock, suspend, exit, reboot, poweroff
+press and release "alt" ("pun" in action mode) to switch between the primary app (usually Comshell) and the prior app
+press "alt+space" ("pun+space" in action mode) to switch between windows of a workspace
+press "alt+backspace" ("pun+backspace" in action mode) to close focused window
 
 "system" is a command line program which can be used to configure:
 	timezone, language, connections, and installed packages
@@ -40,7 +41,7 @@ if the entered password is correct it returns back to previous virtual terminal,
 	and runs the command as root
 
 note that you can't login as root; actually root account is locked,
-	and root password provided during installation, is used only for "su"
+	and root password provided during installation, is only used for "su"
 also you must never type the user's password anywhere except at the login prompt
 	(and make sure that the login prompt isn't fake, by disconnecting and reconnecting your keyboard)
 this means that if a malicious program steals root password (eg by faking the password entry),

@@ -1,0 +1,91 @@
+Codev (collaborative development) is a command based user interface,
+	providing a project based development environment, and an ideal frontend for GNUnet
+
+= command based user interface
+command based user interfaces (using keyboard, voice, gesture) are faster, more convenient and more powerful,
+	than pointer based user interfaces (using mouse, touch, pen)
+pointer based interface seems appealing at first sight, because of its discoverability
+but with simple uniform GUI (ie the oposite of what we see in websites),
+	there is no need for a pointer based user interface
+
+touch interface has an additional problem: interaction at a distance is not possible
+it can be useful in some special cases, but is not a good choice as a general interface
+
+detection of voice commands is a relatively simple process (compared to general speech recognition),
+	because we only need to match against a relatively small set of commands
+a headset with near range microphone can be used, to exclude far away sound sources
+also it is better to put battery and transmitter of the headset in a separate unit which can be put in a pocket
+	this makes the headset lighter and safer
+
+for those who neither can use all their fingers, nor can talk, gesture based (2d) input can be implemented
+
+".data/keyboard.png"
+"https://github.com/abstracthat/dactyl-manuform"
+"https://zealot.hu/absolem/"
+"https://github.com/foostan/crkbd"
+"https://github.com/nglgzz/42"
+"https://github.com/adereth/dactyl-keyboard"
+Kinesis Advantage 2 keyboard
+"http://www.allthingsergo.com/the-best-ergonomic-mechanical-keyboards/"
+
+the keyboard has two modes: insert mode and action mode
+in action mode keys are mapped to navigation keys (arrows, page up, page down, home, end, esc),
+	and ctrl/alt based keybindings
+in action mode, press "space" to go to insert mode
+when "action" is pressed keyboard sends a special key combination,
+	which can be used by applications, eg to flash the location of the cursor
+
+to insert capital letters:
+, two apostrophes then an alphabetical letter -> capital letter
+, "aBcd" then two apostrophes followed by space -> "AbCD" followed by space
+to insert punctuations (in insert mode), press "pun"
+	after entering a punctuation charactor, it automatically returns to normal insert mode
+to insert numbers, press and hold "num"
+
+for compatibility with other applications, we may still need a mouse,
+	plus "ctrl" and "shift" keys which can be put in the middle of the keyboard
+for full compatibility we can add a row of function keys, plus the "delete" key
+
+= project based development environment
+list of all projects will appear in a floating layer, at the center of the screen, called overview layer
+overview layer:
+, left panel:
+	, roots: user home plus attached devices
+	, project groups: content of roots
+, main view:
+	projects: content of project groups
+
+".data/codev.png"
+
+in a project view, the list of files of a project will be displayed in the left side'bar
+opened files will be slightly highlighted
+files and directories with names starting with a dot, will be hidden
+".cache" directory inside a project is for files we don't want to share or backup
+
+each opened file will have a side'bar at right showing its sections
+there we can create new view corresponding to a section
+sections with views will be slightly highlighted
+
+text files will be opened in a text editor
+directories containing media files, will be opened in a gallery view
+files and directories inside a gallery, will be opened in a floating layer
+
+non'local projects, web pages, PDF documents, etc, accessed from links inside the main project,
+	will be opened in a floating layer
+web pages: move caret between visual elements (ignoring structural elements)
+
+actions:
+, next/previous word, line, paragraph, section (righ/left middle row keys)
+, next/previous file (ask for confirmation)
+, next/previous section view, opened file
+, go to the list of files to open a new view
+, start and end selection, then copy or cut
+, paste
+, undo
+
+, navigation: move, search
+, selection
+, completion
+
+for implementing a prototype of Comshell, it seems that the best tool at hand is PyGObject
+moreover, Python provides a simple consistent glue for almost anything
