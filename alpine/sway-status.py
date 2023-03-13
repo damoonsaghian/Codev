@@ -26,6 +26,8 @@ net_tz=
 if [ "$net_tz" != "$system_tz" ]; then
 fi
 
+# "~/.local/state/codev/notifications" is monitored, and the notifications will be shown
+
 def datetime():
 	# "%Y-%m-%d  %a  %p  %I:%M"
 	# calculate full minute

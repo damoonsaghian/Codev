@@ -35,9 +35,9 @@ xorriso -osirrox on -indev "$project_path/.cache/alpine/$iso_file" -extract /boo
 initramfs_append_path="$project_path/.cache/alpine/initramfs-append"
 rm -rf "$initrd_append_path"
 
-# include the comshell files into the initramfs
-mkdir -p "$initramfs_append_path/comshell"
-cp -r "$project_path"/* "$initramfs_append_path/comshell/"
+# include the codev files into the initramfs
+mkdir -p "$initramfs_append_path/codev"
+cp -r "$project_path"/* "$initramfs_append_path/codev/"
 
 # manipulate initramfs to automatically login as root
 mkdir -p "$initramfs_append_path/etc"
@@ -47,7 +47,7 @@ sed "s/^tty1::respawn.*/tty1::respawn:\/bin\/login -f root/" "$initramfs_append_
 
 # manipulate initramfs to automatically run "setup.sh"
 mkdir -p "$initramfs_append_path/etc/profile.d"
-echo 'sh /comshell/alpine/setup.sh' > "$initramfs_append_path/etc/profile.d/zzz-setup.sh"
+echo 'sh /codev/alpine/setup.sh' > "$initramfs_append_path/etc/profile.d/zzz-setup.sh"
 
 # append the files to initramfs
 cd "$initramfs_append_path"
@@ -55,7 +55,7 @@ find . | cpio -H newc -o | gzip >> "$project_path/.cache/alpine/initramfs-lts"
 
 # generate the modified iso file
 # for x86/x86_64 add Intel and AMD microcodes too
-rm -f "$project_path/.cache/alpine/alpine-comshell.iso"
+rm -f "$project_path/.cache/alpine/alpine-codev.iso"
 if [ "$arch" = x86_64 ] || [ "$arch" = x86 ]; then
 	apk add intel-ucode amd-ucode
 	xorriso -osirrox on -indev "$project_path/.cache/alpine/$iso_file" \
@@ -72,11 +72,11 @@ if [ "$arch" = x86_64 ] || [ "$arch" = x86 ]; then
 		-map /boot/amd-ucode.img /boot/amd-ucode.img \
 		-map "$project_path/.cache/alpine/syslinux.cfg" /boot/syslinux/syslinux.cfg \
 		-map "$project_path/.cache/alpine/grub.cfg" /boot/grub/grub.cfg \
-		-outdev "$project_path/.cache/alpine/alpine-comshell.iso"
+		-outdev "$project_path/.cache/alpine/alpine-codev.iso"
 else
 	xorriso -indev "$project_path/.cache/alpine/$iso_file" -overwrite on \
 		-map "$project_path/.cache/alpine/initramfs-lts" /boot/initramfs-lts \
-		-outdev "$project_path/.cache/alpine/alpine-comshell.iso"
+		-outdev "$project_path/.cache/alpine/alpine-codev.iso"
 fi
 
 apk del -r --purge xorriso
@@ -108,8 +108,8 @@ read answer
 [ "$answer" = y ] || exit
 
 # if "sd" command is available use that, cause it can be run by non'root users
-sd flash "$device_name" "$project_path/.cache/alpine-comshell.iso" ||
-dd if="$project_path/.cache/alpine-comshell.iso" of="/dev/$device_name"
+sd flash "$device_name" "$project_path/.cache/alpine-codev.iso" ||
+dd if="$project_path/.cache/alpine-codev.iso" of="/dev/$device_name"
 
 echo "Alpine live media created successfully"
 echo "you can now remove the media"

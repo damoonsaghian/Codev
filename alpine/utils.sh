@@ -77,65 +77,6 @@ choose() {
 	eval "$1=\"$selected_line\""
 }
 
-# guess timezone but let the user confirm it
-set_timezone() {
-	local ofono_tz=
-	local geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
-	local net_tz="$geoip_tz"
-	local net_tz_continent="$(printf "$net_tz" | cut -d / -f1)"
-	local net_tz_city="$(printf "$net_tz" | cut -d / -f2)"
-	
-	choose continent "$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)" $net_tz_continent
-	choose city "$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)" $net_tz_city
-	tzset "${continent}/${city}"
-}
-
-# https://docs.alpinelinux.org/user-handbook/0.1a/Working/apk.html
-# https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
-# https://www.reddit.com/r/AlpineLinux/comments/y6ezvo/interactive_installationremoval_of_packages_using/
-manage_packages() {
-	local mode= package_name=
-	echo 'packages:'
-	choose mode 'update\ninstall\nremove'
-	[ "$mode" = install ] && {
-		printf 'search for: '
-		read -r search_entry
-		choose package_name "$(apk search "$search_entry")"
-		package_name="$(echo "$package_name" | { read first _rest; echo $first; })"
-	}
-	[ "$mode" = remove ] && {
-		printf 'search for: '
-		read -r search_entry
-		choose package_name "$(apk search "$search_entry")"
-		package_name="$(echo "$package_name" | { read first _rest; echo $first; })"
-		printf "remove $package_name (y/N)? "
-		read -r answer
-		[ "$answer" = y ] || exit
-	}
-	
-	if [ "$mode" = "autoupdate" ]; then
-		critical_battery() {
-			local battery_capacity="/sys/class/power_supply/BAT0/capacity"
-			[ -f "$battery_capacity" ] || battery_capacity="/sys/class/power_supply/BAT1/capacity"
-			[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
-		}
-		
-		metered_connection() {
-			local active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
-			local is_metered=false
-			case "$active_net_device" in
-				ww*) is_metered=true ;;
-			esac
-			# todo: DHCP option 43 ANDROID_METERED
-			is_metered
-		}
-		
-		critical_battery || metered_connection && exit 0
-	fi
-	
-	manage-packages "$mode" "$package_name"
-}
-
 # https://wiki.alpinelinux.org/wiki/Wi-Fi
 manage_wifi() {
 	choose mode "connect\nremove"
@@ -251,4 +192,65 @@ manage_connections() {
 		radio) manage_radio_devices ;;
 		router) manage_router ;;
 	esac
+}
+
+# guess timezone but let the user confirm it
+set_timezone() {
+	local ofono_tz=
+	local geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
+	local net_tz="$geoip_tz"
+	local net_tz_continent="$(printf "$net_tz" | cut -d / -f1)"
+	local net_tz_city="$(printf "$net_tz" | cut -d / -f2)"
+	
+	choose continent "$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)" $net_tz_continent
+	choose city "$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)" $net_tz_city
+	tzset "${continent}/${city}"
+}
+
+# https://docs.alpinelinux.org/user-handbook/0.1a/Working/apk.html
+# https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+# https://www.reddit.com/r/AlpineLinux/comments/y6ezvo/interactive_installationremoval_of_packages_using/
+manage_packages() {
+	local mode= package_name=
+	echo 'packages:'
+	choose mode 'update\ninstall\nremove'
+	[ "$mode" = install ] && {
+		printf 'search for: '
+		read -r search_entry
+		choose package_name "$(apk search "$search_entry")"
+		package_name="$(echo "$package_name" | { read first _rest; echo $first; })"
+	}
+	[ "$mode" = remove ] && {
+		printf 'search for: '
+		read -r search_entry
+		choose package_name "$(apk search "$search_entry")"
+		package_name="$(echo "$package_name" | { read first _rest; echo $first; })"
+		printf "remove $package_name (y/N)? "
+		read -r answer
+		[ "$answer" = y ] || exit
+	}
+	
+	if [ "$mode" = "autoupdate" ]; then
+		critical_battery() {
+			local battery_capacity="/sys/class/power_supply/BAT0/capacity"
+			[ -f "$battery_capacity" ] || battery_capacity="/sys/class/power_supply/BAT1/capacity"
+			[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
+		}
+		
+		metered_connection() {
+			local active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
+			local is_metered=false
+			case "$active_net_device" in
+				ww*) is_metered=true ;;
+			esac
+			# todo: DHCP option 43 ANDROID_METERED
+			is_metered
+		}
+		
+		critical_battery || metered_connection && exit 0
+	fi
+	
+	# todo: inhibit system from suspend or poweroff
+	manage-packages "$mode" "$package_name"
+	# uninhibit
 }

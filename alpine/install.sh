@@ -70,7 +70,7 @@ apk add alpine-base linux-lts
 [  ] && apk add intel-ucode
 [  ] && apk add amd-ucode
 
-apk add doas py3-gobject3
+apk add doas
 
 # https://wiki.debian.org/Hardening#Mounting_.2Fproc_with_hidepid
 
@@ -83,7 +83,7 @@ apt-get install --no-install-recommends --yes wireplumber pipewire-pulse pipewir
 [ -f /etc/alsa/conf.d/99-pipewire-default.conf ] ||
 	cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
 
-cp /comshell/alpine/utils.sh /usr/local/share/
+cp /codev/alpine/utils.sh /usr/local/share/
 
 apk add connman connman-nftables wpa_supplicant wireless-regdb ofono bluez
 # https://git.kernel.org/pub/scm/network/connman/connman.git/tree/
@@ -112,14 +112,14 @@ set -e
 . /usr/local/share/utils.sh
 choose selected_option "timezone\nconnections\npackages"
 case "$selected_option" in
-	timezone) set_timezone ;;
 	connections) manage_connections ;;
+	timezone) set_timezone ;;
 	packages) manage_packages ;;
 esac
 ' > /usr/local/bin/system
 chmod +x /usr/local/bin/system
 
-cp /mnt/comshell/alpine/system-connections.sh /usr/local/share/
+cp /mnt/codev/alpine/system-connections.sh /usr/local/share/
 
 echo -n '#!doas /bin/sh
 set -e
@@ -164,7 +164,7 @@ echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
 apk add dosfstools exfatprogs btrfs-progs sfdisk
-cp /mnt/comshell/alpine/sd /usr/local/bin/
+cp /mnt/codev/alpine/sd /usr/local/bin/
 chmod +x /usr/local/bin/sd
 echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/sd' >> /etc/doas.conf
 
@@ -184,7 +184,7 @@ fi
 # tofi
 # https://github.com/ii8/havoc
 
-cp /mnt/comshell/alpine/{sway.conf,sway-status.py} /usr/local/share/
+cp /mnt/codev/alpine/{sway.conf,sway-status.py} /usr/local/share/
 
 # mono'space fonts:
 # , wide characters are forced to squeeze
@@ -197,11 +197,6 @@ cp /mnt/comshell/alpine/{sway.conf,sway-status.py} /usr/local/share/
 # , while allowing each character to take up the space that it needs
 # "https://input.djr.com/"
 apk add font-noto font-hack
-echo '#!doas /bin/sh
-# add relevant noto font: font-noto-arabic, font-noto-cjk, ...
-' >/usr/local/bin/install-font
-chmod +x /usr/local/bin/install-font
-echo 'permit nolog nopass user1 cmd /bin/sh args /usr/local/bin/install-font' >> /etc/doas.conf
 mkdir -p /etc/fonts
 echo -n '<?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
@@ -258,20 +253,25 @@ bright6=1fad83
 bright7=fefbec
 ' > /usr/local/share/foot.cfg
 
-apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib vte3-gtk4 py3-cairo \
-	libjxl libavif webp-pixbuf-loader librsvg \
-	gst-plugins-good gst-plugins-ugly gst-plugin-pipewire gst-libav \
-	libarchive-tools
-# gst-plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
-# gst-libav is needed till
-# , h264(openh264), h265(libde265), and aac(fdk-aac) go into gst-plugins-ugly
-# , and av1(aom-libs) goes into gst-plugins-good
-# libjxl and libavif are not compiled with gdk-pixbuf loaders (-DJPEGXL_ENABLE_PLUGINS -DAVIF_BUILD_GDK_PIXBUF)
-cp -r /mnt/comshell/comshell-py /usr/local/share/
+apk add codev || {
+	apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib py3-cairo py3-gobject3 \
+		libjxl libavif webp-pixbuf-loader librsvg \
+		gst-plugins-good gst-plugins-ugly gst-plugin-pipewire gst-libav \
+		libarchive-tools
+	# gst-plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
+	# gst-libav is needed till
+	# , h264(openh264), h265(libde265), and aac(fdk-aac) go into gst-plugins-ugly
+	# , and av1(aom-libs) goes into gst-plugins-good
+	# libjxl and libavif are not compiled with gdk-pixbuf loaders (-DJPEGXL_ENABLE_PLUGINS -DAVIF_BUILD_GDK_PIXBUF)
+
+	mkdir -p /usr/local/share/codev
+	cp -r /mnt/codev/src.py/* /usr/local/share/codev/
+}
+
 mkdir -p /usr/local/share/applications
 echo -n '[Desktop Entry]
 Type=Application
-Name=Comshell
-Exec=sh -c "swaymsg workspace 1:comshell; comshell || python3 /usr/local/share/comshell-py/"
+Name=Codev
+Exec=sh -c "swaymsg workspace 1:codev; codev || python3 /usr/local/share/codev/"
 StartupNotify=true
-' > /usr/local/share/applications/comshell.desktop
+' > /usr/local/share/applications/codev.desktop
