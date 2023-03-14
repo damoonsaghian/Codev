@@ -24,8 +24,7 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 # https://stackoverflow.com/questions/76096/undo-with-gtk-textview
 
 # mathematical symbols
-# comma followed by "psi" followed by space will be replaced by "ψ"
-# comma followed by "a" followed by space will be replaced by "->"
+# "psi" followed by two succesive apostrophes will be replaced by "ψ"
 
 # https://github.com/alexhuntley/Plots
 # "https://github.com/gaphor/gaphor"
