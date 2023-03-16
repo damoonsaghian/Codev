@@ -1,7 +1,9 @@
 https://www.gnunet.org/en/
 https://www.gnunet.org/en/use.html
 https://docs.gnunet.org/
-https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
+https://manpages.debian.org/unstable/gnunet/
+https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html
+https://git.gnunet.org/
 
 flaws of version control systems:
 , they double the storage (working directory, local repository)
@@ -10,21 +12,20 @@ flaws of version control systems:
 
 when we want to publish a project, first we create ref links of the project files, in ".cache/gnunet/publish"
 this way GNUnet can publish the files using the indexed method
+note that projects reside in non-removable BTRFS'formated disks
 
 when we download a project, a pristine copy is kept untouched in ".cache/gnunet/pristine",
 	and ref links will be created in the working directory, and then we can work on our own branch
-	(projects reside in non-removable BTRFS'formated disks)
 after a while when we want to pull and merge changes made in the main branch,
-	first a diff based on the main branch, pristine, and the working directory will be shown to the user,
-	then the user will be asked to accept different parts of the diff
-when we want to send a pull request to the main branch,
-	we publish pristine and the working directory, and send the two addresses to the main developer
-	the main developer then makes a diff based on these two, plus the main branch
+	first a three'way diff based on the main branch, pristine, and the working directory,
+	will be shown, and the user will be asked to accept different parts of the diff
+to send a pull request to the main branch, first publish the pristine and the working directory,
+	then send the two addresses to the main developer
+	the main developer will make a diff based on these two, plus her own working directory
+a pull request can be removed by sending a message to the main developer, and unpublishing the two links
+
 https://manpages.debian.org/unstable/gnunet/gnunet-directory.1.en.html
 https://manpages.debian.org/unstable/gnunet/gnunet-fs.1.en.html
-
-IPVC is a distributed version control system similar to git, but built on IPFS:
-https://github.com/martindbp/ipvc
 
 https://www.gnu.org/software/diffutils/manual/html_mono/diff.html
 https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff
@@ -36,34 +37,26 @@ https://diffoscope.org/
 https://github.com/MightyCreak/diffuse
 http://meldmerge.org/
 https://git-scm.com/docs/git-diff
-	
-we can keep the diffs of merged pull'requests
-it can be used, for example, to track down backdoors introduced in the code
 
+IPVC is a distributed version control system similar to git, but built on IPFS:
+https://github.com/martindbp/ipvc
+	
 ".cache" directory will not be published
 also do not follow mount points
 
-libgcrypt and libssl do not support NTRU Prime; wolfCrypt does
-
-opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key
-https://www.kernel.org/doc/html/latest/process/maintainer-pgp-guide.html
+Libgcrypt and libcrypto (OpenSSL) do not support NTRU Prime; wolfCrypt does
+https://openquantumsafe.org/
 
 audio conversasion is already implemented; add video
 https://git.gnunet.org/gnunet.git/tree/src/conversation
+https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
 use gio plugin to send and receive from gstreamer
 use gstreamer pipewire plugin to access camera
 use gtk4 mediafile to put it on gui
 
 GNUnet on wifi mesh -> bandwidth moderator repeaters
 
-we can use GNUnet for local backup
-run a locally connected GNUnet instance, with a distinct socket address
-BINDTO = 127.0.0.1
-in addition, for each connected backup device, run a locally connected GNUnet instance,
-	with its socket address disabled
-https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html
-https://manpages.debian.org/unstable/gnunet/gnunet-arm.1.en.html
-https://docs.gnunet.org/users/configuration.html#the-multi-user-setup
+backup: two'way diff
 
 forward secrecy:
 , separate keys for each mutual relation
@@ -76,86 +69,38 @@ key backup:
 , backup (encrypted) private keys, plus public keys of trusted pairs
 , key update between pairs occures only when the backup device is connected
 
-= trustless transaction
-decentralized identity is elegantly implemented long time ago, and no one is talking about it
-instead everyone is talking about decentralized asset transfer systems, aka blockchians
-blockchains are inefficient and not scalable, but just look at the hype around them
+= blockchains
+as discussed above, decentralized internet is already elegantly implemented by GNUnet,
+	but no one is talking about it
+compare it with the hype around decentralized asset transfer systems, aka blockchians,
+	which are inefficient and unscalable
 
-the main point in desining a asset transfer system is to trust no one, and avoid single point of failure
-this does not necessary mean to absolutelt decentralize everything
+basically in a blockchain, we have a global append'only database which grows based on consesus between peers
+in a consesus process we need to implement a mechanism to prevent Sybil attacks (PoW, PoS ...)
+to add a new block, first a leader is selected that proposes the new block
+the probability that a node is elected as the leader is proportional to its PoW
+after consensus the block is added to the blockchain
+so blockchains mean:
+, slow transactions (10 to 30 minutes)
+, an always growing database
+, the whole blockchain must be downloaded for each full node
+	typical blockchains with their current number of users,	are hundreds of gigabytes
+	now just imagine what would happen if we scale them world wide
+	note that, full nodes are necessary if you want private and trustless transactions
+		otherwise why bother with blockchains in the first place
+		using light nodes means we have to trust miners; how is this better than trusting banks
+, the system is completely isolated from external world
+	we cannot import external money and assets to the system
+	a necessary feature, if we really want to replace current monetary system
 
-asset transfer intrinsically needs some centralized parts
-trying to decentralize it by force based on an ideology, leads to hideous creatures like Bitcoin
-we need special nodes called IO nodes:
-, to import assets from the external world
-, to prevent double spending whithout consensus (a heavy process, hindering performance and scalability)
-
-to prevent sigle point of failure -> sign tokens by multiple IO
-violations made by IO nodes (double spendings, refusing valid transactions), will be reported,
-	to remove them from next release of GNUnet
-
-tokens contain two fields:
-, token type: determining if it's money, or any other kind of asset
-, value+hash (for money tokens), or an identifier encoding the physical aspects of an asset
-token file: token, timestamp, public key of the owner, signatures of IO nodes
-tokens are produced and signed by IO nodes based on real resources
-
-everyone must publish their tokens, using the token's hash as a keyword
-so if an IO node does a double spend, it will be detected
-
-no global ledger means no need for consensus, which means no need for PoW or PoS
-
-transaction request:
-, list of provided tokens
-, public key of sender
-, list of requested tokens, or the value requested in exchange, or a contract
-, public key of the receiver
-, signature of the sender
-
-first a transaction request is sent from sender to the receiver and all IO nodes
-then the receiver sends a compatible answer to IO nodes
-then IO nodes do the tranfer, and send signed tokens to sender and receiver
-then sender and receiver send back the tokens signed by themselves
-IO nodes can now discard the tranaction request/answer
-
-note that IO nodes do not have complete authority, they are just there to prevent double spendings
-you own your tokens (signed by IO nodes)
-
-transactions can request to exchange big tokens with small ones and vice versa
-
-it's clear that the motivation is not replacing the current corrupted monetery system,
-because it's simply not capable to do that by design
-it's purpose is to create a side system for criminal activity
+it's clear that the motivation behind blockchains is not to replace the current corrupted monetary system,
+	because it simply isn't capable to do that, by design
+its only purpose is to create a side system for criminal activities
 http://my.pages.de/illegalblockchains
-
-each transaction contains the hash address of previous transaction of the user,
-plus the hash address of the last (at that moment) transaction of the other user
 
 to improve blockchains performace and scalability some have introduced some kind of central mechanism
 eg permissioned nodes, DAGs ...
 suprisingly they still keep the global ledger and all the bad things that comes with it
-
-the more i think, the more i'm convinced that identities capable to have tokens, must be related to real persons
-otherwise, criminal can force people (by kidnapping, violance ...) to send their money/assets to anonymous persons
-nonetheless, one can always have different identities hidden from others, but identifiable by IO nodes
-
-blockchain -> global database -> need for consesus -> PoW/PoS ... to prevent Sybil attacks
-to add a new block, first a leader is selected that proposes the new block
-the probability that a node is elected as the leader is proportional to its PoW
-after consensus the blockchain is added to the blockchain
-
-blockchain is not capable to replace current monetary system by design
-it's purpose is to create a side system for criminal activity
-an always growing database
-the whole blockchain (hundreds of gigabytes) must be downloaded for each full node
-full nodes are necessary if you want private and trustless transactions (otherwise why bother with blockchains)
-using light nodes means we have to trust on miners; how is this better than trusting on banks
-slow transactions (10 to 30 minutes)
-when the system is completely isolated from external world, and there is no IO point,
-how can we transfer current money and assets to this system
-if we really want to replace current monetary system, this is what we have to do
-
-some Bitcoin alternatives:
 , Oxen instant tranactions on top of the blockchain is not a real solution (makes it less secure)
 	it uses PoS instead of PoW, thus transactions can be cheap
 	https://en.wikipedia.org/wiki/Proof_of_stake#Attacks
@@ -181,6 +126,52 @@ some Bitcoin alternatives:
 	https://docs.nano.org/integration-guides/the-basics/
 	https://docs.nano.org/living-whitepaper/
 "a survey of distributed consensus protocols for blockchain networks" https://arxiv.org/pdf/1904.04098.pdf
+
+= trustless secure transaction
+an ideal transaction system would be trustless, and without a single point of failure
+this doesn't necessarily mean that we have to completely decentralize everything
+the process of transaction, intrinsically needs some centralized parts
+trying to decentralize it by force, based on an ideology, leads to hideous creatures like Bitcoin
+
+we need special nodes (let's call them IO nodes):
+, to import assets from external world
+, to prevent double spending, whithout the need for consensus
+	(a tricky process, hurting efficiency and scalability)
+
+to prevent a single point of failure, tokens will be signed by multiple IO nodes
+violations made by IO nodes (double spendings, refusing valid transactions), will be reported,
+	to remove them from next release of GNUnet
+
+tokens contain two fields:
+, token type: determining if it's money, or any other kind of asset
+, value+hash (for money tokens), or an identifier encoding the physical aspects of an asset
+token file: token, timestamp, public key of the owner, signatures of IO nodes
+tokens are produced and signed by IO nodes based on real resources
+
+everyone will publish their tokens, using the token's hash as a keyword
+so if an IO node does a double spend, it will be detected
+
+transaction request:
+, list of provided tokens
+, public key of sender
+, list of requested tokens, or the value requested in exchange, or a contract
+, public key of the receiver
+, signature of the sender
+
+first a transaction request is sent from sender to the receiver and all IO nodes
+then the receiver sends a compatible answer to IO nodes
+then IO nodes do the tranfer, and send signed tokens to sender and receiver
+then sender and receiver send back the tokens signed by themselves
+IO nodes can now discard the tranaction request/answer
+
+note that IO nodes do not have complete authority, they are just there to prevent double spendings
+you own your tokens (signed by IO nodes)
+
+transactions can request to exchange big tokens with small ones and vice versa
+
+the more i think, the more i'm convinced that identities capable to have tokens, must be related to real persons
+otherwise, criminal can force people (by kidnapping, violance ...) to send their money/assets to anonymous persons
+nonetheless, one can always have different identities hidden from others, but identifiable by IO nodes
 
 taxes, i think, are out of the scope of transaction system
 they must be evaluated according to the kind of job and a lot of other factors (like environmental damage)

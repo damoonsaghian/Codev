@@ -9,7 +9,7 @@ the following shows how to create an Alpine live system, on a USB storage device
 first you need to already be in an Alpine system (either installed or live)
 then if you need to download the files of this project, run these commands:
 ; apk add gnunet
-; gnunet-download gnunet://fs/damoonsaghian/Codev
+; gnunet-download -R gnunet://fs/damoonsaghian/Codev
 ; cd Codev
 then:
 ; sh alpine/alive.sh
