@@ -69,19 +69,12 @@ key backup:
 , backup (encrypted) private keys, plus public keys of trusted pairs
 , key update between pairs occures only when the backup device is connected
 
-= blockchains
+= trustless secure transaction
 as discussed above, decentralized internet is already elegantly implemented by GNUnet,
 	but no one is talking about it
-compare it with the hype around decentralized asset transfer systems, aka blockchians,
-	which are inefficient and unscalable
-
-basically in a blockchain, we have a global append'only database which grows based on consesus between peers
-in a consesus process we need to implement a mechanism to prevent Sybil attacks (PoW, PoS ...)
-to add a new block, first a leader is selected that proposes the new block
-the probability that a node is elected as the leader is proportional to its PoW
-after consensus the block is added to the blockchain
-so blockchains mean:
-, slow transactions (10 to 30 minutes)
+compare it with the hype around decentralized transaction systems, aka blockchians,
+	which are inefficient and unscalable:
+, transactions are really slow (10 to 30 minutes)
 , an always growing database
 , the whole blockchain must be downloaded for each full node
 	typical blockchains with their current number of users,	are hundreds of gigabytes
@@ -94,86 +87,74 @@ so blockchains mean:
 	a necessary feature, if we really want to replace current monetary system
 
 it's clear that the motivation behind blockchains is not to replace the current corrupted monetary system,
-	because it simply isn't capable to do that, by design
+	because it's just not capable to do that, by design
 its only purpose is to create a side system for criminal activities
 http://my.pages.de/illegalblockchains
 
-to improve blockchains performace and scalability some have introduced some kind of central mechanism
-eg permissioned nodes, DAGs ...
-suprisingly they still keep the global ledger and all the bad things that comes with it
-, Oxen instant tranactions on top of the blockchain is not a real solution (makes it less secure)
-	it uses PoS instead of PoW, thus transactions can be cheap
-	https://en.wikipedia.org/wiki/Proof_of_stake#Attacks
-	https://tokens-economy.gitbook.io/consensus/chain-based-proof-of-stake/proof-of-stake-pos
-, DAG based solutions (Hashgraph ...):
-	old transactions can be deleted
-	fast and cheap transactions
-	but they need to be permissioned, otherwise they will be vulnarable to Sybil attacks in low transaction rates
-	https://en.wikipedia.org/wiki/Consensus_(computer_science)#Permissioned_versus_permissionless_consensus
-	https://en.wikipedia.org/wiki/Consensus_(computer_science)#[Permissionless_consensus_protocols]
-, MaidSafe Safe Network:
-	why bother when we have GNUnet
-	moreover, its complicated group consensus mechanism is useless
-	we don't need consensus when there is no global ledger
-	https://primer.safenetwork.org/
-, Nano utilizes something called a block lattice
-	there is still a global database, but it's partitioned, each account has its own blockchain
-	and consequetly there is a consensus mechanism using "open representative voting" instead of PoW
-	the security of this simple consensus mechanism is due to the structure of its database,
-		where each transaction is signed by both sender and receiver
-	these choices make the transactions very fast
-	maybe this tendency for global blockchains is to have an isolated token based system, and avoid IO nodes
-	https://docs.nano.org/integration-guides/the-basics/
-	https://docs.nano.org/living-whitepaper/
-"a survey of distributed consensus protocols for blockchain networks" https://arxiv.org/pdf/1904.04098.pdf
-
-= trustless secure transaction
-an ideal transaction system would be trustless, and without a single point of failure
+an ideal transaction system would be trustless, and avoid having a single point of failure
 this doesn't necessarily mean that we have to completely decentralize everything
 the process of transaction, intrinsically needs some centralized parts
 trying to decentralize it by force, based on an ideology, leads to hideous creatures like Bitcoin
 
 we need special nodes (let's call them IO nodes):
 , to import assets from external world
-, to prevent double spending, whithout the need for consensus
+, to prevent double spending, whithout the need for a consensus mechanism
 	(a tricky process, hurting efficiency and scalability)
-
-to prevent a single point of failure, tokens will be signed by multiple IO nodes
-violations made by IO nodes (double spendings, refusing valid transactions), will be reported,
-	to remove them from next release of GNUnet
 
 tokens contain two fields:
 , token type: determining if it's money, or any other kind of asset
 , value+hash (for money tokens), or an identifier encoding the physical aspects of an asset
-token file: token, timestamp, public key of the owner, signatures of IO nodes
-tokens are produced and signed by IO nodes based on real resources
 
-everyone will publish their tokens, using the token's hash as a keyword
-so if an IO node does a double spend, it will be detected
+token history file: the token as the file name, containing history entries
+each history entry is a line which can be continued by following indented lines
+history lines: timestamp, a public key made by the owner (at that time),
+	signature made by the private pair of the key in the previous line,
+	or, in the case of the first line, the signature made by the IO node
+
+owners produce separate keys for each token and for each IO node
+so each IO node will have a different token history file
+so even if an IO node is hijacked, it jus has access to its own public keys, not the ones in other IO nodes
+
+so even if someone hijacks all IO nodes, still:
+, he can't issue fake tokens, or double spaend tokens, without being detected
+, he can't steal tokens, because for each token, he needs all the private keys,
+	the last owner used to sign the token with
+
+tokens are produced and signed by IO nodes based on real resources
+to prevent a single point of failure, tokens will be signed by multiple IO nodes	
+
+each IO node publishes all the issued tokens
+for each token, a file will be published, with the token as the file name
+	the file contains the signature of the latest owner
+	the signature is made by the owner's public key, not the key in the history file
+so IO nodes can't make fake tokens, or double spend a token, without being detected
+violations made by IO nodes (double spendings, refusing valid transactions), will be reported,
+	to remove them from next release of GNUnet
+IO nodes do not have any power, they are just there to prevent double spending
+you own your tokens signed off by IO nodes and all the previous owners
 
 transaction request:
+, timestamp
 , list of provided tokens
-, public key of sender
 , list of requested tokens, or the value requested in exchange, or a contract
-, public key of the receiver
-, signature of the sender
+, address of the receiver
 
 first a transaction request is sent from sender to the receiver and all IO nodes
 then the receiver sends a compatible answer to IO nodes
-then IO nodes do the tranfer, and send signed tokens to sender and receiver
-then sender and receiver send back the tokens signed by themselves
-IO nodes can now discard the tranaction request/answer
+IO nodes sign the request and answer, and send it back to the sender and receiver
+sender and receiver sign off their tokens and send them to the IO nodes
+IO nodes send the tokens to their new owners
+if any IO node receives the signed off tokens, but does not send them back to their new owners,
+	they can be reported using the transaction request/answer which has their signature
 
-note that IO nodes do not have complete authority, they are just there to prevent double spendings
-you own your tokens (signed by IO nodes)
-
-transactions can request to exchange big tokens with small ones and vice versa
+transactions can be exchange requests, for exchanging big tokens with small ones,
+	in which case the receiver address will be empty
 
 the more i think, the more i'm convinced that identities capable to have tokens, must be related to real persons
-otherwise, criminal can force people (by kidnapping, violance ...) to send their money/assets to anonymous persons
+otherwise, criminal can force people (by kidnapping, violance ...) to send their money/assets to anonymous accounts
 nonetheless, one can always have different identities hidden from others, but identifiable by IO nodes
 
-taxes, i think, are out of the scope of transaction system
+taxes, i think, are out of the scope of transaction systems
 they must be evaluated according to the kind of job and a lot of other factors (like environmental damage)
 nonetheless, because of IO nodes, some kind of surveillance can be implemented,
 	to prevent criminal activities, without violating privacy of users
