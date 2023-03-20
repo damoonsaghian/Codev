@@ -12,8 +12,8 @@ from project import Project
 # , removable containing files bigger than 4GB: exfat
 # , internal: btrfs
 #
-# projects on VFAT/exFAT devices will be opened as read'only
-# when you try to edit them, you will be asked to copy them on to a BTRFS device
+# projects on VFAT/exFAT formated devices will be opened as read'only
+# when you try to edit them, you will be asked to copy them on to a BTRFS formated device
 #
 # mount it if it's not:
 # ; sd mount $device_name

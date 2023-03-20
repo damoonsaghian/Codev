@@ -22,6 +22,8 @@ from overview import Overview
 # slightly dim unfocused panels
 # when moving or when "action" is pressed, create a flash which shows the location of the cursor
 
+# backup: two'way diff
+
 Gtk.init(null)
 
 projects = Gtk.Stack()

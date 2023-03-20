@@ -1,4 +1,7 @@
-publish() {}
+publish() {
+	# ".cache" directory will not be published
+	# also do not follow mount points
+}
 
 unpublish() {}
 
