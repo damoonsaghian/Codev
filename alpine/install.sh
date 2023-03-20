@@ -255,18 +255,27 @@ bright7=fefbec
 
 apk add codev || {
 	apk add gtk4.0 gtksourceview5 webkit2gtk-5.0 poppler-glib py3-cairo py3-gobject3 \
-		libjxl libavif webp-pixbuf-loader librsvg \
-		gst-plugins-good gst-plugins-ugly gst-plugin-pipewire gst-libav \
-		libarchive-tools
+		gnunet libarchive libjxl libavif webp-pixbuf-loader librsvg \
+		gst-plugins-good gst-plugins-ugly gst-plugin-pipewire gst-libav
+	
 	# gst-plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 	# gst-libav is needed till
 	# , h264(openh264), h265(libde265), and aac(fdk-aac) go into gst-plugins-ugly
 	# , and av1(aom-libs) goes into gst-plugins-good
 	# libjxl and libavif are not compiled with gdk-pixbuf loaders (-DJPEGXL_ENABLE_PLUGINS -DAVIF_BUILD_GDK_PIXBUF)
+	
+	# Libgcrypt and libcrypto (OpenSSL) do not support NTRU Prime; wolfCrypt does
+	# https://openquantumsafe.org/
 
 	mkdir -p /usr/local/share/codev
 	cp -r /mnt/codev/src.py/* /usr/local/share/codev/
 }
+
+rc-service gnunet-system-services start
+rc-update add gnunet-system-services
+echo | setup-gnunet-user -u user1 2>/dev/null
+rc-service gnunet-user1-services start
+rc-update add gnunet-user1-services
 
 mkdir -p /usr/local/share/applications
 echo -n '[Desktop Entry]
