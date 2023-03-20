@@ -1,10 +1,37 @@
 https://www.gnunet.org/en/
 https://www.gnunet.org/en/use.html
+https://wiki.archlinux.org/title/GNUnet
 https://docs.gnunet.org/
 https://manpages.debian.org/unstable/gnunet/
 https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html
 https://git.gnunet.org/
 
+audio conversasion is already implemented; add video
+https://git.gnunet.org/gnunet.git/tree/src/conversation
+https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
+use gio plugin to send and receive from gstreamer
+use gstreamer pipewire plugin to access camera
+use gtk4 mediafile to put it on gui
+
+GNUnet on wifi mesh -> bandwidth moderator repeaters
+
+forward secrecy:
+, separate keys for each mutual relation
+, update keys frequently
+this means that an attacker must, for each individual,
+record all communications, and break a chain of public keys,
+because only the first public keys are transfered unencrypted
+https://en.wikipedia.org/wiki/Double_Ratchet_Algorithm
+key backup:	
+, backup (encrypted) private keys, plus public keys of trusted pairs
+, key update between pairs occures only when the backup device is connected
+
+we can use GNUnet for voting too
+real persons submit a public key in their companies, and then can use their private keys to sign their votes
+the complete list of votes will be published by the company, so everyone can check her own vote
+and since the total number of voters is known, there is no place for cheating
+
+= collaborative development using GNUnet file sharing
 flaws of version control systems:
 , they double the storage (working directory, local repository)
 , their design makes it difficult to modify the history
@@ -17,8 +44,8 @@ note that projects reside in non-removable BTRFS'formated disks
 when we download a project, a pristine copy is kept untouched in ".cache/gnunet/pristine",
 	and ref links will be created in the working directory, and then we can work on our own branch
 after a while when we want to pull and merge changes made in the main branch,
-	first a three'way diff based on the main branch, pristine, and the working directory,
-	will be shown, and the user will be asked to accept different parts of the diff
+	first a three'way diff based on the main branch, pristine, and the working directory will be shown,
+	then the user will be asked to accept different parts of the diff
 to send a pull request to the main branch, first publish the pristine and the working directory,
 	then send the two addresses to the main developer
 	the main developer will make a diff based on these two, plus her own working directory
@@ -40,43 +67,9 @@ https://git-scm.com/docs/git-diff
 
 IPVC is a distributed version control system similar to git, but built on IPFS:
 https://github.com/martindbp/ipvc
-	
-".cache" directory will not be published
-also do not follow mount points
-
-Libgcrypt and libcrypto (OpenSSL) do not support NTRU Prime; wolfCrypt does
-https://openquantumsafe.org/
-
-audio conversasion is already implemented; add video
-https://git.gnunet.org/gnunet.git/tree/src/conversation
-https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
-use gio plugin to send and receive from gstreamer
-use gstreamer pipewire plugin to access camera
-use gtk4 mediafile to put it on gui
-
-GNUnet on wifi mesh -> bandwidth moderator repeaters
-
-backup: two'way diff
-
-forward secrecy:
-, separate keys for each mutual relation
-, update keys frequently
-this means that an attacker must, for each individual,
-record all communications, and break a chain of public keys,
-because only the first public keys are transfered unencrypted
-https://en.wikipedia.org/wiki/Double_Ratchet_Algorithm
-key backup:	
-, backup (encrypted) private keys, plus public keys of trusted pairs
-, key update between pairs occures only when the backup device is connected
-
-we can use this system for voting too
-real persons submit a public key in their companies, and then can use their private keys to sign their votes
-the complete list of votes will be published by the company, so everyone can check her own vote
-and since the total number of voters is known, there is no place for cheating
 
 = trustless secure transaction systems
-as discussed above, decentralized internet is already elegantly implemented by GNUnet,
-	but no one is talking about it
+decentralized internet is already elegantly implemented by GNUnet, but no one is talking about it
 compare it with the hype around decentralized transaction systems, aka blockchians or distributed ledgers,
 	which are inefficient and unscalable
 
@@ -149,7 +142,7 @@ even if we do not use a post quantum cryptography like NTRU,
 
 transaction request:
 , timestamp
-, list of provided tokens (plus a change if needed)
+, list of provided tokens (plus a request for changes if needed)
 , list of requested asset tokens, or the value requested in exchange, or a contract
 , address of the receiver
 
