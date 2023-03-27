@@ -1,4 +1,4 @@
-#!doas /bin/sh
+#!pkexec /bin/sh
 set -e
 
 format() {

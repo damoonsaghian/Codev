@@ -1,0 +1,142 @@
+#!/bin/sh
+set -e
+
+choose() {
+	# the list of choices with the indents removed
+	local list="$(echo "$2" | sed -r 's/^[[:blank:]]+//')"
+	local count="$(echo "$2" | wc -l)"
+	local index=1
+	local key=
+	
+	local terminal_height="$(stty size | cut -d ' ' -f1)"
+	local max_height=15
+	[ $max_height -gt $terminal_height ] && max_height=$terminal_height
+	local scrolled=false
+	[ $((count+2)) -gt $max_height ] && scrolled=true
+	
+	# if a default option is provided, find its index
+	[ -z "$3" ] || {
+		i="$(printf "$list" | sed -n "/$3/=" | head -n 1)"
+		[ -z "$i" ] || index=i
+	}
+	
+	while true; do
+		# print the lines, highlight the selected one
+		printf "$list" | {
+			i=1
+			j=$((index-max_height/2))
+			while read line; do
+				d=$((i-index))
+				$scrolled && { [ $i -lt $j ] || [ $i -gt $((j+max_height-2)) ]; } && break
+				
+				if [ $i = $index ]; then
+					printf "  \e[7m$line\e[0m\n" # highlight
+				else
+					printf "  $line\n"
+				fi
+				i=$((i+1))
+			done
+		}
+		if [ $index -eq 0 ]; then
+			printf "\e[7mexit\e[0m\n" # highlighted
+		else
+			printf "\e[8mexit\e[0m\n" # hidden
+		fi
+		
+		read -s -n1 key # wait for user to press a key
+		
+		# if key is empty, it means the read delimiter, ie the "enter" key was pressed
+		[ -z "$key" ] && break
+		if [ "$key" = "\177" ]; then
+			index=0
+		elif [ "$key" = " " ]; then
+			index=$((index+1))
+			[ $index -gt $count ] && i=1
+		else
+			# find the next line which its first character is "$key", and put the line's number in "index"
+			i=index
+			while true; do
+				i=$((i+1))
+				[ $i -gt $count ] && i=1
+				[ $i -eq $index ] && break
+				if [ "$(echo "$list" | sed -n "$i"p | cut -c1)" = "$key" ]; then
+					index=i
+					break
+				fi
+			done
+		fi
+		
+		if $scrolled; then
+			echo -en "\e[$((max_height-1))A"
+		else
+			echo -en "\e[$((count+1))A" # go up to the beginning to re'render
+		fi
+	done
+	
+	[ $index -eq 0 ] && { echo; exit; }
+	selected_line="$(echo "$list" | sed -n "${index}p")"
+	eval "$1=\"$selected_line\""
+}
+
+set_timezone() {
+	# guess the timezone, but let the user to confirm it
+	local geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
+	local geoip_tz_continent="$(printf "$geoip_tz" | cut -d / -f1)"
+	local geoip_tz_city="$(printf "$geoip_tz" | cut -d / -f2)"
+	choose continent "$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)" $geoip_tz_continent
+	choose city "$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)" $geoip_tz_city
+	timedatectl set-timezone "${continent}/${city}"
+}
+
+manage_packages() {
+	local mode= package_name=
+	echo 'packages:'
+	choose mode 'update\ninstall\nremove'
+	
+	[ "$mode" = install ] && {
+		printf 'search for: '
+		read -r search_entry
+		pkexec apt-get update
+		choose package_name "$(apt-cache search "$search_entry")"
+		package_name="$(echo "$package_name" | { read first _rest; echo $first; })"
+	}
+	
+	[ "$mode" = remove ] && {
+		printf 'search for: '
+		read -r search_entry
+		choose package_name "$(apk search "$search_entry")"
+		package_name="$(echo "$package_name" | { read first _rest; echo $first; })"
+		printf "remove $package_name (y/N)? "
+		read -r answer
+		[ "$answer" = y ] || exit
+	}
+	
+	if [ "$mode" = "autoupdate" ]; then
+		critical_battery() {
+			local battery_capacity="/sys/class/power_supply/BAT0/capacity"
+			[ -f "$battery_capacity" ] || battery_capacity="/sys/class/power_supply/BAT1/capacity"
+			[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
+		}
+		
+		metered_connection() {
+			local active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
+			local is_metered=false
+			case "$active_net_device" in
+				ww*) is_metered=true ;;
+			esac
+			# todo: DHCP option 43 ANDROID_METERED
+			is_metered
+		}
+		
+		critical_battery || metered_connection && exit 0
+	fi
+	
+	sudo /usr/local/bin/system-packages "$mode" "$package_name"
+}
+
+choose selected_option "timezone\nconnections\npackages"
+case "$selected_option" in
+	connections) . /usr/local/share/system-connections.sh ;;
+	timezone) set_timezone ;;
+	packages) manage_packages ;;
+esac
