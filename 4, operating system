@@ -1,0 +1,69 @@
+using Debian we can easily setup a Linux based operating system
+anything which needs a kernel'based operating system can use Debian:
+, it supports a wide range of hardware architectures
+, it's suitable for systems with limited resources
+, the stable release provides a highly tested system for sensitive use cases
+
+the following shows how to install Debian with a minimal set of packages,
+	just enough to run Codev, plus a terminal emulator
+in Debian installer:
+, provide a root password which is differnet from user password
+, use BTRFS to format the root partition
+, deselect all packages
+boot to the installed system, and login as root, then:
+; apt install gnunet
+; gnunet-download -R gnunet://fs/sks/damoonsaghian/Codev
+; sh Codev/os/install.sh
+; reboot
+
+press "alt+enter" ("pun+enter" in action mode) to open app launcher menu
+in app launcher menu press "alt+enter" again to open session management menu:
+	lock, suspend, exit, reboot, poweroff
+press and release "alt" ("pun" in action mode) to switch between the primary app (usually Comshell) and the prior app
+press "alt+space" ("pun+space" in action mode) to switch between windows of a workspace
+press "alt+backspace" ("pun+backspace" in action mode) to close focused window
+
+"system" is a command line program which can be used to configure:
+	timezone, language, connections, and installed packages
+
+to run a command as root:
+; sudo command
+this will switch to the first available virtual terminal, shows the command at the top,
+	and asks for root password
+if the entered password is correct it returns back to previous virtual terminal,
+	and runs the command as root
+
+note that you can't login as root; actually root account is locked,
+	and root password provided during installation, is only used for "sudo"
+also you must never type the user's password anywhere except at the login prompt
+	(and make sure that the login prompt isn't fake, by disconnecting and reconnecting your keyboard)
+this means that if a malicious program steals root password (eg by faking the password entry),
+	it still can't run programs as root (because it can't enter the password in a virtual terminal)
+take a look at these:
+"https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
+"https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
+
+to protect the computer from physical attacks, don't leave the computer with an unlocked session
+in addition you must:
+, somehow prevent tampering with hardware
+, protect boot firmware by a password
+, disable changing the storage device used for booting
+these can make physical attacks more difficult, but keep this in mind:
+	physical access to a computer is root access, given enough time and resources
+
+implementing atomic upgrade does not worth the effort, because to have real fail'safe systems,
+	redundant backup systems are necessary anyway
+live media can be used to fix a broken system (eg due to powerloss during system upgrade)
+
+despite using BTRFS, in-place writing is needed in two situations:
+1, in-place first write for preallocated space, like in torrents
+	we don't want to disable COW for these files
+	apparently supported by BTRFS, isn't it?
+	https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
+	https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
+	https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
+2, virtual machines and databases (eg the one used in Webkit)
+	COW must be disabled for these files
+	generally it's done automatically by the program itself (eg systemd-journald)
+	otherwise we must do it manually: chattr +C ...
+	apparently Webkit uses SQLite in WAL mode
