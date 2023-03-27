@@ -16,7 +16,7 @@ website() {
 	# create/update website
 	
 	# on a linux server use gnunet to download projects, and host a website
-	# apk add openssh-client-default
+	# apt-get --yes install openssh-client
 	# https://man.archlinux.org/listing/openssh
 	# https://man.archlinux.org/man/core/openssh/ssh.1.en
 	# https://man.archlinux.org/man/core/openssh/ssh-add.1.en
