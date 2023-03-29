@@ -1,7 +1,7 @@
 cp "$(dirname "$0")/system" /usr/local/bin/
 chmod +x /usr/local/bin/system
 
-apt-get --yes install wpa_supplicant bluez rfkill
+apt-get --yes install wpasupplicant bluez rfkill
 cp "$(dirname "$0")/system-connections.sh" /usr/local/share/
 echo -n 'polkit.addRule(function(action, subject) {
 	if (

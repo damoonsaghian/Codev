@@ -1,17 +1,10 @@
 set -e
 
-. "$(dirname "$0")/utils.sh"
-
-# disable editing entries in Grub for security
+# lock up Grub for security
 [ -f /boot/grub/grub.cfg ] && {
-	# since we will lock root, recovery entries are useless
 	printf '\nGRUB_DISABLE_RECOVERY=true\nGRUB_DISABLE_OS_PROBER=true\nGRUB_TIMEOUT=0\n' >> /etc/default/grub
 	# disable menu editing and other admin operations in Grub:
-	cat <<-'__EOF__' > /etc/grub.d/09_user
-	#! /bin/sh
-	set superusers=""
-	set menuentry_id_option="--unrestricted $menuentry_id_option"
-	__EOF__
+	printf '#!/bin/sh\nset superusers=""' > /etc/grub.d/40_custom
 	chmod +x /etc/grub.d/09_user
 	grub-mkconfig -o /boot/grub/grub.cfg
 }
@@ -63,11 +56,16 @@ chmod +x /usr/local/bin/install-firmware
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' >
 	/etc/udev/rules.d/80-install-firmware.rules
 
-apt-get install --yes pkexec systemd-timesyncd dbus-user-session pipewire-audio
+apt-get install --yes pipewire-audio systemd-timesyncd dbus-user-session pkexec
 
-. "$(dirname "$0")/install-su.sh"
+. "$(dirname "$0")/install-sudo.sh"
 
 . "$(dirname "$0")/install-system.sh"
+
+echo -n 'unset HISTFILE
+PS1="\e[7m\u@\h\e[0m:\e[7m\w\e[0m\n> "
+echo "enter \"system\" to configure system settings"
+' > /etc/profile.d/shell-prompt.sh
 
 apt-get --yes install dosfstools exfatprogs btrfs-progs fdisk
 cp "$(dirname "$0")/sd" /usr/local/bin/
@@ -85,11 +83,6 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 	</action>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/codev.sd.policy
-
-echo -n 'unset HISTFILE
-PS1="\e[7m\u@\h\e[0m:\e[7m\w\e[0m\n> "
-echo "enter \"system\" to configure system settings"
-' > /etc/profile.d/shell-prompt.sh
 
 apt-get --yes install sway swayidle swaylock xwayland fuzzel foot
 
