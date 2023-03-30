@@ -1,13 +1,37 @@
 set -e
 
-# lock up Grub for security
-[ -f /boot/grub/grub.cfg ] && {
-	printf '\nGRUB_DISABLE_RECOVERY=true\nGRUB_DISABLE_OS_PROBER=true\nGRUB_TIMEOUT=0\n' >> /etc/default/grub
-	# disable menu editing and other admin operations in Grub:
-	printf '#!/bin/sh\nset superusers=""' > /etc/grub.d/40_custom
-	chmod +x /etc/grub.d/09_user
-	grub-mkconfig -o /boot/grub/grub.cfg
-}
+# lock Grub for security
+# since recovery mode in Debian requires root password,
+# there is no need to disable generation of recovery mode menu entries
+# we just have to disable menu editing and other admin operations in Grub:
+[ -f /boot/grub/grub.cfg ] &&
+	printf 'set superusers=""\nset timeout=0\n' > /boot/grub/custom.cfg
+
+# remove these packages which are installed by default:
+apt-mark procps dmidecode rsyslog logrotate cron apt-utils tasksel-data debconf-i18n \
+	sensible-utils gpgv less nano vim-common vim-tiny whiptail e2fsprogs
+apt-get autoremove --purge --yes
+apt-get autoclean --yes
+
+echo -n 'APT::Install-Recommends "false";
+APT::AutoRemove::RecommendsImportant "false";
+APT::AutoRemove::SuggestsImportant "false";
+' > /etc/apt/apt.conf.d/99_norecommends
+
+# upgrade to sid
+echo -n 'deb https://deb.debian.org/debian unstable main contrib non-free
+deb-src https://deb.debian.org/debian unstable main contrib non-free
+' > /etc/apt/sources.list
+apt-get update
+apt-get dist-upgrade --yes
+
+# install required firmwares when a new hardware is added
+# https://salsa.debian.org/debian/isenkram
+echo -n '#!/bin/sh
+' > /usr/local/bin/install-firmware
+chmod +x /usr/local/bin/install-firmware
+echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' >
+	/etc/udev/rules.d/80-install-firmware.rules
 
 echo -n '[Match]
 Name=en*
@@ -33,28 +57,13 @@ RouteMetric=600
 
 systemctl enable systemd-networkd
 rm -f /etc/network/interfaces
+apt-mark auto ifupdown isc-dhcp-client isc-dhcp-common iputils-ping nftables
+apt-get autoremove --purge --yes
+apt-get autoclean --yes
 
-# remove these "important" packages:
-apt-mark auto ifupdown isc-dhcp-client isc-dhcp-common iputils-ping nftables \
-	gpgv apt-utils debconf-i18n sensible-utils procps rsyslog logrotate cron dmidecode \
-	tasksel-data less nano vim-common vim-tiny whiptail e2fsprogs
-apt-get --purge --yes autoremove
-apt-get --yes autoclean
-
-echo -n 'APT::Install-Recommends "false";
-APT::AutoRemove::RecommendsImportant "false";
-APT::AutoRemove::SuggestsImportant "false";
-' > /etc/apt/apt.conf.d/99_norecommends
-
-# upgrade to sid
-
-# install required firmwares when a new hardware is added
-# https://salsa.debian.org/debian/isenkram
-echo -n '#!/bin/sh
-' > /usr/local/bin/install-firmware
-chmod +x /usr/local/bin/install-firmware
-echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' >
-	/etc/udev/rules.d/80-install-firmware.rules
+apt-get install -yes systemd-resolved
+# https://fedoramagazine.org/systemd-resolved-introduction-to-split-dns/
+# https://blogs.gnome.org/mcatanzaro/2020/12/17/understanding-systemd-resolved-split-dns-and-vpn-configuration/
 
 apt-get install --yes pipewire-audio systemd-timesyncd dbus-user-session pkexec
 
@@ -67,7 +76,7 @@ PS1="\e[7m\u@\h\e[0m:\e[7m\w\e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-apt-get --yes install dosfstools exfatprogs btrfs-progs fdisk
+apt-get install --yes dosfstools exfatprogs btrfs-progs fdisk
 cp "$(dirname "$0")/sd" /usr/local/bin/
 chmod +x /usr/local/bin/sd
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
@@ -84,7 +93,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/codev.sd.policy
 
-apt-get --yes install sway swayidle swaylock xwayland fuzzel foot
+apt-get install --yes sway swayidle swaylock xwayland fuzzel foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
@@ -110,7 +119,7 @@ cp /mnt/codev/alpine/{sway.conf,sway-status.py} /usr/local/share/
 # , and easily distinguishable characters
 # , while allowing each character to take up the space that it needs
 # "https://input.djr.com/"
-apt-get --yes install fonts-noto-core fonts-hack
+apt-get install --yes fonts-noto-core fonts-hack
 mkdir -p /etc/fonts
 echo -n '<?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
@@ -174,8 +183,8 @@ bright6=1fad83
 bright7=fefbec
 ' > /usr/local/share/foot.cfg
 
-apt-get --yes install codev || {
-	apt-get --yes install gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
+apt-get install --yes codev || {
+	apt-get install --yes gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
 		gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
 		libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
 		libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \

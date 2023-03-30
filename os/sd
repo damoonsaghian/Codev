@@ -40,17 +40,17 @@ sd_unmount() {
 }
 
 device_name="$(basename "$2")"
-[ "$1" = loop ] || [ "$1" = unloop ] || {
-	[ -f "/dev/$device_name" ] || exit 1
-	# if the parent of "$2" is the device that the system is installed on, exit
-	parent_device="$(readlink -f "/sys/class/block/$device_name/..")"
-	parent_device="$(basename "$parent_device")"
-	[ "$parent_device" = block ] && parent_device="$device_name"
-	root_device="$(rdev)"
-	root_device="$(basename "$root_device")"
-	[ -z "$root_device" ] && exit 1
-	[ "$root_device" = "$parent_device" ] && exit 1
-}
+
+[ -f "/dev/$device_name" ] || exit 1
+
+# if the parent of "$2" is the device that the system is installed on, exit
+parent_device="$(readlink -f "/sys/class/block/$device_name/..")"
+parent_device="$(basename "$parent_device")"
+[ "$parent_device" = block ] && parent_device="$device_name"
+root_device="$(rdev)"
+root_device="$(basename "$root_device")"
+[ -z "$root_device" ] && exit 1
+[ "$root_device" = "$parent_device" ] && exit 1
 
 case "$1" in
 	format) format "$device_name" "$3" ;;

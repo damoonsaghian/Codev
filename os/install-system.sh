@@ -1,7 +1,7 @@
 cp "$(dirname "$0")/system" /usr/local/bin/
 chmod +x /usr/local/bin/system
 
-apt-get --yes install wpasupplicant bluez rfkill
+apt-get install --yes wpasupplicant bluez rfkill
 cp "$(dirname "$0")/system-connections.sh" /usr/local/share/
 echo -n 'polkit.addRule(function(action, subject) {
 	if (
@@ -27,13 +27,13 @@ echo -n 'polkit.addRule(function(action, subject) {
 echo -n '#/bin/sh
 mode="$1" package_name="$2"
 case "$mode" in
-	autoupdate) apt-get --yes update; apt-get --yes dist-upgrade ;;
+	autoupdate) apt-get update; apt-get dist-upgrade --yes ;;
 	update) apt-get update; apt-get dist-upgrade ;;
 	install) apt-get install -- "$package_name" ;;
 	remove) apt-get purge -- "$package_name" ;;
 esac
-apt-get --purge --yes autoremove
-apt-get --yes autoclean
+apt-get autoremove --purge --yes
+apt-get autoclean --yes
 ' > /usr/local/bin/system-packages
 
 # let any user to run "pkexec apt-get update"
