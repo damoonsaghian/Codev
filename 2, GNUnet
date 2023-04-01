@@ -1,14 +1,15 @@
-https://www.gnunet.org/en/
-https://www.gnunet.org/en/use.html
-https://wiki.archlinux.org/title/GNUnet
-https://docs.gnunet.org/
-https://manpages.debian.org/unstable/gnunet/
-https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html
-https://git.gnunet.org/
+"https://www.gnunet.org/en/"
+"https://www.gnunet.org/en/use.html"
+"https://wiki.archlinux.org/title/GNUnet"
+"https://docs.gnunet.org/"
+"https://manpages.debian.org/unstable/gnunet/"
+"https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html"
+"https://git.progress-linux.org/users/daniel.baumann/debian/packages/gnunet/tree/debian/gnunet.postinst"
+"https://git.gnunet.org/"
 
 audio conversasion is already implemented; add video
-https://git.gnunet.org/gnunet.git/tree/src/conversation
-https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
+"https://git.gnunet.org/gnunet.git/tree/src/conversation"
+"https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html"
 use gstreamer gio plugin to send/receive streams to/from gstreamer
 use gstreamer pipewire plugin to access camera
 	libaperture, libaravis
@@ -22,10 +23,19 @@ forward secrecy:
 this means that an attacker must, for each individual,
 record all communications, and break a chain of public keys,
 because only the first public keys are transfered unencrypted
-https://en.wikipedia.org/wiki/Double_Ratchet_Algorithm
+"https://en.wikipedia.org/wiki/Double_Ratchet_Algorithm"
 key backup:	
 , backup (encrypted) private keys, plus public keys of trusted pairs
 , key update between pairs occures only when the backup device is connected
+
+opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key (eg NitroKey)
+since private key does not leave the smartcard, it can't be backed up
+so instea we must use multi'key
+gnunet-identity
+"https://www.kernel.org/doc/html/latest/process/maintainer-pgp-guide.html"
+
+Libgcrypt and libcrypto (OpenSSL) do not support NTRU Prime; wolfCrypt does
+"https://openquantumsafe.org/"
 
 we can use GNUnet for voting too
 real persons submit a public key in their companies, and then can use their private keys to sign their votes
@@ -52,22 +62,22 @@ to send a pull request to the main branch, first publish the pristine and the wo
 	the main developer will make a diff based on these two, plus her own working directory
 a pull request can be removed by sending a message to the main developer, and unpublishing the two links
 
-https://manpages.debian.org/unstable/gnunet/gnunet-directory.1.en.html
-https://manpages.debian.org/unstable/gnunet/gnunet-fs.1.en.html
+"https://manpages.debian.org/unstable/gnunet/gnunet-directory.1.en.html"
+"https://manpages.debian.org/unstable/gnunet/gnunet-fs.1.en.html"
 
-https://www.gnu.org/software/diffutils/manual/html_mono/diff.html
-https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff
+"https://www.gnu.org/software/diffutils/manual/html_mono/diff.html"
+"https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff"
 file tree diff
-https://stackoverflow.com/questions/776854/how-do-i-compare-two-source-trees-in-linux
-https://github.com/dandavison/delta
-https://github.com/so-fancy/diff-so-fancy
-https://diffoscope.org/
-https://github.com/MightyCreak/diffuse
-http://meldmerge.org/
-https://git-scm.com/docs/git-diff
+"https://stackoverflow.com/questions/776854/how-do-i-compare-two-source-trees-in-linux"
+"https://github.com/dandavison/delta"
+"https://github.com/so-fancy/diff-so-fancy"
+"https://diffoscope.org/"
+"https://github.com/MightyCreak/diffuse"
+"http://meldmerge.org/"
+"https://git-scm.com/docs/git-diff"
 
 IPVC is a distributed version control system similar to git, but built on IPFS:
-https://github.com/martindbp/ipvc
+"https://github.com/martindbp/ipvc"
 
 = trustless secure transaction systems
 decentralized internet is already elegantly implemented by GNUnet, but no one is talking about it
@@ -98,7 +108,7 @@ so in decentralized transaction systems:
 it's clear that the motivation behind blockchains is not to replace the current corrupted monetary system,
 	because it's just not capable to do that, by design
 its only purpose is to create a side system for criminal activities
-http://my.pages.de/illegalblockchains
+"http://my.pages.de/illegalblockchains"
 
 an ideal transaction system would be trustless, and avoids having a single point of failure
 this doesn't necessarily mean that we have to completely decentralize everything

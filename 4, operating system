@@ -36,7 +36,7 @@ if the entered password is correct it returns back to previous virtual terminal,
 note that you can't login as root; actually root account is locked,
 	and root password provided during installation, is only used for "sudo"
 also you must never type the user's password anywhere except at the login prompt
-	(and make sure that the login prompt isn't fake, by disconnecting and reconnecting your keyboard)
+	(and make sure that the login prompt isn't fake, by pressing "F8" key for locking/unlocking)
 this means that if a malicious program steals root password (eg by faking the password entry),
 	it still can't run programs as root (because it can't enter the password in a virtual terminal)
 take a look at these:
