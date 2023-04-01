@@ -8,7 +8,7 @@ set -e
 	printf 'set superusers=""\nset timeout=0\n' > /boot/grub/custom.cfg
 
 # remove these packages which are installed by default:
-apt-mark procps dmidecode rsyslog logrotate cron apt-utils tasksel-data debconf-i18n \
+apt-mark procps dmidecode rsyslog logrotate cron apt-utils tasksel-data debconf-i18n adduser \
 	sensible-utils gpgv less nano vim-common vim-tiny whiptail e2fsprogs
 apt-get autoremove --purge --yes
 apt-get autoclean --yes
@@ -72,7 +72,7 @@ apt-get install --yes pipewire-audio systemd-timesyncd dbus-user-session pkexec
 . "$(dirname "$0")/install-system.sh"
 
 echo -n 'unset HISTFILE
-PS1="\e[7m\u@\h\e[0m:\e[7m\w\e[0m\n> "
+export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
@@ -103,6 +103,8 @@ fi
 ' > /etc/profile.d/zz-sway.sh
 
 cp /mnt/codev/alpine/{sway.conf,sway-status.py} /usr/local/share/
+
+# when "F8" is pressed: loginctl lock-sessions
 
 # https://codeberg.org/dnkl/fuzzel
 # alternatives:
@@ -186,7 +188,7 @@ bright7=fefbec
 apt-get install --yes codev || {
 	apt-get install --yes gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
 		gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
-		libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
+		libgtk-4-media-gstreamer gstreamer1.0-{plugins-good,plugins-ugly,libav} \
 		libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
 		python3-gi python3-gi-cairo ca-certificates libarchive gnunet
 	

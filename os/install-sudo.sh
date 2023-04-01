@@ -1,46 +1,43 @@
-# kbd is needed for its chvt and openvt
-apt-get install --yes kbd
+apt-get install --yes kbd whois
+# kbd is needed for its openvt
+# whois is needed for its mkpasswd
 
-# since proc is mounted with hidepid, the following script is secure
-# https://wiki.debian.org/Hardening#Mounting_.2Fproc_with_hidepid
-# https://askubuntu.com/questions/611580/how-to-check-the-password-entered-is-a-valid-password-for-this-user
-cat <<'__EOF__' > /usr/local/share/sudo-chkpasswd.sh
+cat <<'__EOF__' > /usr/local/bin/sudo-chkpasswd
+#!/bin/sh
 set -e
 root_passwd_hashed="$(sed -n '/root/p' /etc/shadow | cut -d ':' -f2)"
 hash_method="$(echo "$root_passwd_hashed" | cut -d '$' -f2)"
-case "$hashtype" in
-	1) hashtype=md5 ;;
-	5) hashtype=sha-256 ;;
-	6) hashtype=sha-512 ;;
+case "$hash_method" in
+	1) hash_method=md5 ;;
+	5) hash_method=sha-256 ;;
+	6) hash_method=sha-512 ;;
 	*) echo "error: password hash type is unsupported"; exit 1 ;;
 esac
 salt="$(echo $root_passwd_hashed | cut -d '$' -f3)"
 printf "enter root password: "
 IFS= read -rs entered_passwd
-entered_passwd_hashed="$(echo "$entered_passwd" | cryptpw -s --method="$hash_method" --salt="$salt")"
+entered_passwd_hashed="$(MKPASSWD_OPTIONS="--method='$hash_method' '$entered_passwd' '$salt'" mkpasswd)"
 if [ "$entered_passwd_hashed" = "$root_passwd_hashed" ]; then
   exit 0
 else
   exit 1
 fi
 __EOF__
+chmod +x /usr/local/bin/sudo-chkpasswd
+# https://askubuntu.com/questions/611580/how-to-check-the-password-entered-is-a-valid-password-for-this-user
 
 echo -n '#!pkexec /bin/sh
 set -e
-user_vt="$(cat /sys/class/tty/tty0/active | cut -c 4-)"
 # switch to the first available virtual terminal and ask for root password,
 #   and if successful, run the given command
-if openvt -sw -- /bin/sh /usr/localshare/sudo-chkpasswd.sh "$@"; then
-	chvt "$user_vt"
+if openvt -sw -- /usr/local/bin/sudo-chkpasswd "$@"; then
 	$@
 else
-	chvt "$user_vt"
 	echo "authentication failure"
 fi
 ' > /usr/local/bin/sudo
 chmod +x /usr/local/bin/sudo
 
-# let any user to run sudo
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
 	"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">

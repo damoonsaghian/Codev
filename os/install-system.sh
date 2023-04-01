@@ -2,17 +2,9 @@ cp "$(dirname "$0")/system" /usr/local/bin/
 chmod +x /usr/local/bin/system
 
 apt-get install --yes wpasupplicant bluez rfkill
-cp "$(dirname "$0")/system-connections.sh" /usr/local/share/
-echo -n 'polkit.addRule(function(action, subject) {
-	if (
-		action.id == "org.freedesktop.policykit.exec" &&
-		action.lookup("program") == "/usr/sbin/rfkill" &&
-		subject.local && subject.active // && subject.isInGroup("netdev")
-	) {
-		return polkit.Result.YES;
-	}
-});
-' > /etc/polkit-1/rules.d/49-rfkill.rules
+echo '# allow rfkill for users in the netdev group
+KERNEL=="rfkill", MODE="0664", GROUP="netdev"
+' >	/etc/udev/rules.d/80-rfkill.rules
 
 echo -n 'polkit.addRule(function(action, subject) {
 	if (

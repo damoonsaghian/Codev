@@ -23,20 +23,22 @@ create_partitions() {
 }
 
 sd_mount() {
+	local first_user="$(id -un 1000)"
 	local dev_path="/dev/$1"
-	local mount_path="/home/$DOAS_USER/.local/mount/$1"
-	doas -u "$DOAS_USER" mkdir -p "$mount_path"
+	local mount_path="/home/$first_user/.local/mount/$1"
+	su -c "mkdir -p \"$mount_path\"" "$first_user"
 	# for filesystems like vfat and exfat
-	mount -o nosuid,nodev,noexec,nofail,uid="$(id -u "$DOAS_USER")",gid="$(id -g "$DOAS_USER")" \
+	mount -o nosuid,nodev,noexec,nofail,uid="$(id -u "$first_user")",gid="$(id -g "$first_user")" \
 		"$dev_path" "$mount_path" &>/dev/null ||
 	# for linux filesystems
 	mount -o nosuid,nodev,noexec,nofail "$dev_name" "$mount_path"
 }
 
 sd_unmount() {
-	local mount_path="/home/$DOAS_USER/.local/mount/$1"
+	local first_user="$(id -un 1000)"
+	local mount_path="/home/$first_user/.local/mount/$1"
 	umount "$mount_path"
-	doas -u "$DOAS_USER" rmdir --ignore-fail-on-non-empty -p "$mount_path"
+	rmdir --ignore-fail-on-non-empty "$mount_path"
 }
 
 device_name="$(basename "$2")"
