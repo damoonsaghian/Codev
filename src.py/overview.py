@@ -7,7 +7,15 @@ from project import Project
 # attached devices:
 # https://docs.gtk.org/gio/class.VolumeMonitor.html
 #
-# format: sd format vfat /dev/sdx
+# if a device is not formated, ask the user if she wants to format it
+# to format it get the volume identifier
+# https://docs.gtk.org/gio/iface.Volume.html
+# use udisks to format it
+# http://storaged.org/doc/udisks2-api/latest/index.html
+# https://lazka.github.io/pgi-docs/#Gio-2.0/classes/DBusConnection.html
+# https://gjs.guide/guides/gio/dbus.html#direct-calls
+# https://gjs.guide/guides/glib/gvariant.html#basic-usage
+# format types:
 # , removable: vfat
 # , removable containing files bigger than 4GB: exfat
 # , internal: btrfs
@@ -15,11 +23,14 @@ from project import Project
 # projects on VFAT/exFAT formated devices will be opened as read'only
 # when you try to edit them, you will be asked to copy them on to a BTRFS formated device
 #
-# mount it if it's not:
-# ; sd mount $device_name
+# mount it (if it's not)
+# https://docs.gtk.org/gio/method.Volume.mount.html
 # the device will be mounted in ~/.local/sd-mount/$device_name
 # to unmount:
 # ; sd unmount $device_name
+#
+# if it's a system device use sudo to mount anf format it
+# http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-property-org-freedesktop-UDisks2-Block.HintSystem
 
 class ProjectsList:
 	project_dir

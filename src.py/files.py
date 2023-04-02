@@ -10,8 +10,9 @@ from gi.repository import GLib, Gio, Gdk, Gtk
 
 # libarchive
 
-# .iso file: ask if you want to extract it, if not ask for a device to write it into, then:
-# ; sd flash devicename isofile
+# .iso file: ask if you want to extract it, if not, ask for a device to write it into
+# then unmount it if mounted, and if sucessful, do:
+# ; sudo dd if=isofile of=devicename
 
 class Files:
 	view
