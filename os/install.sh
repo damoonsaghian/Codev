@@ -76,23 +76,6 @@ export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-apt-get install --yes dosfstools exfatprogs btrfs-progs fdisk
-cp "$(dirname "$0")/sd" /usr/local/bin/
-chmod +x /usr/local/bin/sd
-echo -n '<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
-	"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
-<policyconfig>
-	<action id="codev.sd.sd">
-		<description>sudo</description>
-		<message>sudo</message>
-		<defaults><allow_active>yes</allow_active></defaults>
-		<annotate key="org.freedesktop.policykit.exec.path">/bin/sh</annotate>
-		<annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/sd</annotate>
-	</action>
-</policyconfig>
-' > /usr/share/polkit-1/actions/codev.sd.policy
-
 apt-get install --yes sway swayidle swaylock xwayland fuzzel foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
@@ -187,6 +170,7 @@ bright7=fefbec
 
 apt-get install --yes codev || {
 	apt-get install --yes gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
+		gir1.2-udisks-2.0 dosfstools exfatprogs btrfs-progs gvfs \
 		gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
 		libgtk-4-media-gstreamer gstreamer1.0-{plugins-good,plugins-ugly,libav} \
 		libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
