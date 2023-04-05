@@ -15,7 +15,8 @@ use gstreamer pipewire plugin to access camera
 	libaperture, libaravis
 use gtk4 mediafile to put it on gui
 
-GNUnet on wifi mesh -> bandwidth moderator repeaters
+GNUnet on wifi -> bandwidth moderator repeaters
+https://en.wikipedia.org/wiki/Wireless_ad_hoc_network
 
 forward secrecy:
 , separate keys for each mutual relation
