@@ -229,26 +229,6 @@ manage_packages() {
 		[ "$answer" = y ] || exit
 	}
 	
-	if [ "$mode" = "autoupdate" ]; then
-		critical_battery() {
-			local battery_capacity="/sys/class/power_supply/BAT0/capacity"
-			[ -f "$battery_capacity" ] || battery_capacity="/sys/class/power_supply/BAT1/capacity"
-			[ -f "$battery_capacity" ] && [ "$(cat "$battery_capacity")" -le 20 ]
-		}
-		
-		metered_connection() {
-			local active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
-			local is_metered=false
-			case "$active_net_device" in
-				ww*) is_metered=true ;;
-			esac
-			# todo: DHCP option 43 ANDROID_METERED
-			is_metered
-		}
-		
-		critical_battery || metered_connection && exit 0
-	fi
-	
 	sudo /usr/local/bin/system-packages "$mode" "$package_name"
 }
 

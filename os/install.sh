@@ -1,17 +1,9 @@
 set -e
 
-# lock Grub for security
-# since recovery mode in Debian requires root password,
-# there is no need to disable generation of recovery mode menu entries
-# we just have to disable menu editing and other admin operations in Grub:
-[ -f /boot/grub/grub.cfg ] &&
-	printf 'set superusers=""\nset timeout=0\n' > /boot/grub/custom.cfg
-
 # remove these packages which are installed by default:
 apt-mark procps dmidecode rsyslog logrotate cron apt-utils tasksel-data debconf-i18n adduser \
 	sensible-utils gpgv less nano vim-common vim-tiny whiptail e2fsprogs
 apt-get autoremove --purge --yes
-apt-get autoclean --yes
 
 echo -n 'APT::Install-Recommends "false";
 APT::AutoRemove::RecommendsImportant "false";
@@ -25,6 +17,24 @@ deb-src https://deb.debian.org/debian unstable main contrib non-free
 apt-get update
 apt-get dist-upgrade --yes
 
+# lock Grub for security
+# since recovery mode in Debian requires root password,
+# there is no need to disable generation of recovery mode menu entries
+# we just have to disable menu editing and other admin operations in Grub:
+[ -f /boot/grub/grub.cfg ] &&
+	printf 'set superusers=""\nset timeout=0\n' > /boot/grub/custom.cfg
+
+# to have faster boot in EFI systems, replace grub with systemd-bootd
+[ -d /boot/efi ] && {
+	apt-get install --yes systemd-boot
+	mkdir -p /boot/efi/loader
+	printf 'timeout 0\neditor no\n' > /boot/efi/loader/loader.conf
+	
+	apt-get purge --yes --ignore-missing grub-efi grub-common \
+		grub-efi-amd64 grub-efi-ia32 grub-efi-arm64 grub-efi-arm shim-signed
+	apt-get autoremove --purge --yes
+}
+
 # install required firmwares when a new hardware is added
 # https://salsa.debian.org/debian/isenkram
 echo -n '#!/bin/sh
@@ -33,37 +43,7 @@ chmod +x /usr/local/bin/install-firmware
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' >
 	/etc/udev/rules.d/80-install-firmware.rules
 
-echo -n '[Match]
-Name=en*
-[Network]
-DHCP=yes
-IPv6PrivacyExtensions=yes
-[DHCPv4]
-RouteMetric=100
-[IPv6AcceptRA]
-RouteMetric=100
-' > /etc/systemd/network/20-ethernet.network
-echo -n '[Match]
-Name=wl*
-[Network]
-DHCP=yes
-IPv6PrivacyExtensions=yes
-IgnoreCarrierLoss=3s
-[DHCPv4]
-RouteMetric=600
-[IPv6AcceptRA]
-RouteMetric=600
-' > /etc/systemd/network/20-wireless.network
-
-systemctl enable systemd-networkd
-rm -f /etc/network/interfaces
-apt-mark auto ifupdown isc-dhcp-client isc-dhcp-common iputils-ping nftables
-apt-get autoremove --purge --yes
-apt-get autoclean --yes
-
-apt-get install -yes systemd-resolved
-# https://fedoramagazine.org/systemd-resolved-introduction-to-split-dns/
-# https://blogs.gnome.org/mcatanzaro/2020/12/17/understanding-systemd-resolved-split-dns-and-vpn-configuration/
+. "$(dirname "$0")/install-network.sh"
 
 apt-get install --yes pipewire-audio systemd-timesyncd dbus-user-session pkexec
 
@@ -88,6 +68,10 @@ fi
 cp /mnt/codev/alpine/{sway.conf,sway-status.py} /usr/local/share/
 
 # when "F8" is pressed: loginctl lock-sessions
+
+# to prevent BadUSB, when a new input device is connected lock the session
+echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="loginctl lock-sessions"' >
+	/etc/udev/rules.d/80-lock-new-hid.rules
 
 # https://codeberg.org/dnkl/fuzzel
 # alternatives:
@@ -204,3 +188,5 @@ Name=Codev
 Exec=sh -c "swaymsg workspace 1:codev; codev || python3 /usr/local/share/codev/"
 StartupNotify=true
 ' > /usr/local/share/applications/codev.desktop
+
+apt-get autoclean --yes
