@@ -1,108 +1,29 @@
 #!/bin/sh
 set -e
 
-choose() {
-	# the list of choices with the indents removed
-	local list="$(echo "$2" | sed -r 's/^[[:blank:]]+//')"
-	local count="$(echo "$2" | wc -l)"
-	local index=1
-	local key=
-	
-	local terminal_height="$(stty size | cut -d ' ' -f1)"
-	local max_height=15
-	[ $max_height -gt $terminal_height ] && max_height=$terminal_height
-	local scrolled=false
-	[ $((count+2)) -gt $max_height ] && scrolled=true
-	
-	# if a default option is provided, find its index
-	[ -z "$3" ] || {
-		i="$(printf "$list" | sed -n "/$3/=" | head -n 1)"
-		[ -z "$i" ] || index=i
-	}
-	
-	while true; do
-		# print the lines, highlight the selected one
-		printf "$list" | {
-			i=1
-			j=$((index-max_height/2))
-			while read line; do
-				d=$((i-index))
-				$scrolled && { [ $i -lt $j ] || [ $i -gt $((j+max_height-2)) ]; } && break
-				
-				if [ $i = $index ]; then
-					printf "  \e[7m$line\e[0m\n" # highlight
-				else
-					printf "  $line\n"
-				fi
-				i=$((i+1))
-			done
-		}
-		if [ $index -eq 0 ]; then
-			printf "\e[7mexit\e[0m\n" # highlighted
-		else
-			printf "\e[8mexit\e[0m\n" # hidden
-		fi
-		
-		read -s -n1 key # wait for user to press a key
-		
-		# if key is empty, it means the read delimiter, ie the "enter" key was pressed
-		[ -z "$key" ] && break
-		if [ "$key" = "\177" ]; then
-			index=0
-		elif [ "$key" = " " ]; then
-			index=$((index+1))
-			[ $index -gt $count ] && i=1
-		else
-			# find the next line which its first character is "$key", and put the line's number in "index"
-			i=index
-			while true; do
-				i=$((i+1))
-				[ $i -gt $count ] && i=1
-				[ $i -eq $index ] && break
-				if [ "$(echo "$list" | sed -n "$i"p | cut -c1)" = "$key" ]; then
-					index=i
-					break
-				fi
-			done
-		fi
-		
-		if $scrolled; then
-			echo -en "\e[$((max_height-1))A"
-		else
-			echo -en "\e[$((count+1))A" # go up to the beginning to re'render
-		fi
-	done
-	
-	[ $index -eq 0 ] && { echo; exit; }
-	selected_line="$(echo "$list" | sed -n "${index}p")"
-	eval "$1=\"$selected_line\""
-}
-
-# https://wiki.alpinelinux.org/wiki/Wi-Fi
-# wpa_supplicant
 manage_wifi() {
-	choose mode "connect\nremove"
+	local mode="$(printf "connect\nremove" | fzy)" device= ssid=
+	
+	if [ "$mode" = connect ]; then
+		echo 'select a device:'
+		device="$(ls /sys/class/ieee80211/*/device/net/ | fzy)"
+		wpa_cli -i "$device" scan
+		
+		echo 'select a network to connect:'
+		ssid="$(wpa_cli -i "$device" scan_results | fzy | cut -c5- | cut -d ' ' -f1)"
+		iwctl station "$device" connect "$ssid"
+	fi
+	
 	if [ "$mode" = remove ]; then
 		echo 'select a network to remove:'
-		choose ssid "$(iwctl known-networks list)"
-		ssid="$(echo "$ssid" | cut -c5- | cut -d ' ' -f1)"
+		ssid="$(iwctl known-networks list | fzy | cut -c5- | cut -d ' ' -f1)"
 		
-		printf "remove $ssid (y/N)? "
+		printf "remove \"$ssid\" (y/N)? "
 		read -r answer
 		[ "$answer" = y ] || exit
 		
 		iwctl known-networks "$ssid" forget
-		exit
 	fi
-	
-	echo 'select a device:'
-	device="$(iwctl device list)"
-	device="$(echo "$device" | { read first _; echo $first; })"
-	
-	echo 'select a network to connect:'
-	choose ssid "$(iwctl station "$device" scan; iwctl station "$device" get-networks)"
-	ssid="$(echo "$ssid" | cut -c5- | cut -d ' ' -f1)"
-	iwctl station "$device" connect "$ssid"
 }
 
 manage_cell() {
@@ -110,49 +31,48 @@ manage_cell() {
 }
 
 manage_bluetooth() {
-	echo "not yet implemented"; exit
+	local mode= device=
 	
+	echo "not yet implemented"; exit
 	# https://forum.endeavouros.com/t/how-to-script-bluetoothctl-commands/18225/10
 	# https://gist.github.com/RamonGilabert/046727b302b4d9fb0055
 	# "echo '' | ..." or expect
-	
+	#
 	# https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/test/simple-agent
 	# https://ukbaz.github.io/howto/python_gio_1.html
 	# https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
-
-	choose mode "add\nremove"
+	
+	mode="$(printf "add\nremove" | fzy)"
+	
+	if [ "$mode" = remove ]; then
+		bluetoothctl scan on &
+		sleep 3
+		echo "select a device:"
+		device="$(bluetoothctl devices | fzy | { read _first mac_address; echo $mac_address; })"
+		
+		if bluetoothctl --agent -- pair "$device"; then
+			bluetoothctl trust "$device"
+			bluetoothctl connect "$device"
+		else
+			bluetoothctl untrust "$device"
+		fi
+	fi
 	
 	if [ "$mode" = remove ]; then
 		echo "select a device:"
-		choose device "$(bluetoothctl devices)"
-		device="$(echo "$device" | { read _first mac_address; echo $mac_address; })"
+		device="$(bluetoothctl devices | fzy | { read _first mac_address; echo $mac_address; })"
 		bluetoothctl disconnect "$device"
-		bluetoothctl untrust "$device"
-		exit
-	fi
-	
-	bluetoothctl scan on &
-	sleep 3
-	echo "select a device:"
-	choose device "$(bluetoothctl devices)"
-	device="$(echo "$device" | { read _first mac_address; echo $mac_address; })"
-	
-	if bluetoothctl --agent -- pair "$device"; then
-		bluetoothctl trust "$device"
-		bluetoothctl connect "$device"
-	else
 		bluetoothctl untrust "$device"
 	fi
 }
 
 manage_radio_devices() {
 	# wifi, cellular, bluetooth, gps
-	local lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
+	local lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")" device= action=
 	echo 'select a radio device:'
-	choose device "$lines"
-	device="$(printf "$device" | cut -d " " -f1)"
-	echo "$device:"
-	choose action "block\nunblock"
+	device="$(printf "$lines" | fzy | cut -d " " -f1)"
+
+	action="$(printf "block\nunblock" | fzy)"
 	rfkill "$action" "$device"
 }
 
@@ -186,7 +106,7 @@ manage_router() {
 }
 
 manage_connections() {
-	choose selected_option "wifi\naccess-point\nrouter\ncellular\nbluetooth\nradio"
+	local selected_option="$(printf "wifi\ncellular\nbluetooth\nradio\nrouter" | fzy)"
 	case "$selected_option" in
 		wifi) manage_wifi ;;
 		cellular) manage_cell ;;
@@ -201,29 +121,31 @@ set_timezone() {
 	local geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
 	local geoip_tz_continent="$(printf "$geoip_tz" | cut -d / -f1)"
 	local geoip_tz_city="$(printf "$geoip_tz" | cut -d / -f2)"
-	choose continent "$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5)" $geoip_tz_continent
-	choose city "$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6)" $geoip_tz_city
+	local continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | fzy -q "$geoip_tz_continent")"
+	local city="$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6 | fzy -q "$geoip_tz_city")"
 	timedatectl set-timezone "${continent}/${city}"
 }
 
 manage_packages() {
-	local mode= package_name=
+	local mode= package_name= answer=n
 	echo 'packages:'
-	choose mode 'update\ninstall\nremove'
+	mode="$(printf "update\ninstall\nremove" | fzy)"
 	
 	[ "$mode" = install ] && {
 		printf 'search for: '
 		read -r search_entry
 		pkexec apt-get update
-		choose package_name "$(apt-cache search "$search_entry")"
-		package_name="$(echo "$package_name" | { read first _rest; echo $first; })"
+		package_name="$(apt-cache search "$search_entry" | fzy | { read first _rest; echo $first; })"
+		apt-cache show "$package_name"
+		printf "install $package_name (Y/n)? "
+		read -r answer
+		[ "$answer" = n ] && exit
 	}
 	
 	[ "$mode" = remove ] && {
 		printf 'search for: '
 		read -r search_entry
-		choose package_name "$(apk search "$search_entry")"
-		package_name="$(echo "$package_name" | { read first _rest; echo $first; })"
+		package_name="$(apt-cache search "$search_entry" | fzy | { read first _rest; echo $first; })"
 		printf "remove $package_name (y/N)? "
 		read -r answer
 		[ "$answer" = y ] || exit
@@ -232,7 +154,7 @@ manage_packages() {
 	sudo /usr/local/bin/system-packages "$mode" "$package_name"
 }
 
-choose selected_option "timezone\nconnections\npackages"
+selected_option="$(printf "timezone\nconnections\npackages" | fzy)"
 case "$selected_option" in
 	connections) manage_connections ;;
 	timezone) set_timezone ;;

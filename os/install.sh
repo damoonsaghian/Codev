@@ -1,14 +1,32 @@
 set -e
 
-# remove these packages which are installed by default:
-apt-mark procps dmidecode rsyslog logrotate cron apt-utils tasksel-data debconf-i18n adduser \
-	sensible-utils gpgv less nano vim-common vim-tiny whiptail e2fsprogs
-apt-get autoremove --purge --yes
+# configure and rewrite the initramfs, to make it portable across differnt hardwares
+
+# ask for the device to install the system on it
+# create partitions and format it with BTRFS
+# mount the formated partitions in "/mnt"
+
+<<__
+despite using BTRFS, in'place writing is needed in two situations:
+1, in'place first write for preallocated space, like in torrents
+	we don't want to disable COW for these files
+	apparently supported by BTRFS, isn't it?
+	https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
+	https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
+	https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
+2, virtual machines and databases
+	COW must be disabled for these files
+	generally it's done automatically by the program itself (eg systemd-journald)
+	otherwise we must do it manually: chattr +C ...
+	apparently Webkit uses SQLite in WAL mode
+__
+
+# debootstrap
 
 echo -n 'APT::Install-Recommends "false";
 APT::AutoRemove::RecommendsImportant "false";
 APT::AutoRemove::SuggestsImportant "false";
-' > /etc/apt/apt.conf.d/99_norecommends
+' > /mnt/etc/apt/apt.conf.d/99_norecommends
 
 # upgrade to sid
 echo -n 'deb https://deb.debian.org/debian unstable main contrib non-free
@@ -190,3 +208,7 @@ StartupNotify=true
 ' > /usr/local/share/applications/codev.desktop
 
 apt-get autoclean --yes
+
+printf "installation completed successfully; reboot the system? (Y/n)"
+read -r answer
+[ "$answer" = n ] || reboot

@@ -1,7 +1,13 @@
 cp "$(dirname "$0")/system" /usr/local/bin/
 chmod +x /usr/local/bin/system
 
+apt-get install --yes fzy
+
 apt-get install --yes wpasupplicant bluez rfkill
+
+mkdir -p /etc/wpa_supplicant
+printf "ctrl_interface=/run/wpa_supplicant\nupdate_config=1\n" > /etc/wpa_supplicant/wpa_supplicant.conf
+
 echo '# allow rfkill for users in the netdev group
 KERNEL=="rfkill", MODE="0664", GROUP="netdev"
 ' >	/etc/udev/rules.d/80-rfkill.rules
@@ -71,6 +77,7 @@ Type=oneshot
 ExecStartPre=-/usr/lib/apt/apt-helper wait-online
 ExecStart=/usr/local/bin/system-packages autoupdate
 KillMode=process
+TimeoutStopSec=900
 Nice=19
 ' > /usr/local/lib/systemd/system/automatic-update.service
 echo -n '[Unit]

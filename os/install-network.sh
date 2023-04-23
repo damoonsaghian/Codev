@@ -70,9 +70,6 @@ RouteMetric=700
 # https://wiki.archlinux.org/title/Mobile_broadband_modem
 
 systemctl enable systemd-networkd
-rm -f /etc/network/interfaces
-apt-mark auto ifupdown isc-dhcp-client isc-dhcp-common iputils-ping nftables
-apt-get autoremove --purge --yes
 
 apt-get install -yes systemd-resolved
 # https://fedoramagazine.org/systemd-resolved-introduction-to-split-dns/
