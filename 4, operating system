@@ -1,4 +1,5 @@
 using Debian we can easily setup a Linux based operating system
+
 use Debian Installer to install Debian on a removable storage device
 it's recommended to add a desktop environment like Gnome, when you are asked to select additional tasks
 the installed system is in fact an intermediate system which can be used to install the actual one
@@ -9,11 +10,10 @@ in the intermediate system, download this project, and run the "install.sh" scri
 ; gnunet-download -R gnunet://fs/sks/damoonsaghian/Codev
 ; sh Codev/os/install.sh
 ; reboot
-the script will configure and rewrite the initramfs of the intermediate system,
-	to make it portable across differnt hardwares,
-	and then installs the actual system
+the script will make sure that the intermediate system is portable across differnt hardwares,
+	and then tries to install the actual system
 
-there would be two applications, in the installed system: Codev, and a terminal emulator
+in the installed system, there would be two applications: Codev, and a terminal emulator
 press "alt+enter" ("pun+enter" in action mode) to open app launcher menu
 in app launcher menu press "alt+enter" again to open session management menu:
 	lock, suspend, exit, reboot, poweroff
@@ -24,8 +24,8 @@ press "alt+backspace" ("pun+backspace" in action mode) to close focused window
 "system" is a command'line program which can be used to configure:
 	timezone, language, connections, and installed packages
 
-implementing atomic upgrade does not worth the effort, because to have real fail'safe systems,
-	redundant backup systems are necessary anyway
+implementing atomic upgrade does not worth the effort, because to have a really fail'safe system,
+	redundant backups are necessary anyway
 to fix a broken system (eg due to powerloss during a system upgrade), the rescue medium can be used
 
 to run a command as root:
