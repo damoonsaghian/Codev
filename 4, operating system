@@ -1,14 +1,16 @@
 using Debian we can easily setup a Linux based operating system
 
-use Debian Installer to install Debian on a removable storage device
-it's recommended to add a desktop environment like Gnome, when you are asked to select additional tasks
+first we use Debian Installer to install Debian on a removable storage device (at least 10GB)
+during installation mostly go with the default, just remember that:
+, leave the root password empty
+, make sure that Gnome desktop task is selected
 the installed system is in fact an intermediate system which can be used to install the actual one
 it can also be used as a rescue medium
 
 in the intermediate system, download this project, and run the "install.sh" script:
-; apt install gnunet
+; sudo apt install gnunet
 ; gnunet-download -R gnunet://fs/sks/damoonsaghian/Codev
-; sh Codev/os/install.sh
+; sudo sh Codev/os/install.sh
 ; reboot
 the script will make sure that the intermediate system is portable across differnt hardwares,
 	and then tries to install the actual system
