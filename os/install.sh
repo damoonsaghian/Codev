@@ -1,25 +1,27 @@
 set -e
 
-# configure and rewrite the initramfs, to make it portable across differnt hardwares
+# make sure that initramfs (of the installation system) is portable across differnt hardwares
+echo 'MODULES=most' > /etc/initramfs-tools/conf.d/portable-initramfs
+update-initramfs -u
+
+# install all firmwares (on the installation system)
 
 # ask for the device to install the system on it
 # create partitions and format it with BTRFS
 # mount the formated partitions in "/mnt"
 
-<<__
-despite using BTRFS, in'place writing is needed in two situations:
-1, in'place first write for preallocated space, like in torrents
-	we don't want to disable COW for these files
-	apparently supported by BTRFS, isn't it?
-	https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
-	https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
-	https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
-2, virtual machines and databases
-	COW must be disabled for these files
-	generally it's done automatically by the program itself (eg systemd-journald)
-	otherwise we must do it manually: chattr +C ...
-	apparently Webkit uses SQLite in WAL mode
-__
+# despite using BTRFS, in'place writing is needed in two situations:
+# 1, in'place first write for preallocated space, like in torrents
+# 	we don't want to disable COW for these files
+# 	apparently supported by BTRFS, isn't it?
+# 	https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
+# 	https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
+# 	https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
+# 2, virtual machines and databases
+# 	COW must be disabled for these files
+# 	generally it's done automatically by the program itself (eg systemd-journald)
+# 	otherwise we must do it manually: chattr +C ...
+# 	apparently Webkit uses SQLite in WAL mode
 
 # debootstrap
 
@@ -61,7 +63,48 @@ chmod +x /usr/local/bin/install-firmware
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' >
 	/etc/udev/rules.d/80-install-firmware.rules
 
-. "$(dirname "$0")/install-network.sh"
+echo -n '[Match]
+Name=en*
+Name=eth*
+#Type=ether
+#Name=! veth*
+[Network]
+DHCP=yes
+[DHCPv4]
+RouteMetric=100
+[IPv6AcceptRA]
+RouteMetric=100
+' > /etc/systemd/network/20-ethernet.network
+echo -n '[Match]
+Name=wl*
+#Type=wlan
+#WLANInterfaceType=station
+[Network]
+DHCP=yes
+IgnoreCarrierLoss=3s
+[DHCPv4]
+RouteMetric=600
+[IPv6AcceptRA]
+RouteMetric=600
+' > /etc/systemd/network/20-wireless.network
+echo -n '[Match]
+Name=ww*
+#Type=wwan
+[Network]
+DHCP=yes
+IgnoreCarrierLoss=3s
+[DHCPv4]
+RouteMetric=700
+[IPv6AcceptRA]
+RouteMetric=700
+' > /etc/systemd/network/20-wwan.network
+# https://gitlab.archlinux.org/archlinux/archiso/-/blob/master/configs/releng/airootfs/etc/systemd/network/20-wwan.network
+# https://wiki.archlinux.org/title/Mobile_broadband_modem
+# https://github.com/systemd/systemd/issues/20370
+systemctl enable systemd-networkd
+apt-get install -yes systemd-resolved
+# https://fedoramagazine.org/systemd-resolved-introduction-to-split-dns/
+# https://blogs.gnome.org/mcatanzaro/2020/12/17/understanding-systemd-resolved-split-dns-and-vpn-configuration/
 
 apt-get install --yes pipewire-audio systemd-timesyncd dbus-user-session pkexec
 

@@ -3,10 +3,9 @@ chmod +x /usr/local/bin/system
 
 apt-get install --yes fzy
 
-apt-get install --yes wpasupplicant bluez rfkill
+apt-get install --yes iwd wireless-regdb bluez rfkill
 
-mkdir -p /etc/wpa_supplicant
-printf "ctrl_interface=/run/wpa_supplicant\nupdate_config=1\n" > /etc/wpa_supplicant/wpa_supplicant.conf
+systemctl enable iwd.service
 
 echo '# allow rfkill for users in the netdev group
 KERNEL=="rfkill", MODE="0664", GROUP="netdev"

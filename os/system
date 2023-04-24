@@ -6,11 +6,11 @@ manage_wifi() {
 	
 	if [ "$mode" = connect ]; then
 		echo 'select a device:'
-		device="$(ls /sys/class/ieee80211/*/device/net/ | fzy)"
-		wpa_cli -i "$device" scan
+		device="$(iwctl device list | fzy | { read first _; echo $first; })"
 		
+		iwctl station "$device" scan
 		echo 'select a network to connect:'
-		ssid="$(wpa_cli -i "$device" scan_results | fzy | cut -c5- | cut -d ' ' -f1)"
+		ssid="$(iwctl station "$device" get-networks | fzy | cut -c5- | cut -d ' ' -f1)"
 		iwctl station "$device" connect "$ssid"
 	fi
 	
@@ -97,12 +97,22 @@ manage_router() {
 	# if there is only one wifi device, create a virtual one (concurrent AP-STA mode)
 	# https://wiki.archlinux.org/title/software_access_point
 	# https://variwiki.com/index.php?title=Wifi_NetworkManager#WiFi_STA.2FAP_concurrency
-	# put this virtual wifi device in connman unmanaged
-	# activate AP mode on it, using wpa_supplicant
+	# activate AP mode on it, using iwd
 	# http://blog.hoxnox.com/gentoo/wifi-hotspot.html
-	# run a dhcp server on it, using ifupdown-ng
 	# https://wiki.alpinelinux.org/wiki/Wireless_AP_with_udhcpd_and_NAT
 	# when removing a wireless device, disable AP mode, and delete the virtual device (if any)
+	
+	#echo -n '[Match]
+	#Type=wlan
+	#WLANInterfaceType=ap
+	#[Network]
+	#Address=0.0.0.0/24
+	#DHCPServer=yes
+	#IPMasquerade=both
+	#' > /etc/systemd/network/80-wifi-ap.network
+	# https://hackaday.io/project/162164/instructions?page=2
+	# https://raspberrypi.stackexchange.com/questions/133403/configure-usb-wi-fi-dongle-as-stand-alone-access-point-with-systemd-networkd
+	# https://man.archlinux.org/man/core/systemd/systemd.netdev.5.en
 }
 
 manage_connections() {
