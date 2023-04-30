@@ -1,9 +1,10 @@
 using Debian we can easily setup a Linux based operating system
 
 first we use Debian Installer to install Debian on a removable storage device (at least 10GB)
-during installation mostly go with the default, just remember that:
+during installation you can mostly go with the default options, just:
 , leave the root password empty
-, make sure that Gnome desktop task is selected
+, don't select any desktop environment in the tasks list
+	it's even recommended to deselect "standard system" in the list, to save space
 the installed system is in fact an intermediate system which can be used to install the actual one
 it can also be used as a rescue medium
 
