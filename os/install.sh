@@ -6,6 +6,12 @@ update-initramfs -u
 
 # install all firmwares (on the installation system)
 
+# install sway, a terminal emulator, and a web browser
+# having a web browser in a rescue system can be useful
+
+# disable ifupdown, and activate systemd-networkd
+# if there is no ethernet, ask user for info to setup a wifi connection
+
 # ask for the device to install the system on it
 # create partitions and format it with BTRFS
 # mount the formated partitions in "/mnt"
@@ -24,6 +30,10 @@ update-initramfs -u
 # 	apparently Webkit uses SQLite in WAL mode
 
 # debootstrap
+# important packages: init udev netbase
+# standard packages: ca-certificates
+# also install usr-is-merged, to avoid usrmerge (a dependency of init-system-helpers),
+# which installs perl as dependency
 
 echo -n 'APT::Install-Recommends "false";
 APT::AutoRemove::RecommendsImportant "false";
@@ -219,7 +229,7 @@ apt-get install --yes codev || {
 		gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
 		libgtk-4-media-gstreamer gstreamer1.0-{plugins-good,plugins-ugly,libav} \
 		libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-		python3-gi python3-gi-cairo ca-certificates libarchive gnunet
+		python3-gi python3-gi-cairo libarchive gnunet
 	
 	# plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 	# libav is needed till
