@@ -9,11 +9,32 @@ update-initramfs -u
 # install sway, a terminal emulator, and a web browser
 # having a web browser in a rescue system can be useful
 
-# disable ifupdown, and activate systemd-networkd
-# if there is no ethernet, ask user for info to setup a wifi connection
+# ask for confirmation for auto'detected time'zone
 
-# ask for the device to install the system on it
-# create partitions and format it with BTRFS
+# disable ifupdown, and activate systemd-networkd
+apt-get install -yes systemd-resolved
+rm -f /etc/network/interfaces
+systemctl enable systemd-networkd
+# ask for network configuration (if it's not a simple DHCP ethernet connection)
+
+# ask if the user wants to install a new system, or fix an existing system
+# ask for the device to repaire
+# mount /dev/sdx /mnt
+# apt-get dist-upgrade || apt-get dist-upgrade --no-download
+
+# ask for a root password, and a user account
+#while ! passwd ; do
+#	echo "try again"
+#done
+#
+#echo -n "choose a username: "; read username
+#adduser $username netdev
+#while ! passwd user1; do
+#	echo "try again"
+#done
+
+# ask for the device to install the system on it (if there is more than one device)
+# create partitions and format them (use BTRFS for root)
 # mount the formated partitions in "/mnt"
 
 # despite using BTRFS, in'place writing is needed in two situations:
@@ -127,7 +148,7 @@ export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-apt-get install --yes sway swayidle swaylock xwayland fuzzel foot
+apt-get install --yes sway swayidle swaylock i3status wayout grim wl-clipboard xwayland fuzzel foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
@@ -136,7 +157,44 @@ if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
 fi
 ' > /etc/profile.d/zz-sway.sh
 
-cp /mnt/codev/alpine/{sway.conf,sway-status.py} /usr/local/share/
+cp "$(dirname "$0")"/{sway.conf,sway-status.sh} /usr/local/share/
+echo -n 'general {
+  output_format = "none"
+  interval = 2
+}
+order += "time"
+order += "battery all"
+order += "cpu_usage"
+order += "memory"
+order += "wireless _first_"
+order += "ethernet _first_"
+time {
+  format = "%Y-%m-%d  %a  %p  %I:%M"
+}
+battery all {
+  format = "%status %percentage"
+  format_down = "battery-down"
+  status_bat = "battery"
+  status_chr = "battery-charging"
+  status_full = "battery-full"
+  status_unk = "battery-unknown"
+  integer_battery_capacity = true
+}
+cpu_usage {
+  format = "cpu %usage"
+}
+memory {
+  format = "ram %percentage_used"
+}
+wireless _first_ {
+  format_up = "wireless %quality"
+  format_down = "wireless-down"
+}
+ethernet _first_ {
+  format_up = "ethernet"
+  format_down = "ethernet-down"
+}
+' > /usr/local/share/i3status.conf
 
 # when "F8" is pressed: loginctl lock-sessions
 
@@ -259,8 +317,6 @@ Name=Codev
 Exec=sh -c "swaymsg workspace 1:codev; codev || python3 /usr/local/share/codev/"
 StartupNotify=true
 ' > /usr/local/share/applications/codev.desktop
-
-apt-get autoclean --yes
 
 printf "installation completed successfully; reboot the system? (Y/n)"
 read -r answer
