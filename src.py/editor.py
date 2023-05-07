@@ -23,6 +23,10 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 
 # https://stackoverflow.com/questions/76096/undo-with-gtk-textview
 
+# clipboard handling for text, image, and "text/uri-list"
+# for the latter, ref'copy the files into the ".data" directory,
+# and insert the appropriate markup (first ask for a name)
+
 # mathematical symbols
 # "psi" followed by two succesive apostrophes will be replaced by "ψ"
 

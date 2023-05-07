@@ -17,7 +17,8 @@ from overview import Overview
 # https://www.gtk.org/docs/apis/
 # https://developer.gnome.org/documentation/
 
-# notifications will be added/removed in/from "~/.local/state/codev/notifications"
+# use wayout to show notifications at the bottom left corner of the screen
+# https://git.sr.ht/~proycon/wayout/tree/master/item/doc/wayout.1.scd
 
 # slightly dim unfocused panels
 # when moving or when "action" is pressed, create a flash which shows the location of the cursor
