@@ -9,7 +9,7 @@ from gi.repository import GLib, Gio, Gdk, Gtk, WebKit2
 # , activate the relevant keyboard layout
 # , show keyboard layout indicator near cursor
 # , provide a keybinding to switch between keyboard layouts
-# if a page contains non'latin characters, and web fonts are not provided, install the relevent Noto web font
+# if a page contains non'latin characters, and web fonts are not provided, install the relevant Noto web font
 # if page contains emoji charactors add twemoji web font
 # https://github.com/twitter/twemoji
 
