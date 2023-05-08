@@ -68,7 +68,9 @@ manage_bluetooth() {
 
 manage_radio_devices() {
 	# wifi, cellular, bluetooth, gps
-	local lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")" device= action=
+	local lines= device= action=
+	
+	lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
 	echo 'select a radio device:'
 	device="$(printf "$lines" | fzy | cut -d " " -f1)"
 
@@ -127,12 +129,11 @@ manage_connections() {
 }
 
 set_timezone() {
-	# guess the timezone, but let the user to confirm it
-	local geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
-	local geoip_tz_continent="$(printf "$geoip_tz" | cut -d / -f1)"
-	local geoip_tz_city="$(printf "$geoip_tz" | cut -d / -f2)"
-	local continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | fzy -q "$geoip_tz_continent")"
-	local city="$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6 | fzy -q "$geoip_tz_city")"
+	local continent= city=
+	echo "select a continent:"
+	continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | fzy -q "$geoip_tz_continent")"
+	echo "select a city:"
+	city="$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6 | fzy -q "$geoip_tz_city")"
 	timedatectl set-timezone "${continent}/${city}"
 }
 

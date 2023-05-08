@@ -148,7 +148,8 @@ export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-apt-get install --yes sway swayidle swaylock i3status wayout grim wl-clipboard xwayland fuzzel foot
+apt-get install --yes sway swayidle swaylock grim wl-clipboard xwayland fuzzel foot \
+	i3pystatus python3-colour python3-netifaces fonts-materialdesignicons-webfont
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
@@ -157,44 +158,7 @@ if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
 fi
 ' > /etc/profile.d/zz-sway.sh
 
-cp "$(dirname "$0")"/{sway.conf,sway-status.sh} /usr/local/share/
-echo -n 'general {
-  output_format = "none"
-  interval = 2
-}
-order += "time"
-order += "battery all"
-order += "cpu_usage"
-order += "memory"
-order += "wireless _first_"
-order += "ethernet _first_"
-time {
-  format = "%Y-%m-%d  %a  %p  %I:%M"
-}
-battery all {
-  format = "%status %percentage"
-  format_down = "battery-down"
-  status_bat = "battery"
-  status_chr = "battery-charging"
-  status_full = "battery-full"
-  status_unk = "battery-unknown"
-  integer_battery_capacity = true
-}
-cpu_usage {
-  format = "cpu %usage"
-}
-memory {
-  format = "ram %percentage_used"
-}
-wireless _first_ {
-  format_up = "wireless %quality"
-  format_down = "wireless-down"
-}
-ethernet _first_ {
-  format_up = "ethernet"
-  format_down = "ethernet-down"
-}
-' > /usr/local/share/i3status.conf
+cp "$(dirname "$0")"/{sway.conf,sway-status.py} /usr/local/share/
 
 # when "F8" is pressed: loginctl lock-sessions
 
@@ -287,7 +251,7 @@ apt-get install --yes codev || {
 		gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
 		libgtk-4-media-gstreamer gstreamer1.0-{plugins-good,plugins-ugly,libav} \
 		libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-		python3-gi python3-gi-cairo libarchive gnunet
+		python3-gi python3-gi-cairo wayout libarchive gnunet
 	
 	# plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 	# libav is needed till
