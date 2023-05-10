@@ -148,9 +148,6 @@ export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-apt-get install --yes sway swayidle swaylock grim wl-clipboard xwayland fuzzel foot \
-	i3pystatus python3-colour python3-netifaces fonts-materialdesignicons-webfont
-
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
 	[ -f "$HOME/.profile" ] && . "$HOME/.profile"
@@ -158,13 +155,46 @@ if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
 fi
 ' > /etc/profile.d/zz-sway.sh
 
-cp "$(dirname "$0")"/{sway.conf,sway-status.py} /usr/local/share/
-
 # when "F8" is pressed: loginctl lock-sessions
 
 # to prevent BadUSB, when a new input device is connected lock the session
 echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="loginctl lock-sessions"' >
 	/etc/udev/rules.d/80-lock-new-hid.rules
+
+apt-get install --yes sway swayidle swaylock grim wl-clipboard xwayland fuzzel foot \
+	i3status fonts-materialdesignicons-webfont
+
+cp "$(dirname "$0")"/{sway.conf,sway-status.sh} /usr/local/share/
+
+echo -n 'general {
+	output_format = "none"
+	separator = "|"
+	interval = 2
+}
+order += "cpu_usage"
+order += "memory"
+order += "ethernet _first_"
+order += "wireless _first_"
+order += "battery all"
+order += "volume master"
+order += "time"
+cpu_usage {
+	format = "%usage"
+}
+memory {
+	format = "%percentage_used"
+}
+battery all {
+	format = "%status %percentage"
+	format_down = "null null"
+}
+volume master {
+	format = "%devicename %volume"
+}
+time {
+	format = "%Y-%m-%d  %a  %p  %I:%M"
+}
+' > /usr/local/share/i3status.conf
 
 # https://codeberg.org/dnkl/fuzzel
 # alternatives:
