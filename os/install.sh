@@ -161,21 +161,18 @@ fi
 echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="loginctl lock-sessions"' >
 	/etc/udev/rules.d/80-lock-new-hid.rules
 
-apt-get install --yes sway swayidle swaylock grim wl-clipboard xwayland fuzzel foot \
-	i3status fonts-materialdesignicons-webfont
+apt-get install --yes sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
 
 cp "$(dirname "$0")"/{sway.conf,sway-status.sh} /usr/local/share/
 
 echo -n 'general {
 	output_format = "none"
-	separator = "|"
 	interval = 2
 }
 order += "cpu_usage"
 order += "memory"
-order += "ethernet _first_"
-order += "wireless _first_"
 order += "battery all"
+order += "wireless _first_"
 order += "volume master"
 order += "time"
 cpu_usage {
@@ -185,11 +182,17 @@ memory {
 	format = "%percentage_used"
 }
 battery all {
-	format = "%status %percentage"
-	format_down = "null null"
+	format = "%status: %percentage"
+	format_down = "null"
+	format_percentage = "%d"
+}
+wireless _first_ {
+	format_up = "%quality"
+	format_down = "null"
+	format_quality = "%d"
 }
 volume master {
-	format = "%devicename %volume"
+	format = "%devicename: %volume"
 }
 time {
 	format = "%Y-%m-%d  %a  %p  %I:%M"

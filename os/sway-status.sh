@@ -1,53 +1,144 @@
+graph() {
+	percentage="$(echo $1 | cut -d % -f 1 | cut -d . -f 1)"
+	percentage_average="$(echo $2 | cut -d % -f 1 | cut -d . -f 1)"
+	
+	if [ "$percentage" = 0 ]; then
+		graph=" "
+	elif [ "$percentage" = 100 ]; then
+		graph="█"
+	else
+		index="$((percentage/10))"
+		graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇" | cut -d " " -f "$index")"
+	fi
+	
+	[ "$percentage" -gt 95 ] && foreground_color='foreground="red"'
+	
+	if [ "$percentage_average" -gt 90 ]; then
+		echo "<span $foreground_color background=\"#ffcccc\">$graph</span>"
+	elif [ "$percentage_average" -gt 50 ]; then
+		echo "<span $foreground_color background=\"#ccffcc\">$graph</span>"
+	elif [ "$percentage_average" -gt 5 ]; then
+		echo "<span $foreground_color background=\"#99ccff\">$graph</span>"
+	else
+		echo "<span $foreground_color background=\"#4d4d4d\">$graph</span>"
+	fi
+}
+
 i3status -c /usr/local/share/i3status.conf | while true; do
-	IFS="|" read cpu mem bat audio time
-	cpu="$cpu  "
-	mem="$mem  "
-	# bat_status: CHR, BAT, UNK, FULL (charging, discharging, unknown, full)
-	bat="$bat  "
-	audio_out_dev="$(echo $audio | cut -f 1 -d " ")"
-	audio_out="$(echo $audio | cut -f 2 -d " ")"
-	# if audio_out_dev is a dummy output, hide it
-	mic=
+	IFS=" | " read cpu_usage mem_usage bat wifi audio time
+	
+	cpu="$(graph "$cpu_usage" "$cpu_usage_average")"
+	[ -z "$cpu_usage_average" ] && cpu_usage_average="$cpu_usage"
+	cpu_usage_average="$(((cpu_usage + cpu_usage_average*30)/31))"
+	
+	mem="$(graph "$mem_usage" "$mem_usage_average")"
+	[ -z "$mem_usage_average" ] && mem_usage_average="$mem_usage"
+	mem_usage_average="$(((mem_usage + mem_usage_average*30)/31))"
+
+	disk=""
+	# if writing to disk, disk_w=30
+	# if reading from disk, disk_r=30
+	# https://packages.debian.org/sid/sysstat
+	# https://unix.stackexchange.com/questions/55212/how-can-i-monitor-disk-io
+	if [ -n "$disk_w" ]; then
+		if [ "$disk_w" -eq 30 ]; then
+			disk="<span foreground=\"red\"></span>"
+		else
+			disk="<span foreground=\"#ffcccc\"></span>"
+		fi
+		disk_w="$((disk_w - 2))"
+		[ "$disk_w" = 0 ] && disk_w=""
+	fi
+	if [ -n "$disk_r" ]; then
+		if [ "$disk_r" -eq 30 ]; then
+			disk="<span foreground=\"#0099ff\"></span>"
+			[ "$disk_w" -eq 28 ] && disk="<span foreground=\"#ff00ff\"></span>"
+		else
+			disk="<span foreground=\"#ccffff\"></span>"
+			[ -n "$disk_w" ] && disk="<span foreground=\"#ffccff\"></span>"
+		fi
+		disk_r="$((disk_r - 2))"
+		[ "$disk_r" = 0 ] && disk_r=""
+	fi
+	
+	# backup (sync) indicator: in'progress, completed
+	# "  "
+	backup=
+	
+	# system upgrade indicator: in'progress (red), system upgraded (green)
+	# https://github.com/enkore/i3pystatus/wiki/Restart-reminder
+	# "  "
+	pm=
+	
+	if [ "$bat" = null ]; then
+		bat=""
+	else
+		bat_status="$(echo $bat | cut -d ": " -f 1)"
+		bat_percentage="$(echo "$bat" | cut -d ": " -f 2)"
+		bat="$(echo "          " | cut -d " " -f $((bat_percentage/10)))"
+		bat="  $bat"
+		[ "$bat_percentage" -lt 10 ] && bat="<span foreground=\"yellow\">$bat</span>"
+		[ "$bat_percentage" -lt 5 ] && bat="<span foreground=\"red\">$bat</span>"
+		[ "$bat_status" = CHR ] && bat="<span foreground=\"green\">$bat</span>"
+	fi
+	
+	gnunet=
+	
+	# show the download/upload speed, plus total rx/tx since boot
+	# if there was network activity in the last 30 seconds, set color to green
+	# BitRates: https://man.archlinux.org/man/core/systemd/org.freedesktop.network1.5.en
+	active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
+	read internet_rx < "/sys/class/net/$active_net_device/statistics/rx_bytes"
+	read internet_tx < "/sys/class/net/$active_net_device/statistics/tx_bytes"
+	internet=
+	[ -z "$internet_percent_average" ] && internet_percent_average="$internet_percent"
+	internet_percent_average="$(((internet_percent + internet_percent_average*30)/31))"
+	
+	if [ "$wifi" = null ]; then
+		wifi=""
+	else
+		wifi_percentage="$wifi"
+		wifi="  "
+		[ "$wifi_percentage" -lt 75 ] && wifi="<span foreground=\"#ffffcc\">$wifi</span>"
+		[ "$wifi_percentage" -lt 50 ] && wifi="<span foreground=\"red\">$wifi</span>"
+		[ "$wifi_percentage" -lt 25 ] && wifi="<span foreground=\"#ff00ff\">$wifi</span>"
+	fi
+	
+	# cell: "  "
+	
+	# bluetooth: "  "
+	bluetooth=
+	
+	audio_out_dev="$(echo $audio | cut -d ": " -f 1)"
+	if [ "$audio_out_dev" = "Dummy Output" ]; then
+		audio=""
+	else
+		audio_out_vol="$(echo $audio | cut -d ": " -f 2 | cut -d % -f 1)"
+		if [ "$audio_out_vol" -eq 100 ]; then
+			audio="  "
+		elif [ "$audio_out_vol" -eq 0 ]; then
+			audio="  "
+		else
+			audio="<span foreground=\"#ffffcc\">  </span>"
+			[ "$audio_out_vol" -lt 50 ] && audio="<span foreground=\"#ffffcc\">  </span>"
+			[ "$audio_out_vol" -lt 20 ] && audio="<span foreground=\"#ffffcc\">  </span>"
+			[ "$audio_out_vol" -lt 10 ] && audio="<span foreground=\"red\">  </span>"
+		fi
+	fi
+	
+	# mic: "  "
+	# visible only when it's active; green if volume is full, yellow and red if volume is low
+	# mic muted: "  "
+	# https://github.com/xenomachina/i3pamicstatus
+	#audio_In_dev=
+	#[ "$audio_In_dev" = "Dummy Input" ] && mic=""
+	
+	# cam: "<span foreground=\"green\">  </span>"
+	# visible only when it's active
 	cam=
-	echo "$cpu$mem$disk$net$bat$audio$mic$cam$time" || exit 1
+	
+	# screen recording: "<span foreground=\"red\">⬤  </span>"
+	scr=
+	
+	echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$bluetooth$audio$mic$cam$scr$time" || exit 1
 done
-
-# battery: 󰁺󰁻󰁼󰁽󰁾󰁿󰂀󰂁󰂂󰁹
-# battery charging: 󰢜󰂆󰂇󰂈󰢝󰂉󰢞󰂊󰂋󰂅
-
-# show diagrams for cpu (blue), ram (green), disk (red), net (yellow)
-# each diagram is made of two characters which can be any of these: ▁▂▃▄▅▆▇█
-# for each block there are two characters
-# the first one shows the average value (the past 60 seconds)
-# the other one shows the current value
-# the backgrounds have the light version of the mentioned colors
-# cpu: /proc/stat
-# ram: /proc/meminfo
-# net: also show the speed in numbers, as well as the sum since login
-
-# average: (new'value/30 + last'value)/2
-
-# net speed:
-# device-path/statistics/tx_bytes
-# device-path/statistics/rx_bytes
-# https://github.com/i3/i3status/blob/main/contrib/net-speed.sh
-#
-# BitRates: https://man.archlinux.org/man/core/systemd/org.freedesktop.network1.5.en
-# https://github.com/greshake/i3status-rust/blob/master/src/blocks/net.rs
-# https://github.com/Alexays/Waybar/wiki/Module:-Network
-#
-# total internet (non'local) traffic since login
-#
-# wifi signal strength
-# iwctl station wlan0 show -> RSSI, AverageRSSI
-# https://www.reddit.com/r/archlinux/comments/gbx3sf/iwd_users_how_do_i_get_connected_channel_strength/
-# https://wireless.wiki.kernel.org/en/users/documentation/iw
-
-# bluetooth
-
-# package manager indicator: in'progress, system upgraded
-# https://github.com/enkore/i3pystatus/wiki/Restart-reminder
-
-# backup indicator: in'progress, completed
-
-# https://docs.gtk.org/Pango/pango_markup.html
