@@ -1,14 +1,14 @@
 graph() {
-	percentage="$(echo $1 | cut -d % -f 1 | cut -d . -f 1)"
-	percentage_average="$(echo $2 | cut -d % -f 1 | cut -d . -f 1)"
+	local graph= foreground_color=
+	local percentage="$(echo $1 | cut -d % -f 1 | cut -d . -f 1)"
+	local percentage_average="$(echo $2 | cut -d % -f 1 | cut -d . -f 1)"
 	
 	if [ "$percentage" = 0 ]; then
 		graph=" "
 	elif [ "$percentage" = 100 ]; then
 		graph="█"
 	else
-		index="$((percentage/10))"
-		graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇" | cut -d " " -f "$index")"
+		graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇" | cut -d " " -f $((percentage/10)))"
 	fi
 	
 	[ "$percentage" -gt 95 ] && foreground_color='foreground="red"'
@@ -91,16 +91,21 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 		read internet_rx < "/sys/class/net/$active_net_device/statistics/rx_bytes"
 		read internet_tx < "/sys/class/net/$active_net_device/statistics/tx_bytes"
 		internet_total=$((internet_rx/8000 + internet_tx/8000))
-		[ "$internet_total" -gt 999 ] && internet_total=$((internet_total/1000))
-		#internet_speed="[]"
+		[ "$internet_total" -gt 999 ] && internet_total="$((internet_total/1000))G"
 		
-		# if not online, set the color of the globe icon to red
-		# if there was network activity in the last 30 seconds, set color to green
+		internet_speed=
+		# https://github.com/i3/i3status/blob/main/contrib/net-speed.sh
 		
-		internet="$internet_total$internet_speed"
+		# if there was network activity in the last 60 seconds, set color to green
+		[ -z "$internet_speed_average" ] && internet_speed_average="$internet_speed"
+		internet_speed_average="$(((internet_speed + internet_speed_average*30)/31))"
+		[ "$internet_speed_average" = 0 ] || internet_icon_foreground_color="foreground=\"green\""
 		
-		[ -z "$internet_percent_average" ] && internet_percent_average="$internet_percent"
-		internet_percent_average="$(((internet_percent + internet_percent_average*30)/31))"
+		# each 20 seconds check for online status
+		internet_online=1
+		[ "$internet_online" = 0 ] && internet_icon_foreground_color="foreground=\"red\""
+		
+		internet="<span $internet_icon_foreground_color></span>$internet_total[$internet_speed]"
 	}
 	
 	if [ "$wifi" = null ]; then
