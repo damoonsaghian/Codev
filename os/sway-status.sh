@@ -82,17 +82,26 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 		[ "$bat_status" = CHR ] && bat="<span foreground=\"green\">$bat</span>"
 	fi
 	
+	# "$gnunet_total$gnunet_speed  "
 	gnunet=
 	
 	# show the download/upload speed, plus total rx/tx since boot
-	# if there was network activity in the last 30 seconds, set color to green
-	# BitRates: https://man.archlinux.org/man/core/systemd/org.freedesktop.network1.5.en
 	active_net_device="$(ip route show default | head -1 | sed -n 's/.* dev \([^\ ]*\) .*/\1/p')"
-	read internet_rx < "/sys/class/net/$active_net_device/statistics/rx_bytes"
-	read internet_tx < "/sys/class/net/$active_net_device/statistics/tx_bytes"
-	internet=
-	[ -z "$internet_percent_average" ] && internet_percent_average="$internet_percent"
-	internet_percent_average="$(((internet_percent + internet_percent_average*30)/31))"
+	[ -n "$active_net_device" ] && {
+		read internet_rx < "/sys/class/net/$active_net_device/statistics/rx_bytes"
+		read internet_tx < "/sys/class/net/$active_net_device/statistics/tx_bytes"
+		internet_total=$((internet_rx/8000 + internet_tx/8000))
+		[ "$internet_total" -gt 999 ] && internet_total=$((internet_total/1000))
+		#internet_speed="[]"
+		
+		# if not online, set the color of the globe icon to red
+		# if there was network activity in the last 30 seconds, set color to green
+		
+		internet="$internet_total$internet_speed"
+		
+		[ -z "$internet_percent_average" ] && internet_percent_average="$internet_percent"
+		internet_percent_average="$(((internet_percent + internet_percent_average*30)/31))"
+	}
 	
 	if [ "$wifi" = null ]; then
 		wifi=""
