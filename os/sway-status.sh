@@ -8,7 +8,7 @@ graph() {
 	elif [ "$percentage" = 100 ]; then
 		graph="█"
 	else
-		graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇" | cut -d " " -f $((percentage/10)))"
+		graph="$(echo "▁ ▂ ▂ ▃ ▄ ▅ ▅ ▆ ▇" | cut -d " " -f $(( percentage/10 )))"
 	fi
 	
 	[ "$percentage" -gt 95 ] && foreground_color='foreground="red"'
@@ -24,16 +24,31 @@ graph() {
 	fi
 }
 
+last_time=0
+cpu_usage_average=0
+mem_usage_average=0
+last_internet_total=0
+last_internet_total=0
+internet_speed_average=0
+
 i3status -c /usr/local/share/i3status.conf | while true; do
-	IFS=" | " read cpu_usage mem_usage bat wifi audio time
+	IFS=" | " read cpu_usage mem_usage bat wifi audio datetime
+	
+	time=$(date +%s)
+	interval=$(( $time - $last_time ))
+	[ $interval -gt 0 ] || {
+		echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$datetime"
+		continue
+	}
+	last_time=$time
+	# last'minute average factor
+	lmaf=$(( 60 / $interval ))
 	
 	cpu="$(graph "$cpu_usage" "$cpu_usage_average")"
-	[ -z "$cpu_usage_average" ] && cpu_usage_average="$cpu_usage"
-	cpu_usage_average="$(((cpu_usage + cpu_usage_average*30)/31))"
+	cpu_usage_average=$(( (cpu_usage + cpu_usage_average*lmaf) / (lmaf+1) ))
 	
 	mem="$(graph "$mem_usage" "$mem_usage_average")"
-	[ -z "$mem_usage_average" ] && mem_usage_average="$mem_usage"
-	mem_usage_average="$(((mem_usage + mem_usage_average*30)/31))"
+	mem_usage_average=$(( (mem_usage + mem_usage_average*lmaf) / (lmaf+1) ))
 
 	disk=""
 	# if writing to disk, disk_w=30
@@ -46,8 +61,8 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 		else
 			disk="<span foreground=\"#ffcccc\"></span>"
 		fi
-		disk_w="$((disk_w - 2))"
-		[ "$disk_w" = 0 ] && disk_w=""
+		disk_w=$(( disk_w - interval ))
+		[ "$disk_w" -lte 1 ] && disk_w=""
 	fi
 	if [ -n "$disk_r" ]; then
 		if [ "$disk_r" -eq 30 ]; then
@@ -57,8 +72,8 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 			disk="<span foreground=\"#ccffff\"></span>"
 			[ -n "$disk_w" ] && disk="<span foreground=\"#ffccff\"></span>"
 		fi
-		disk_r="$((disk_r - 2))"
-		[ "$disk_r" = 0 ] && disk_r=""
+		disk_r=$(( disk_r - interval ))
+		[ "$disk_r" -lte 1 ] && disk_r=""
 	fi
 	
 	# backup (sync) indicator: in'progress, completed
@@ -75,14 +90,14 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 	else
 		bat_status="$(echo $bat | cut -d ": " -f 1)"
 		bat_percentage="$(echo "$bat" | cut -d ": " -f 2)"
-		bat="$(echo "          " | cut -d " " -f $((bat_percentage/10)))"
+		bat="$(echo "          " | cut -d " " -f $(( bat_percentage/10 )))"
 		bat="  $bat"
 		[ "$bat_percentage" -lt 10 ] && bat="<span foreground=\"yellow\">$bat</span>"
 		[ "$bat_percentage" -lt 5 ] && bat="<span foreground=\"red\">$bat</span>"
 		[ "$bat_status" = CHR ] && bat="<span foreground=\"green\">$bat</span>"
 	fi
 	
-	# "$gnunet_total$gnunet_speed  "
+	# "$gnunet_total[$gnunet_speed]  "
 	gnunet=
 	
 	# show the download/upload speed, plus total rx/tx since boot
@@ -90,20 +105,18 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 	[ -n "$active_net_device" ] && {
 		read internet_rx < "/sys/class/net/$active_net_device/statistics/rx_bytes"
 		read internet_tx < "/sys/class/net/$active_net_device/statistics/tx_bytes"
-		internet_total=$((internet_rx/8000 + internet_tx/8000))
-		[ "$internet_total" -gt 999 ] && internet_total="$((internet_total/1000))G"
+		internet_total=$(( (internet_rx + internet_tx)/1000000 ))
 		
-		internet_speed=
-		# https://github.com/i3/i3status/blob/main/contrib/net-speed.sh
+		internet_speed=$(( (internet_total - last_internet_total) / interval ))
+		last_internet_total=$internet_total
 		
 		# if there was network activity in the last 60 seconds, set color to green
-		[ -z "$internet_speed_average" ] && internet_speed_average="$internet_speed"
-		internet_speed_average="$(((internet_speed + internet_speed_average*30)/31))"
+		internet_speed_average=$(( (internet_speed + internet_speed_average*lmaf) / (lmaf+1) ))
 		[ "$internet_speed_average" = 0 ] || internet_icon_foreground_color="foreground=\"green\""
 		
 		# each 20 seconds check for online status
 		internet_online=1
-		[ "$internet_online" = 0 ] && internet_icon_foreground_color="foreground=\"red\""
+		[ "$internet_online" = 0 ] && internet_icon_foreground_color='foreground="red"'
 		
 		internet="<span $internet_icon_foreground_color></span>$internet_total[$internet_speed]"
 	}
@@ -121,7 +134,7 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 	# cell: "  "
 	
 	# bluetooth: "  "
-	bluetooth=
+	blt=
 	
 	audio_out_dev="$(echo $audio | cut -d ": " -f 1)"
 	if [ "$audio_out_dev" = "Dummy Output" ]; then
@@ -154,5 +167,5 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 	# screen recording: "<span foreground=\"red\">⬤  </span>"
 	scr=
 	
-	echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$bluetooth$audio$mic$cam$scr$time" || exit 1
+	echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$datetime" || exit 1
 done
