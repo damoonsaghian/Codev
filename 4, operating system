@@ -17,9 +17,8 @@ the script will make sure that the intermediate system is portable across differ
 	and then tries to install the actual system
 
 in the installed system, there would be two applications: Codev, and a terminal emulator
+also there is an app called "Session Manager" in which you can lock the session, suspend, exit, reboot, or poweroff
 press "alt+enter" ("pun+enter" in action mode) to open app launcher menu
-in app launcher menu press "alt+enter" again to open session management menu:
-	lock, suspend, exit, reboot, poweroff
 press and release "alt" ("pun" in action mode) to switch between the primary app (usually Comshell) and the prior app
 press "alt+space" ("pun+space" in action mode) to switch between windows of a workspace
 press "alt+backspace" ("pun+backspace" in action mode) to close focused window
