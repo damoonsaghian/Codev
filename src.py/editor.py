@@ -44,7 +44,8 @@ from gi.repository import GLib, Gio, Gdk, Gtk, GtkSource
 
 # https://gitlab.gnome.org/GNOME/gspell
 
-# to insert a screenshot or screencast: move the file saved in "~/.cache/screen" to ".data"
+# to insert a screenshot or screencast:
+# move the file saved in "~/.cache/screen.png" or "~/.cache/screen.mp4" to ".data"
 # ask for a name, and insert the path into the text buffer
 
 class Editor:
