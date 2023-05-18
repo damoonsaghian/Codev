@@ -54,25 +54,51 @@ time {
 }
 ' > /usr/local/share/i3status.conf
 
-echo -n '
+#= fuzzel
+echo -n 'font=sans
+terminal=foot
+launch-prefix=sh /usr/local/share/fuzzel-launch-app.sh
+[colors]
+background=222222dd
+text=ffffffff
+match=ffffffff
+selection=4285F4dd
+selection-text=ffffffff
+selection-match=ffffffff
+border=222222ff
+[key-bindings]
+cancel=Escape Control+q
 ' > /usr/local/share/fuzzel.ini
 
-echo -n '
-swaymsg workspace $1 &&
-swaymsg "[con_id=__focused__] focus" ||
-swaymsg exec $1
+echo -n 'swaymsg workspace "$1"
+swaymsg mark FOCUSED
+if swaymsg "[con_mark=\"$1\"] focus"; then
+	swaymsg "[workspace=__focused__ con_mark=FOCUSED] focus; unmark FOCUSED"
+else
+	swaymsg "unmark FOCUSED; \
+		[workspace=__focused__] move workspace TMP; \
+		workspace \"$1\"; \
+		exec \"$1\"; \
+		[workspace=TMP] move workspace current"
+fi
 ' > /usr/local/share/fuzzel-launch-app.sh
 
+#= session manager
 echo -n '#!/bin/sh
-fuzzel --dmenu
-case $$answer in
-	lock) loginctl lock-session ;;
-	suspend) systemctl suspend ;;
-	exit) swaymsg exit ;;
-	reboot) reboot ;;
-	poweroff) poweroff ;;
-esac' > /usr/local/bin/session-manager
+printf "lock\nsuspend\nexit\nreboot\npoweroff" |
+fuzzel --dmenu --config=/usr/local/share/fuzzel.ini | {
+	read answer
+	case $answer in
+		lock) loginctl lock-session ;;
+		suspend) systemctl suspend ;;
+		exit) swaymsg exit ;;
+		reboot) reboot ;;
+		poweroff) poweroff ;;
+	esac
+}
+' > /usr/local/bin/session-manager
 chmod +x /usr/local/bin/session-manager
+
 echo -n '[Desktop Entry]
 Type=Application
 Name=Session Manager
@@ -80,6 +106,7 @@ Icon=terminal
 Exec=/usr/local/bin/session-manager
 ' > /usr/local/share/applications/session-manager.desktop
 
+#= foot
 echo -n '[Desktop Entry]
 Type=Application
 Name=Terminal
