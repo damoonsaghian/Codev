@@ -32,12 +32,12 @@ last_internet_total=0
 internet_speed_average=0
 
 i3status -c /usr/local/share/i3status.conf | while true; do
-	IFS=" | " read cpu_usage mem_usage bat wifi audio datetime
+	IFS=" | " read cpu_usage mem_usage bat_i3s wifi_i3s audio_i3s scrrec time_i3s
 	
 	time=$(date +%s)
 	interval=$(( $time - $last_time ))
 	[ $interval -gt 0 ] || {
-		echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$datetime"
+		echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$time_i3s"
 		continue
 	}
 	last_time=$time
@@ -85,11 +85,11 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 	# "  "
 	pm=
 	
-	if [ "$bat" = null ]; then
+	if [ "$bat_i3s" = null ]; then
 		bat=""
 	else
-		bat_status="$(echo $bat | cut -d ": " -f 1)"
-		bat_percentage="$(echo "$bat" | cut -d ": " -f 2)"
+		bat_status="$(echo $bat_i3s | cut -d ": " -f 1)"
+		bat_percentage="$(echo "$bat_i3s" | cut -d ": " -f 2)"
 		bat="$(echo "          " | cut -d " " -f $(( bat_percentage/10 )))"
 		bat="  $bat"
 		[ "$bat_percentage" -lt 10 ] && bat="<span foreground=\"yellow\">$bat</span>"
@@ -121,14 +121,16 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 		internet="<span $internet_icon_foreground_color></span>$internet_total[$internet_speed]"
 	}
 	
-	if [ "$wifi" = null ]; then
+	if [ "$wifi_i3s" = null ]; then
 		wifi=""
+	elif [ "$wifi_i3s" -lt 25 ]; then
+		wifi="<span foreground=\"#ff00ff\">$wifi</span>"
+	elif [ "$wifi_i3s" -lt 50 ]; then
+		wifi="<span foreground=\"red\">$wifi</span>"
+	elif [ "$wifi_i3s" -lt 75 ]; then
+		wifi="<span foreground=\"#ffffcc\">$wifi</span>"
 	else
-		wifi_percentage="$wifi"
 		wifi="  "
-		[ "$wifi_percentage" -lt 75 ] && wifi="<span foreground=\"#ffffcc\">$wifi</span>"
-		[ "$wifi_percentage" -lt 50 ] && wifi="<span foreground=\"red\">$wifi</span>"
-		[ "$wifi_percentage" -lt 25 ] && wifi="<span foreground=\"#ff00ff\">$wifi</span>"
 	fi
 	
 	# cell: "  "
@@ -136,20 +138,23 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 	# bluetooth: "  "
 	blt=
 	
-	audio_out_dev="$(echo $audio | cut -d ": " -f 1)"
+	audio_out_dev="$(echo $audio_i3s | cut -d ": " -f 1)"
 	if [ "$audio_out_dev" = "Dummy Output" ]; then
 		audio=""
 	else
-		audio_out_vol="$(echo $audio | cut -d ": " -f 2 | cut -d % -f 1)"
+		audio_out_vol="$(echo $audio_i3s | cut -d ": " -f 2 | cut -d % -f 1)"
 		if [ "$audio_out_vol" -eq 100 ]; then
 			audio="  "
 		elif [ "$audio_out_vol" -eq 0 ]; then
 			audio="  "
+		elif [ "$audio_out_vol" -lt 10 ]; then
+			audio="<span foreground=\"red\">  </span>"
+		elif [ "$audio_out_vol" -lt 20 ]; then
+			audio="<span foreground=\"#ffffcc\">  </span>"
+		elif [ "$audio_out_vol" -lt 50 ]; then
+			audio="<span foreground=\"#ffffcc\">  </span>"
 		else
 			audio="<span foreground=\"#ffffcc\">  </span>"
-			[ "$audio_out_vol" -lt 50 ] && audio="<span foreground=\"#ffffcc\">  </span>"
-			[ "$audio_out_vol" -lt 20 ] && audio="<span foreground=\"#ffffcc\">  </span>"
-			[ "$audio_out_vol" -lt 10 ] && audio="<span foreground=\"red\">  </span>"
 		fi
 	fi
 	
@@ -164,8 +169,9 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 	# visible only when it's active
 	cam=
 	
-	# screen recording: "<span foreground=\"red\">⬤  </span>"
-	scr=
+	# screen recording indicator:
+	scr=""
+	[ "$scrrec" = yes ] && scr="<span foreground=\"red\">⬤  </span>"
 	
-	echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$datetime" || exit 1
+	echo "  $cpu$mem  $disk$backup$pm$bat  $gnunet$internet  $wifi$cell$blt$audio$mic$cam$scr$time_i3s" || exit 1
 done

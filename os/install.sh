@@ -139,70 +139,16 @@ apt-get install -yes systemd-resolved
 
 apt-get install --yes pipewire-audio systemd-timesyncd dbus-user-session pkexec
 
-. "$(dirname "$0")/install-sudo.sh"
-
-. "$(dirname "$0")/install-system.sh"
-
 echo -n 'unset HISTFILE
 export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
-if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
-	[ -f "$HOME/.profile" ] && . "$HOME/.profile"
-	exec sway -c /usr/local/share/sway.conf
-fi
-' > /etc/profile.d/zz-sway.sh
+. "$(dirname "$0")/install-sudo.sh"
 
-# when "F8" is pressed: loginctl lock-sessions
+. "$(dirname "$0")/install-system.sh"
 
-# to prevent BadUSB, when a new input device is connected lock the session
-echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="loginctl lock-sessions"' >
-	/etc/udev/rules.d/80-lock-new-hid.rules
-
-apt-get install --yes sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
-
-cp "$(dirname "$0")"/{sway.conf,sway-status.sh} /usr/local/share/
-
-echo -n 'general {
-	output_format = "none"
-	interval = 2
-}
-order += "cpu_usage"
-order += "memory"
-order += "battery all"
-order += "wireless _first_"
-order += "volume master"
-order += "time"
-cpu_usage {
-	format = "%usage"
-}
-memory {
-	format = "%percentage_used"
-}
-battery all {
-	format = "%status: %percentage"
-	format_down = "null"
-	format_percentage = "%d"
-}
-wireless _first_ {
-	format_up = "%quality"
-	format_down = "null"
-	format_quality = "%d"
-}
-volume master {
-	format = "%devicename: %volume"
-}
-time {
-	format = "%Y-%m-%d  %a  %p  %I:%M"
-}
-' > /usr/local/share/i3status.conf
-
-# https://codeberg.org/dnkl/fuzzel
-# alternatives:
-# tofi
-# https://github.com/ii8/havoc
+. "$(dirname "$0")/install-sway.sh"
 
 # mono'space fonts:
 # , wide characters are forced to squeeze
@@ -240,43 +186,6 @@ echo -n '<?xml version="1.0"?>
 	</alias>
 </fontconfig>
 ' > /etc/fonts/local.conf
-
-echo -n '[Desktop Entry]
-Type=Application
-Name=Terminal
-Exec=footclient
-StartupNotify=true
-' > /usr/local/share/applications/terminal.desktop
-echo -n '[Desktop Entry]
-NoDisplay=true
-' | tee /usr/local/share/applications/{foot,footclient,foot-server}.desktop
-echo -n 'font=monospace:size=10.5
-[scrollback]
-indicator-position=none
-[cursor]
-blink=yes
-[colors]
-background=f8f8f8
-foreground=2A2B32
-selection-foreground=f8f8f8
-selection-background=2A2B32
-regular0=20201d  # black
-regular1=d73737  # red
-regular2=60ac39  # green
-regular3=cfb017  # yellow
-regular4=6684e1  # blue
-regular5=b854d4  # magenta
-regular6=1fad83  # cyan
-regular7=fefbec  # white
-bright0=7d7a68
-bright1=d73737
-bright2=60ac39
-bright3=cfb017
-bright4=6684e1
-bright5=b854d4
-bright6=1fad83
-bright7=fefbec
-' > /usr/local/share/foot.cfg
 
 apt-get install --yes codev || {
 	apt-get install --yes gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
