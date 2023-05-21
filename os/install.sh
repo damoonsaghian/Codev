@@ -1,34 +1,6 @@
 set -e
 
-# make sure that initramfs (of the installation system) is portable across differnt hardwares
-[ -f /etc/initramfs-tools/conf.d/portable-initramfs ] || {
-	echo 'MODULES=most' > /etc/initramfs-tools/conf.d/portable-initramfs
-	update-initramfs -u
-}
-
-# install all firmwares (on the installation system)
-
-# install sway, a terminal emulator, and a web browser
-# having a web browser in a rescue system can be useful
-
-# ask for confirmation for auto'detected time'zone
-
-# disable ifupdown, and activate systemd-networkd
-[ -f /etc/systemd/resolved.conf ] || apt-get install --yes systemd-resolved
-rm -f /etc/network/interfaces
-systemctl enable systemd-networkd
-systemctl start systemd-networkd
-[ -f /usr/bin/iwctl ] || apt-get install --yes iwd
-# ask for network configuration (if it's not a simple DHCP ethernet connection)
-
-# ask if the user wants to install a new system, or fix an existing system
-# ask for the device to repaire
-# mount /dev/sdx /mnt
-# mount other system directories
-# try to chroot and run:
-# apt-get dist-upgrade || apt-get dist-upgrade --no-download
-# if it failed, then:
-# apt-get dist-upgrade -o RootDir=/mnt || apt-get dist-upgrade -o RootDir=/mnt --no-download
+. "$(dirname "$0")"/install-self.sh
 
 # ask for the device to install the system on it (if there is more than one device)
 # create partitions and format them (use BTRFS for root)
@@ -51,9 +23,7 @@ pkgs_impt="init,udev,netbase"
 pkgs_std="ca-certificates"
 pkgs=""
 debootstrap --variant=minbase --include="$pkgs_impt,$pkgs_std,usr-is-merged,$pkgs" unstable /mnt
-
-# also install usr-is-merged, to avoid usrmerge (a dependency of init-system-helpers),
-# which installs perl as dependency
+# usr-is-merged: avoid usrmerge (a dependency of init-system-helpers) which installs perl as dependency
 
 mount --bind "$(dirname "$0")" /mnt/mnt
 mount --bind /dev /mnt/dev
@@ -65,6 +35,10 @@ echo -n 'APT::Install-Recommends "false";
 APT::AutoRemove::RecommendsImportant "false";
 APT::AutoRemove::SuggestsImportant "false";
 ' > /etc/apt/apt.conf.d/99_norecommends
+echo -n 'deb https://deb.debian.org/debian unstable main contrib non-free-firmware
+deb-src https://deb.debian.org/debian unstable main contrib non-free-firmware
+' > /etc/apt/sources.list
+apt-get update
 
 # if not efi, install Grub
 
@@ -82,8 +56,11 @@ APT::AutoRemove::SuggestsImportant "false";
 	printf 'timeout 0\neditor no\n' > /boot/efi/loader/loader.conf
 }
 
-# install required firmwares when a new hardware is added
+# search for required firmwares, and install them
 # https://salsa.debian.org/debian/isenkram
+# https://salsa.debian.org/installer-team/hw-detect
+#
+# this script installs required firmwares when a new hardware is added
 echo -n '#!/bin/sh
 ' > /usr/local/bin/install-firmware
 chmod +x /usr/local/bin/install-firmware
@@ -140,7 +117,7 @@ export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-# ask for timezone
+# ask for timezone (auto'detect but let the user confirm)
 
 # ask for a root password, and a user account
 while ! passwd ; do
@@ -157,43 +134,6 @@ done
 . /mnt/install-system.sh
 
 . /mnt/install-sway.sh
-
-# mono'space fonts:
-# , wide characters are forced to squeeze
-# , narrow characters are forced to stretch
-# , bold characters don’t have enough room
-# proportional font for code:
-# , generous spacing
-# , large punctuation
-# , and easily distinguishable characters
-# , while allowing each character to take up the space that it needs
-# "https://input.djr.com/"
-apt-get install --yes fonts-noto-core fonts-hack
-mkdir -p /etc/fonts
-echo -n '<?xml version="1.0"?>
-<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
-<fontconfig>
-	<selectfont>
-		<rejectfont>
-			<pattern><patelt name="family"><string>NotoNastaliqUrdu</string></patelt></pattern>
-			<pattern><patelt name="family"><string>NotoKufiArabic</string></patelt></pattern>
-			<pattern><patelt name="family"><string>NotoNaskhArabic</string></patelt></pattern>
-		</rejectfont>
-	</selectfont>
-	<alias>
-		<family>serif</family>
-		<prefer><family>NotoSerif</family></prefer>
-	</alias>
-	<alias>
-		<family>sans</family>
-		<prefer><family>NotoSans</family></prefer>
-	</alias>
-	<alias>
-		<family>monospace</family>
-		<prefer><family>Hack</family></prefer>
-	</alias>
-</fontconfig>
-' > /etc/fonts/local.conf
 
 apt-get install --yes codev || {
 	apt-get install --yes gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
@@ -212,6 +152,30 @@ apt-get install --yes codev || {
 	
 	mkdir -p /usr/local/share/codev
 	cp -r /mnt/codev/src.py/* /usr/local/share/codev/
+	
+	cat <<-__EOF__ > /usr/local/bin/codev
+	#!/bin/sh
+	swaymsg workspace rename 1
+	python3 /usr/local/share/codev/
+	__EOF__
+	chmod +x /usr/local/bin/codev
+	
+	mkdir -p /usr/local/share/applications
+	cat <<-__EOF__ > /usr/local/share/applications/codev.desktop
+	[Desktop Entry]
+	Type=Application
+	Name=Codev
+	Icon=codev
+	Exec=/usr/local/bin/codev
+	StartupNotify=true
+	__EOF__
+	
+	cat <<-__EOF__ > /usr/local/share/icons/hicolor/scalable/apps/codev.svg
+	<?xml version="1.0" encoding="UTF-8"?>
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+		<path d="M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13"/>
+	</svg>
+	__EOF__
 }
 
 first_user="$(id -un 1000)"
@@ -223,14 +187,6 @@ WLAN_QUOTA_OUT = unlimited
 WAN_QUOTA_IN = unlimited
 WAN_QUOTA_OUT = unlimited
 ' >> "/home/$first_user/.config/gnunet.conf"
-
-mkdir -p /usr/local/share/applications
-echo -n '[Desktop Entry]
-Type=Application
-Name=Codev
-Exec=sh -c "swaymsg workspace 1:codev; codev || python3 /usr/local/share/codev/"
-StartupNotify=true
-' > /usr/local/share/applications/codev.desktop
 
 printf "installation completed successfully; reboot the system? (Y/n)"
 read -r answer
