@@ -1,8 +1,10 @@
 set -e
 
 # make sure that initramfs (of the installation system) is portable across differnt hardwares
-echo 'MODULES=most' > /etc/initramfs-tools/conf.d/portable-initramfs
-update-initramfs -u
+[ -f /etc/initramfs-tools/conf.d/portable-initramfs ] || {
+	echo 'MODULES=most' > /etc/initramfs-tools/conf.d/portable-initramfs
+	update-initramfs -u
+}
 
 # install all firmwares (on the installation system)
 
@@ -12,26 +14,21 @@ update-initramfs -u
 # ask for confirmation for auto'detected time'zone
 
 # disable ifupdown, and activate systemd-networkd
-apt-get install -yes systemd-resolved
+[ -f /etc/systemd/resolved.conf ] || apt-get install --yes systemd-resolved
 rm -f /etc/network/interfaces
 systemctl enable systemd-networkd
+systemctl start systemd-networkd
+[ -f /usr/bin/iwctl ] || apt-get install --yes iwd
 # ask for network configuration (if it's not a simple DHCP ethernet connection)
 
 # ask if the user wants to install a new system, or fix an existing system
 # ask for the device to repaire
 # mount /dev/sdx /mnt
+# mount other system directories
+# try to chroot and run:
 # apt-get dist-upgrade || apt-get dist-upgrade --no-download
-
-# ask for a root password, and a user account
-#while ! passwd ; do
-#	echo "try again"
-#done
-#
-#echo -n "choose a username: "; read username
-#adduser $username netdev
-#while ! passwd user1; do
-#	echo "try again"
-#done
+# if it failed, then:
+# apt-get dist-upgrade -o RootDir=/mnt || apt-get dist-upgrade -o RootDir=/mnt --no-download
 
 # ask for the device to install the system on it (if there is more than one device)
 # create partitions and format them (use BTRFS for root)
@@ -46,27 +43,30 @@ systemctl enable systemd-networkd
 # 	https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
 # 2, virtual machines and databases
 # 	COW must be disabled for these files
-# 	generally it's done automatically by the program itself (eg systemd-journald)
-# 	otherwise we must do it manually: chattr +C ...
-# 	apparently Webkit uses SQLite in WAL mode
+# 	generally it's done automatically by the program itself (eg systemd-journald and PostgreSQL)
+# 	otherwise we must do it manually: chattr +C ... (eg for MariaDB databases)
+# 	apparently Webkit uses SQLite in WAL mode, but i'm not sure about GnuNet
 
-# debootstrap
-# important packages: init udev netbase
-# standard packages: ca-certificates
+pkgs_impt="init,udev,netbase"
+pkgs_std="ca-certificates"
+pkgs=""
+debootstrap --variant=minbase --include="$pkgs_impt,$pkgs_std,usr-is-merged,$pkgs" unstable /mnt
+
 # also install usr-is-merged, to avoid usrmerge (a dependency of init-system-helpers),
 # which installs perl as dependency
+
+mount --bind "$(dirname "$0")" /mnt/mnt
+mount --bind /dev /mnt/dev
+mount -t proc proc /mnt/proc
+LANG=C.UTF-8 chroot /mnt /bin/bash
+mount "/dev/${dev_name}1" /boot/efi
 
 echo -n 'APT::Install-Recommends "false";
 APT::AutoRemove::RecommendsImportant "false";
 APT::AutoRemove::SuggestsImportant "false";
-' > /mnt/etc/apt/apt.conf.d/99_norecommends
+' > /etc/apt/apt.conf.d/99_norecommends
 
-# upgrade to sid
-echo -n 'deb https://deb.debian.org/debian unstable main contrib non-free
-deb-src https://deb.debian.org/debian unstable main contrib non-free
-' > /etc/apt/sources.list
-apt-get update
-apt-get dist-upgrade --yes
+# if not efi, install Grub
 
 # lock Grub for security
 # since recovery mode in Debian requires root password,
@@ -75,15 +75,11 @@ apt-get dist-upgrade --yes
 [ -f /boot/grub/grub.cfg ] &&
 	printf 'set superusers=""\nset timeout=0\n' > /boot/grub/custom.cfg
 
-# to have faster boot in EFI systems, replace grub with systemd-bootd
-[ -d /boot/efi ] && {
+# EFI systems: systemd-bootd
+[] && {
 	apt-get install --yes systemd-boot
 	mkdir -p /boot/efi/loader
 	printf 'timeout 0\neditor no\n' > /boot/efi/loader/loader.conf
-	
-	apt-get purge --yes --ignore-missing grub-efi grub-common \
-		grub-efi-amd64 grub-efi-ia32 grub-efi-arm64 grub-efi-arm shim-signed
-	apt-get autoremove --purge --yes
 }
 
 # install required firmwares when a new hardware is added
@@ -144,11 +140,23 @@ export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
 echo "enter \"system\" to configure system settings"
 ' > /etc/profile.d/shell-prompt.sh
 
-. "$(dirname "$0")/install-sudo.sh"
+# ask for timezone
 
-. "$(dirname "$0")/install-system.sh"
+# ask for a root password, and a user account
+while ! passwd ; do
+	echo "try again"
+done
+echo -n "choose a username: "; read username
+adduser $username netdev
+while ! passwd $username; do
+	echo "try again"
+done
 
-. "$(dirname "$0")/install-sway.sh"
+. /mnt/install-sudo.sh
+
+. /mnt/install-system.sh
+
+. /mnt/install-sway.sh
 
 # mono'space fonts:
 # , wide characters are forced to squeeze

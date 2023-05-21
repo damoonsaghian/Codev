@@ -81,6 +81,7 @@ i3status -c /usr/local/share/i3status.conf | while true; do
 	backup=
 	
 	# system upgrade indicator: in'progress (red), system upgraded (green)
+	# show a notification if upgrade failed
 	# https://github.com/enkore/i3pystatus/wiki/Restart-reminder
 	# "  "
 	pm=

@@ -13,7 +13,7 @@ fi
 echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="loginctl lock-sessions"' >
 	/etc/udev/rules.d/80-lock-new-hid.rules
 
-cp "$(dirname "$0")"/{sway.conf,sway-status.sh} /usr/local/share/
+cp /mnt/{sway.conf,sway-status.sh} /usr/local/share/
 
 echo -n 'general {
 	output_format = "none"
@@ -71,7 +71,7 @@ cancel=Escape Control+q
 ' > /usr/local/share/fuzzel.ini
 
 echo -n 'swaymsg workspace "$1"
-swaymsg mark FOCUSED
+swaymsg mark --add FOCUSED
 if swaymsg "[con_mark=\"$1\"] focus"; then
 	swaymsg "[workspace=__focused__ con_mark=FOCUSED] focus; unmark FOCUSED"
 else
@@ -102,9 +102,16 @@ chmod +x /usr/local/bin/session-manager
 echo -n '[Desktop Entry]
 Type=Application
 Name=Session Manager
-Icon=terminal
+Icon=session-manager
 Exec=/usr/local/bin/session-manager
 ' > /usr/local/share/applications/session-manager.desktop
+
+mkdir -p /usr/local/share/icons/hicolor/scalable/apps
+echo -n '<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+	<path d="M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13"/>
+</svg>
+' > /usr/local/share/icons/hicolor/scalable/apps/session-manager.svg
 
 #= foot
 echo -n '[Desktop Entry]
@@ -123,6 +130,22 @@ echo -n 'font=monospace:size=10.5
 indicator-position=none
 [cursor]
 blink=yes
+[key-bindings]
+scrollback-up-page = Page_Up
+scrollback-down-page = Page_Down
+clipboard-copy = Control+c XF86Copy
+clipboard-paste = Control+v XF86Paste
+spawn-terminal = Control+n
+search-start = Control+f
+[search-bindings]
+cancel = Escape
+commit = none
+find-next = Return
+find-prev = Shift+Return
+extend-to-next-whitespace = Shift+space
+[text-bindings]
+# make escape to act like ctrl+c
+\x03 = Escape
 [colors]
 background=f8f8f8
 foreground=2A2B32
@@ -144,7 +167,7 @@ bright4=6684e1
 bright5=b854d4
 bright6=1fad83
 bright7=fefbec
-' > /usr/local/share/foot.cfg
+' > /usr/local/share/foot.ini
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <svg height="128px" viewBox="0 0 128 128" width="128px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">

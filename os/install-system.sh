@@ -1,10 +1,7 @@
-cp "$(dirname "$0")/system" /usr/local/bin/
+cp /mnt/system /usr/local/bin/
 chmod +x /usr/local/bin/system
 
-apt-get install --yes fzy
-
-apt-get install --yes iwd wireless-regdb bluez rfkill
-
+apt-get install --yes iwd wireless-regdb bluez rfkill fzy
 systemctl enable iwd.service
 
 echo '# allow rfkill for users in the netdev group
@@ -36,6 +33,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/codev.pkexec.apt.policy
 
+# https://www.freedesktop.org/wiki/Software/systemd/inhibit/
 echo -n '#/bin/sh
 mode="$1" package_name="$2"
 
