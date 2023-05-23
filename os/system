@@ -165,9 +165,14 @@ manage_packages() {
 	sudo /usr/local/bin/system-packages "$mode" "$package_name"
 }
 
-selected_option="$(printf "timezone\nconnections\npackages" | fzy)"
+change_passwords() {
+	echo "not yet implemented"
+}
+
+selected_option="$(printf "connections\ntimezone\npasswords\npackages" | fzy)"
 case "$selected_option" in
 	connections) manage_connections ;;
 	timezone) set_timezone ;;
+	passwords) change_passwords ;;
 	packages) manage_packages ;;
 esac

@@ -1,36 +1,5 @@
 set -e
 
-. "$(dirname "$0")"/install-self.sh
-
-# ask for the device to install the system on it (if there is more than one device)
-# create partitions and format them (use BTRFS for root)
-# mount the formated partitions in "/mnt"
-
-# despite using BTRFS, in'place writing is needed in two situations:
-# 1, in'place first write for preallocated space, like in torrents
-# 	we don't want to disable COW for these files
-# 	apparently supported by BTRFS, isn't it?
-# 	https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
-# 	https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
-# 	https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
-# 2, virtual machines and databases
-# 	COW must be disabled for these files
-# 	generally it's done automatically by the program itself (eg systemd-journald and PostgreSQL)
-# 	otherwise we must do it manually: chattr +C ... (eg for MariaDB databases)
-# 	apparently Webkit uses SQLite in WAL mode, but i'm not sure about GnuNet
-
-pkgs_impt="init,udev,netbase"
-pkgs_std="ca-certificates"
-pkgs=""
-debootstrap --variant=minbase --include="$pkgs_impt,$pkgs_std,usr-is-merged,$pkgs" unstable /mnt
-# usr-is-merged: avoid usrmerge (a dependency of init-system-helpers) which installs perl as dependency
-
-mount --bind "$(dirname "$0")" /mnt/mnt
-mount --bind /dev /mnt/dev
-mount -t proc proc /mnt/proc
-LANG=C.UTF-8 chroot /mnt /bin/bash
-mount "/dev/${dev_name}1" /boot/efi
-
 echo -n 'APT::Install-Recommends "false";
 APT::AutoRemove::RecommendsImportant "false";
 APT::AutoRemove::SuggestsImportant "false";
@@ -40,7 +9,11 @@ deb-src https://deb.debian.org/debian unstable main contrib non-free-firmware
 ' > /etc/apt/sources.list
 apt-get update
 
-# if not efi, install Grub
+[ -d /sys/firmware/efi ] || {
+	if [ "$arch" = s390x ]; then
+		apt-get install --yes 
+
+# [ "$arch" = s390x ] && 
 
 # lock Grub for security
 # since recovery mode in Debian requires root password,
@@ -187,7 +160,3 @@ WLAN_QUOTA_OUT = unlimited
 WAN_QUOTA_IN = unlimited
 WAN_QUOTA_OUT = unlimited
 ' >> "/home/$first_user/.config/gnunet.conf"
-
-printf "installation completed successfully; reboot the system? (Y/n)"
-read -r answer
-[ "$answer" = n ] || reboot
