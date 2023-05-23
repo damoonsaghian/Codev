@@ -1,30 +1,29 @@
 using Debian we can easily setup a Linux based operating system
 
-first we use Debian Installer to install Debian on a removable storage device (at least 10GB)
-during installation you can mostly go with the default options, just:
-, leave the root password empty
-, don't select any desktop environment in the tasks list
-	it's even recommended to deselect "standard system" in the list, to save space
-the installed system is in fact an intermediate system which can be used to install the actual one
+first we use Debian Installer to install Debian on a removable storage device
+during installation, mostly go with the default options
+	it's just recommended to deselect "standard system" in the tasks list, to save space
+the installed system is in fact an intermediate system which will be used to install the actual one
 it can also be used as a rescue medium
 
-in the intermediate system, download this project, and run the "install.sh" script:
-; sudo apt install gnunet
+in the intermediate system, login as root, download this project's files, and run the "os/0.sh" script:
+; apt install gnunet
 ; gnunet-download -R gnunet://fs/sks/damoonsaghian/Codev
-; sudo sh Codev/os/install.sh
-; reboot
+; sh Codev/os/0.sh
 the script will make sure that the intermediate system is portable across differnt hardwares,
-	and then tries to install the actual system
+	and then installs a minimal graphical environment, just enough to run a terminal emulator and a web browser,
+	and finally, it tries to install the actual system
 
-in the installed system, there would be two applications: Codev, and a terminal emulator
-also there is an app called "Session Manager" in which you can lock the session, suspend, exit, reboot, or poweroff
+in the installed system:
 press "alt+enter" ("pun+enter" in action mode) to open app launcher menu
 press and release "alt" ("pun" in action mode) to switch between the primary app (usually Comshell) and the prior app
 press "alt+space" ("pun+space" in action mode) to switch between windows of a workspace
 press "alt+backspace" ("pun+backspace" in action mode) to close focused window
 
-"system" is a command'line program which can be used to configure:
-	timezone, language, connections, and installed packages
+use "Session Manager" app to lock the session, suspend, exit, reboot, or poweroff
+there is also a terminal emulator
+"system" is a command'line program which can be used to:
+	manage connections, set timezone, change passwords, and manage installed packages
 
 implementing atomic upgrade does not worth the effort, because to have a really fail'safe system,
 	redundant backups are necessary anyway
