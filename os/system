@@ -2,7 +2,7 @@
 set -e
 
 manage_wifi() {
-	local mode="$(printf "connect\nremove" | fzy)" device= ssid=
+	local mode="$(printf "connect\nremove" | fzy)" device= ssid= answer=
 	
 	if [ "$mode" = connect ]; then
 		echo 'select a device:'
@@ -18,9 +18,9 @@ manage_wifi() {
 		echo 'select a network to remove:'
 		ssid="$(iwctl known-networks list | fzy | cut -c5- | cut -d ' ' -f1)"
 		
-		printf "remove \"$ssid\" (y/N)? "
-		read -r answer
-		[ "$answer" = y ] || exit
+		printf "remove \"$ssid\"?"
+		answer="$(printf "no\nyes" | fzy)"
+		[ "$answer" = yes ] || exit
 		
 		iwctl known-networks "$ssid" forget
 	fi
@@ -117,6 +117,10 @@ manage_router() {
 	# https://man.archlinux.org/man/core/systemd/systemd.netdev.5.en
 }
 
+# VPN
+# https://fedoramagazine.org/systemd-resolved-introduction-to-split-dns/
+# https://blogs.gnome.org/mcatanzaro/2020/12/17/understanding-systemd-resolved-split-dns-and-vpn-configuration/
+
 manage_connections() {
 	local selected_option="$(printf "wifi\ncellular\nbluetooth\nradio\nrouter" | fzy)"
 	case "$selected_option" in
@@ -129,12 +133,16 @@ manage_connections() {
 }
 
 set_timezone() {
-	local continent= city=
+	# guess the timezone, but let the user to confirm it
+	local geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
+	local geoip_tz_continent="$(printf "$geoip_tz" | cut -d / -f1)"
+	local geoip_tz_city="$(printf "$geoip_tz" | cut -d / -f2)"
+	local tz_continent= tz_city=
 	echo "select a continent:"
-	continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | fzy -q "$geoip_tz_continent")"
+	tz_continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | fzy -q "$geoip_tz_continent")"
 	echo "select a city:"
-	city="$(ls -1 /usr/share/zoneinfo/"$continent"/* | cut -d / -f6 | fzy -q "$geoip_tz_city")"
-	timedatectl set-timezone "${continent}/${city}"
+	tz_city="$(ls -1 /usr/share/zoneinfo/"$tz_continent"/* | cut -d / -f6 | fzy -q "$geoip_tz_city")"
+	timedatectl set-timezone "${tz_continent}/${tz_city}"
 }
 
 manage_packages() {
@@ -166,10 +174,23 @@ manage_packages() {
 }
 
 change_passwords() {
-	echo "not yet implemented"
+	local answer="$(printf "user password\nsudo password" | fzy)"
+	
+	[ "$answer" = "user password" ] && while ! passwd --quiet; do
+		echo "an error occured; please try again"
+	done
+	
+	[ "$answer" = "sudo password" ] && while ! sudo passwd --quiet; do
+		echo "an error occured; please try again"
+	done
 }
 
-selected_option="$(printf "connections\ntimezone\npasswords\npackages" | fzy)"
+if [ -z "$1" ]; then
+	selected_option="$(printf "connections\ntimezone\npasswords\npackages" | fzy)"
+else
+	selected_option="$1"
+fi
+
 case "$selected_option" in
 	connections) manage_connections ;;
 	timezone) set_timezone ;;

@@ -1,12 +1,12 @@
+apt-get --yes install iwd wireless-regdb bluez rfkill passwd fzy
+
 cp /mnt/system /usr/local/bin/
 chmod +x /usr/local/bin/system
 
-apt-get install --yes iwd wireless-regdb bluez rfkill fzy
-systemctl enable iwd.service
-
-echo '# allow rfkill for users in the netdev group
-KERNEL=="rfkill", MODE="0664", GROUP="netdev"
-' >	/etc/udev/rules.d/80-rfkill.rules
+echo -n 'unset HISTFILE
+export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
+echo "enter \"system\" to configure system settings"
+' > /etc/profile.d/shell-prompt.sh
 
 echo -n 'polkit.addRule(function(action, subject) {
 	if (
@@ -17,6 +17,15 @@ echo -n 'polkit.addRule(function(action, subject) {
 	}
 });
 ' > /etc/polkit-1/rules.d/49-timezone.rules
+
+systemctl enable iwd.service
+
+echo '# allow rfkill for users in the netdev group
+KERNEL=="rfkill", MODE="0664", GROUP="netdev"
+' >	/etc/udev/rules.d/80-rfkill.rules
+
+echo; echo "setting your timezone"
+system timezone
 
 # let any user to run "pkexec apt-get update"
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
@@ -50,7 +59,7 @@ autoupdate() {
 	metered_connection && exit 0
 	apt-get update
 	export DEBIAN_FRONTEND=noninteractive
-	apt-get dist-upgrade --yes --quiet -o Dpkg::Options::=--force-confnew
+	apt-get --yes --quiet -o Dpkg::Options::=--force-confnew dist-upgrade
 }
 
 case "$mode" in
@@ -60,8 +69,8 @@ case "$mode" in
 	remove) apt-get purge -- "$package_name" ;;
 esac
 
-apt-get autoremove --purge --yes
-apt-get autoclean --yes
+apt-get --yes --purge autoremove
+apt-get --yes autoclean
 ' > /usr/local/bin/system-packages
 
 mkdir -p /usr/local/lib/systemd/system

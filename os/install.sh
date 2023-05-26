@@ -4,14 +4,10 @@ echo -n 'APT::Install-Recommends "false";
 APT::AutoRemove::RecommendsImportant "false";
 APT::AutoRemove::SuggestsImportant "false";
 ' > /etc/apt/apt.conf.d/99_norecommends
-echo -n 'deb https://deb.debian.org/debian unstable main contrib non-free-firmware
-deb-src https://deb.debian.org/debian unstable main contrib non-free-firmware
-' > /etc/apt/sources.list
-apt-get update
 
 [ -d /sys/firmware/efi ] || {
 	if [ "$arch" = s390x ]; then
-		apt-get install --yes 
+		apt-get --yes install
 
 # [ "$arch" = s390x ] && 
 
@@ -24,7 +20,7 @@ apt-get update
 
 # EFI systems: systemd-bootd
 [] && {
-	apt-get install --yes systemd-boot
+	apt-get --yes install systemd-boot
 	mkdir -p /boot/efi/loader
 	printf 'timeout 0\neditor no\n' > /boot/efi/loader/loader.conf
 }
@@ -39,6 +35,8 @@ echo -n '#!/bin/sh
 chmod +x /usr/local/bin/install-firmware
 echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' >
 	/etc/udev/rules.d/80-install-firmware.rules
+
+apt-get --yes install pipewire-audio dbus-user-session systemd-timesyncd
 
 echo -n '[Match]
 Name=en*
@@ -79,28 +77,20 @@ RouteMetric=700
 # https://wiki.archlinux.org/title/Mobile_broadband_modem
 # https://github.com/systemd/systemd/issues/20370
 systemctl enable systemd-networkd
-apt-get install -yes systemd-resolved
-# https://fedoramagazine.org/systemd-resolved-introduction-to-split-dns/
-# https://blogs.gnome.org/mcatanzaro/2020/12/17/understanding-systemd-resolved-split-dns-and-vpn-configuration/
+apt-get --yes install systemd-resolved
 
-apt-get install --yes pipewire-audio systemd-timesyncd dbus-user-session pkexec
-
-echo -n 'unset HISTFILE
-export PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
-echo "enter \"system\" to configure system settings"
-' > /etc/profile.d/shell-prompt.sh
-
-# ask for timezone (auto'detect but let the user confirm)
-
-# ask for a root password, and a user account
-while ! passwd ; do
-	echo "try again"
+echo; echo -n "set username: "
+read -r username
+useradd --create-home --groups netdev --shell /bin/bash "$username"
+while ! passwd --quiet $username; do
+	echo "an error occured; please try again"
 done
-echo -n "choose a username: "; read username
-adduser $username netdev
-while ! passwd $username; do
-	echo "try again"
+echo; echo "set sudo password"
+while ! passwd --quiet; do
+	echo "an error occured; please try again"
 done
+# lock root account
+passwd --lock root
 
 . /mnt/install-sudo.sh
 
@@ -108,13 +98,13 @@ done
 
 . /mnt/install-sway.sh
 
-apt-get install --yes codev || {
-	apt-get install --yes gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
+apt-get --yes install codev &> /dev/null || {
+	apt-get --yes install gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
 		gir1.2-udisks-2.0 dosfstools exfatprogs btrfs-progs gvfs \
 		gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
 		libgtk-4-media-gstreamer gstreamer1.0-{plugins-good,plugins-ugly,libav} \
 		libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-		python3-gi python3-gi-cairo wayout libarchive gnunet
+		python3-gi python3-gi-cairo libarchive gnunet
 	
 	# plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 	# libav is needed till
@@ -128,7 +118,7 @@ apt-get install --yes codev || {
 	
 	cat <<-__EOF__ > /usr/local/bin/codev
 	#!/bin/sh
-	swaymsg workspace rename 1
+	swaymsg workspace 1:codev
 	python3 /usr/local/share/codev/
 	__EOF__
 	chmod +x /usr/local/bin/codev
@@ -145,8 +135,14 @@ apt-get install --yes codev || {
 	
 	cat <<-__EOF__ > /usr/local/share/icons/hicolor/scalable/apps/codev.svg
 	<?xml version="1.0" encoding="UTF-8"?>
-	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-		<path d="M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13"/>
+	<svg width="64" height="64">
+		<rect style="fill:#dddddd" width="56" height="48" x="4" y="8"/>
+		<rect style="fill:#aaaaaa" width="16" height="48" x="4" y="8"/>
+		<path style="fill:none;stroke:#555555;stroke-width:2;stroke-linecap" d="M 25,14 H 41"/>
+		<path style="fill:none;stroke:#555555;stroke-width:2;stroke-linecap" d="M 30,23 H 48"/>
+		<path style="fill:none;stroke:#555555;stroke-width:2;stroke-linecap" d="M 30,32 H 48"/>
+		<path style="fill:none;stroke:#555555;stroke-width:2;stroke-linecap" d="M 30,41 H 48"/>
+		<path style="fill:none;stroke:#555555;stroke-width:2;stroke-linecap" d="M 25,50 H 41"/>
 	</svg>
 	__EOF__
 }

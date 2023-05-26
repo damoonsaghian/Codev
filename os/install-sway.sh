@@ -1,4 +1,4 @@
-apt-get install --yes sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
+apt-get --yes install sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
 if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
@@ -64,7 +64,7 @@ time {
 # , and easily distinguishable characters
 # , while allowing each character to take up the space that it needs
 # "https://input.djr.com/"
-apt-get install --yes fonts-noto-core fonts-hack
+apt-get --yes install fonts-noto-core fonts-hack
 mkdir -p /etc/fonts
 echo -n '<?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
@@ -145,8 +145,8 @@ Exec=/usr/local/bin/session-manager
 
 mkdir -p /usr/local/share/icons/hicolor/scalable/apps
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-	<path d="M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13"/>
+<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" >
+	<path d="M0 0h24v24H0z" fill="none" stroke="none"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="9"/>
 </svg>
 ' > /usr/local/share/icons/hicolor/scalable/apps/session-manager.svg
 
@@ -184,30 +184,30 @@ extend-to-next-whitespace = Shift+space
 # make escape to act like ctrl+c
 \x03 = Escape
 [colors]
-background=f8f8f8
-foreground=2A2B32
-selection-foreground=f8f8f8
-selection-background=2A2B32
-regular0=20201d  # black
-regular1=d73737  # red
-regular2=60ac39  # green
-regular3=cfb017  # yellow
-regular4=6684e1  # blue
-regular5=b854d4  # magenta
-regular6=1fad83  # cyan
-regular7=fefbec  # white
-bright0=7d7a68
-bright1=d73737
-bright2=60ac39
-bright3=cfb017
-bright4=6684e1
-bright5=b854d4
-bright6=1fad83
-bright7=fefbec
+background=222222
+foreground=ffffff
+regular0=403E41
+regular1=FF6188
+regular2=A9DC76
+regular3=FFD866
+regular4=FC9867
+regular5=AB9DF2
+regular6=78DCE8
+regular7=FCFCFA
+bright0=727072
+bright1=FF6188
+bright2=A9DC76
+bright3=FFD866
+bright4=FC9867
+bright5=AB9DF2
+bright6=78DCE8
+bright7=FCFCFA
+selection-background=555555
+selection-foreground=eeeeee
 ' > /usr/local/share/foot.ini
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
-<svg height="128px" viewBox="0 0 128 128" width="128px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg height="128px" viewBox="0 0 128 128" width="128px">
     <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="11.999989" x2="115.999989" y1="64" y2="64">
         <stop offset="0" stop-color="#3d3846"/>
         <stop offset="0.05" stop-color="#77767b"/>

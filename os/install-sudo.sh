@@ -1,4 +1,4 @@
-apt-get install --yes kbd whois
+apt-get --yes install kbd whois pkexec
 # kbd is needed for its openvt
 # whois is needed for its mkpasswd
 
@@ -51,6 +51,3 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 	</action>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/codev.sudo.policy
-
-# lock root account
-passwd --lock root

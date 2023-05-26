@@ -1,56 +1,21 @@
 set -e
 
-# make sure that initramfs (of the installation system) is portable across differnt hardwares
-[ -f /etc/initramfs-tools/conf.d/portable-initramfs ] || {
-	echo 'MODULES=most' > /etc/initramfs-tools/conf.d/portable-initramfs
-	update-initramfs -u
-}
-
-echo -n 'deb https://deb.debian.org/debian unstable main contrib non-free-firmware
-deb-src https://deb.debian.org/debian unstable main contrib non-free-firmware
-' > /etc/apt/sources.list
-apt-get update
-
-# install all firmwares necessary for the installation process (cpu microcodes, gpu, wifi and ethernet)
-# https://salsa.debian.org/images-team/debian-cd/-/blob/master/tools/generate_firmware_task
-# https://salsa.debian.org/images-team/debian-cd/-/blob/master/tools/generate_firmware_patterns
-# non'free: firmware-{atheros,bnx2,bnx2x,brcm80211,cavium,ipw2x00,iwlwifi,libertas,myricom,realtek,ti-connectivity}
-# non'free: amd64-microcode intel-microcode atmel-firmware firmware-zd1211
-# free: firmware-ath9k-htc
-apt-get install --yes firmware-linux
-
-# disable ifupdown, and activate systemd-networkd
-[ -f /etc/systemd/resolved.conf ] || apt-get install --yes systemd-resolved
-rm -f /etc/network/interfaces
-systemctl enable systemd-networkd
-systemctl start systemd-networkd
-[ -f /usr/bin/iwctl ] || apt-get install --yes iwd
-# ask for network configuration (if it's not a simple DHCP ethernet connection)
-
-# autologin root
-
-# install sway, a terminal emulator, and a web browser (if not installed)
-# having a web browser in a rescue system can be useful
-
-# ask if user wants to upgrade the installation system
-# apt-get dist-upgrade --yes
-
 # ask if the user wants to install a new system, or repair an existing system
 # ask for the device to repaire
 # mount /dev/sdx /mnt
 # mount other system directories
 # try to chroot and run:
-# apt-get dist-upgrade || apt-get dist-upgrade --no-download
+# apt-get dist-upgrade || apt-get --no-download dist-upgrade
 # if it failed, then:
-# debootstrap --variant=minbase unstable /mnt
+# debootstrap --variant=minbase unstable /mnt || apt-get --no-download -o RootDir=/mnt install apt
 # then chroot and run:
-# apt-get dist-upgrade || apt-get dist-upgrade --no-download
+# apt-get dist-upgrade || apt-get --no-download dist-upgrade
 # search for required firmwares, and install them
 
 # repaired successfully, reboot?
 
-fzy -v &> /dev/null || apt-get install --yes fzy
-sfdisk -v &> /dev/null || apt-get install --yes fdisk
+fzy -v &> /dev/null || apt-get --yes install fzy
+sfdisk -v &> /dev/null || apt-get --yes install fdisk
 
 # ask for the device to install the system on it
 target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | fzy | cut -d " " -f 1)"
@@ -91,7 +56,8 @@ fi
 pkgs_impt="init,udev,netbase"
 pkgs_std="ca-certificates"
 pkgs=""
-debootstrap --variant=minbase --include="$pkgs_impt,$pkgs_std,usr-is-merged,$pkgs" unstable /mnt
+debootstrap --variant=minbase --include="$pkgs_impt,$pkgs_std,usr-is-merged,$pkgs" \
+	--components=main,contrib,non-free-firmware unstable /mnt
 # usr-is-merged: avoid usrmerge (a dependency of init-system-helpers) which installs perl as dependency
 
 # https://salsa.debian.org/installer-team/debian-installer-utils/-/blob/master/chroot-setup.sh
@@ -102,6 +68,6 @@ mount "/dev/${dev_name}1" /mnt/boot/efi
 
 chroot /mnt sh /mnt/install.sh
 
-printf "installation completed successfully; reboot the system? (Y/n)"
-read -r answer
-[ "$answer" = n ] || reboot
+echo; printf "installation completed successfully; press a key to reboot"
+read -n 1 -s
+reboot
