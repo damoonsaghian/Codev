@@ -1,18 +1,10 @@
 using Debian we can easily setup a Linux based operating system
 
-first we use Debian Installer to install Debian on a removable storage device
-during installation, mostly go with the default options
-	it's just recommended to deselect "standard system" in the tasks list, to save space
-the installed system is in fact an intermediate system which will be used to install the actual one
-it can also be used as a rescue medium
-
-in the intermediate system, login as root, download this project's files, and run the "os/0.sh" script:
-; apt install gnunet
-; gnunet-download -R gnunet://fs/sks/damoonsaghian/Codev
-; sh Codev/os/0.sh
-the script will make sure that the intermediate system is portable across differnt hardwares,
-	and then installs a minimal graphical environment, just enough to run a terminal emulator and a web browser,
-	and finally, it tries to install the actual system
+boot to a Debian live system
+if Debian live is not available for an architecture, as a workaround,
+	intall Debian on a removable storage device, and use that as a live system
+then run this in a terminal:
+; sudo sh <path-to-this-project-directory>/os/0.sh
 
 in the installed system:
 press "alt+enter" ("pun+enter" in action mode) to open app launcher menu
@@ -36,8 +28,7 @@ this will switch to the first available virtual terminal, shows the command at t
 if the entered password is correct it returns back to previous virtual terminal,
 	and runs the command as root
 
-note that you can't login as root; actually root account is locked,
-	and root password provided during installation, is only used for "sudo"
+note that you can't login as root; root account is locked
 also you must never type the user's password anywhere except at the login prompt
 	(and make sure that the login prompt isn't fake, by pressing "F8" key for locking/unlocking)
 this means that if a malicious program steals root password (eg by faking the password entry),
