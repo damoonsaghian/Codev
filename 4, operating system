@@ -1,9 +1,13 @@
 using Debian we can easily setup a Linux based operating system
+anything which needs a kernel'based operating system can use Debian:
+, it supports a wide range of hardware architectures
+, it's suitable for systems with limited resources
+, the stable release provides a highly tested system for sensitive use cases
 
 boot to a Debian live system
 if Debian live is not available for an architecture, as a workaround,
 	intall Debian on a removable storage device, and use that as a live system
-then run this in a terminal:
+then run this in a terminal (note that s390x and mips architectures are not supported):
 ; sudo sh <path-to-this-project-directory>/os/0.sh
 
 in the installed system:
@@ -19,7 +23,7 @@ there is also a terminal emulator
 
 implementing atomic upgrade does not worth the effort, because to have a really fail'safe system,
 	redundant backups are necessary anyway
-to fix a broken system (eg due to powerloss during a system upgrade), the rescue medium can be used
+to fix a broken system (eg due to powerloss during a system upgrade), the live system can be used
 
 to run a command as root:
 ; sudo command
