@@ -1,29 +1,36 @@
 set -e
 
+arch="$(dpkg --print-architecture)"
+
 echo -n 'APT::Install-Recommends "false";
 APT::AutoRemove::RecommendsImportant "false";
 APT::AutoRemove::SuggestsImportant "false";
 ' > /etc/apt/apt.conf.d/99_norecommends
 
-[ -d /sys/firmware/efi ] || {
-	if [ "$arch" = s390x ]; then
-		apt-get --yes install
-
-# [ "$arch" = s390x ] && 
-
-# lock Grub for security
-# since recovery mode in Debian requires root password,
-# there is no need to disable generation of recovery mode menu entries
-# we just have to disable menu editing and other admin operations in Grub:
-[ -f /boot/grub/grub.cfg ] &&
-	printf 'set superusers=""\nset timeout=0\n' > /boot/grub/custom.cfg
-
-# EFI systems: systemd-bootd
-[] && {
+if [ -d /sys/firmware/efi ]; then
 	apt-get --yes install systemd-boot
 	mkdir -p /boot/efi/loader
 	printf 'timeout 0\neditor no\n' > /boot/efi/loader/loader.conf
-}
+else
+	case "$arch" in
+	amd64|i386) apt-get --yes install grub-pc ;;
+	ppc64el) apt-get --yes install grub-ieee1275 ;;
+	esac
+	# lock Grub for security
+	# recovery mode in Debian requires root password
+	# so there is no need to disable generation of recovery mode menu entries
+	# we just have to disable menu editing and other admin operations
+	[ -f /boot/grub/grub.cfg ] &&
+		printf 'set superusers=""\nset timeout=0\n' > /boot/grub/custom.cfg
+fi
+
+case "$arch" in
+ppc64el) apt-get --yes install "linux-image-powerpc64le" ;;
+i386) apt-get --yes install "linux-image-" ;;
+armhf) apt-get --yes install "linux-image-" ;;
+armel) apt-get --yes install "linux-image-" ;;
+*) apt-get --yes install "linux-image-$arch" ;;
+esac
 
 # search for required firmwares, and install them
 # https://salsa.debian.org/debian/isenkram

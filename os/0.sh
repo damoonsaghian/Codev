@@ -1,43 +1,80 @@
 set -e
 
-# ask if the user wants to install a new system, or repair an existing system
-# ask for the device to repaire
-# mount /dev/sdx /mnt
-# mount other system directories
-# try to chroot and run:
-# apt-get dist-upgrade || apt-get --no-download dist-upgrade
-# if it failed, then:
-# debootstrap --variant=minbase unstable /mnt || apt-get --no-download -o RootDir=/mnt install apt
-# then chroot and run:
-# apt-get dist-upgrade || apt-get --no-download dist-upgrade
-# search for required firmwares, and install them
-
-# repaired successfully, reboot?
-
 fzy -v &> /dev/null || apt-get --yes install fzy
-sfdisk -v &> /dev/null || apt-get --yes install fdisk
 
-# ask for the device to install the system on it
+answer="$(printf "install a new system\nrepair an existing system")"
+
+[ "$answer" = "repair an existing system" ] && {
+	echo "select the device containing the system to repair:"
+	target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | fzy | cut -d " " -f 1)"
+	mount "/dev/$target_device" /mnt
+	# mount other system directories
+	
+	# try to chroot and run:
+	# apt-get dist-upgrade
+	# if it failed, then:
+	# debootstrap --variant=minbase unstable /mnt
+	# then chroot and run:
+	# apt-get dist-upgrade
+	
+	# search for required firmwares, and install them
+	
+	echo; printf "the system \"$target_device\" repaired successfully; press a key to reboot"
+	read -n 1 -s
+	reboot
+}
+
+echo "select a device:"
 target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | fzy | cut -d " " -f 1)"
 
-# create partitions and format them (use BTRFS for root)
-first_part_type=uefi
-first_part_size="512M"
 arch="$(dpkg --print-architecture)"
-[ $arch = amd64 ] || [ $arch = i386 ] && [ ! -d /sys/firmware/efi ] && {
-	first_part_type="21686148-6449-6E6F-744E-656564454649"
-	first_part_size="1M"
-}
-[ "$architectur" = ppc64el ] &&
-[ "$architectur" = s390x ] && { first_part_type= ; first_part_size= ; }
-printf "1M,$first_part_size,$first_part_type\n,,linux" |
-	sfdisk --quiet --wipe always --label gpt "/dev/$target_device"
+case "$arch" in
+s390x|mipsel|mips64el) echo "arichitecture \"$arch\" is not supported"; exit ;;
+esac
 
-# mount root partition, anf EFI partition (if any)
-mount /dev/"$target_device"2 /mnt
+# create partitions
 if [ -d /sys/firmware/efi ]; then
-	mkdir -p /mnt/boot/efi
-	mount /dev/"$target_device"1 /mnt/boot/efi
+	first_part_type=uefi
+	first_part_size="512M"
+	part_label=gpt
+else
+	case "$arch" in
+	amd64|i386)
+		first_part_type="21686148-6449-6E6F-744E-656564454649"
+		first_part_size="1M"
+		part_label=gpt
+		;;
+ 	ppc64el)
+		first_part_type=
+		first_part_size=
+		part_label=mbr
+		;;
+	*)
+		first_part_type=
+		first_part_size=
+		part_label=mbr
+		;;
+	esac
+fi
+sfdisk -v &> /dev/null || apt-get --yes install fdisk
+printf "1M,$first_part_size,$first_part_type\n,,linux" |
+	sfdisk --quiet --wipe always --label $part_label "/dev/$target_device"
+
+# format and mount partitions
+mkfs.btrfs "/dev/${target_device}2"
+mount "/dev/${target_device}2" /mnt
+if [ -d /sys/firmware/efi ]; then
+	mkfs.vfat "/dev/${target_device}1"
+	mount "/dev/${target_device}1" /mnt/boot/efi
+else
+	case "$arch" in
+	amd64|i386) ;;
+	ppc64el) ;;
+	*)
+		mkfs.ext2 "/dev/${target_device}1"
+		mount /dev/"$target_device"1 /mnt/boot
+		;;
+	esac
 fi
 
 # despite using BTRFS, in'place writing is needed in two situations:
@@ -64,7 +101,10 @@ debootstrap --variant=minbase --include="$pkgs_impt,$pkgs_std,usr-is-merged,$pkg
 mount --bind "$(dirname "$0")" /mnt/mnt
 mount --bind /dev /mnt/dev
 mount -t proc proc /mnt/proc
-mount "/dev/${dev_name}1" /mnt/boot/efi
+if [ -d /sys/firmware/efi ]; then
+	mkdir -p /mnt/boot/efi
+	mount "/dev/${target_device}1" /mnt/boot/efi
+fi
 
 chroot /mnt sh /mnt/install.sh
 
