@@ -26,9 +26,21 @@ fi
 
 case "$arch" in
 ppc64el) apt-get --yes install "linux-image-powerpc64le" ;;
-i386) apt-get --yes install "linux-image-" ;;
-armhf) apt-get --yes install "linux-image-" ;;
-armel) apt-get --yes install "linux-image-" ;;
+i386)
+	if grep -q '^flags.*\blm\b' /proc/cpuinfo; then
+		apt-get --yes install "linux-image-686-pae"
+	elif grep -q '^flags.*\bpae\b' /proc/cpuinfo; then
+		apt-get --yes install "linux-image-686-pae"
+	else
+		apt-get --yes install "linux-image-686"
+	fi ;;
+armhf)
+	if grep -q '^Features.*\blpae\b' /proc/cpuinfo; then
+		apt-get --yes install "linux-image-armmp-lpae"
+	else
+		apt-get --yes install "linux-image-armmp"
+	fi ;;
+armel) apt-get --yes install "linux-image-marvell" ;;
 *) apt-get --yes install "linux-image-$arch" ;;
 esac
 
