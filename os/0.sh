@@ -5,7 +5,7 @@ fzy -v &> /dev/null || apt-get --yes install fzy
 answer="$(printf "install a new system\nrepair an existing system")"
 
 [ "$answer" = "repair an existing system" ] && {
-	echo "select the device containing the system to repair:"
+	echo "select the device containing the system:"
 	target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | fzy | cut -d " " -f 1)"
 	mount "/dev/$target_device" /mnt
 	# mount other system directories
@@ -19,7 +19,7 @@ answer="$(printf "install a new system\nrepair an existing system")"
 	
 	# search for required firmwares, and install them
 	
-	echo; printf "the system \"$target_device\" repaired successfully; press a key to reboot"
+	echo; printf "the system on \"$target_device\" repaired successfully; press a key to reboot"
 	read -n 1 -s
 	reboot
 }
@@ -45,14 +45,14 @@ else
 		part_label=gpt
 		;;
  	ppc64el)
-		first_part_type=
-		first_part_size=
-		part_label=mbr
+		first_part_type="41,*"
+		first_part_size="1M"
+		part_label=dos
 		;;
 	*)
-		first_part_type=
-		first_part_size=
-		part_label=mbr
+		first_part_type="linux,*"
+		first_part_size="200M"
+		part_label=dos
 		;;
 	esac
 fi
