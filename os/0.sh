@@ -81,34 +81,17 @@ else
 	esac
 fi
 
-# despite using BTRFS, in'place writing is needed in two situations:
-# 1, in'place first write for preallocated space, like in torrents
-# 	we don't want to disable COW for these files
-# 	apparently supported by BTRFS, isn't it?
-# 	https://lore.kernel.org/linux-btrfs/20210213001649.GI32440@hungrycats.org/
-# 	https://www.reddit.com/r/btrfs/comments/timsw2/clarification_needed_is_preallocationcow_actually/
-# 	https://www.reddit.com/r/btrfs/comments/s8vidr/how_does_preallocation_work_with_btrfs/hwrsdbk/?context=3
-# 2, virtual machines and databases
-# 	COW must be disabled for these files
-# 	generally it's done automatically by the program itself (eg systemd-journald and PostgreSQL)
-# 	otherwise we must do it manually: chattr +C ... (eg for MariaDB databases)
-# 	apparently Webkit uses SQLite in WAL mode, but i'm not sure about GnuNet
-
-pkgs_impt="init,udev,netbase"
-pkgs_std="ca-certificates"
-pkgs=""
-debootstrap --variant=minbase --include="$pkgs_impt,$pkgs_std,usr-is-merged,$pkgs" \
+debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
 	--components=main,contrib,non-free-firmware unstable /mnt
-# usr-is-merged: avoid usrmerge (a dependency of init-system-helpers) which installs perl as dependency
+# "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
 
 # https://salsa.debian.org/installer-team/debian-installer-utils/-/blob/master/chroot-setup.sh
-mount --bind "$(dirname "$0")" /mnt/mnt
-mount --bind /dev /mnt/dev
 mount -t proc proc /mnt/proc
-if [ -d /sys/firmware/efi ]; then
-	mkdir -p /mnt/boot/efi
-	mount "/dev/${target_device}1" /mnt/boot/efi
-fi
+mount -t sysfs sys /mnt/sys
+mount --bind /dev /mnt/dev
+mount -t devpts pts /mnt/dev/pts
+
+mount --bind "$(dirname "$0")" /mnt/mnt
 
 chroot /mnt sh /mnt/install.sh
 
