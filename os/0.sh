@@ -51,20 +51,23 @@ else
 		;;
 	*)
 		first_part_type="linux,*"
-		first_part_size="200M"
+		first_part_size="512M"
 		part_label=dos
 		;;
 	esac
 fi
 sfdisk -v &> /dev/null || apt-get --yes install fdisk
-printf "1M,$first_part_size,$first_part_type\n,,linux" |
-	sfdisk --quiet --wipe always --label $part_label "/dev/$target_device"
+sfdisk --quiet --wipe always --label $part_label "/dev/$target_device" <<__EOF__
+1M,$first_part_size,$first_part_type
+,,linux
+__EOF__
 
 # format and mount partitions
 mkfs.btrfs "/dev/${target_device}2"
 mount "/dev/${target_device}2" /mnt
 if [ -d /sys/firmware/efi ]; then
-	mkfs.vfat "/dev/${target_device}1"
+	mkfs.fat -F 32 "/dev/${target_device}1"
+	mkdir -p /mnt/boot/efi
 	mount "/dev/${target_device}1" /mnt/boot/efi
 else
 	case "$arch" in
@@ -72,7 +75,8 @@ else
 	ppc64el) ;;
 	*)
 		mkfs.ext2 "/dev/${target_device}1"
-		mount /dev/"$target_device"1 /mnt/boot
+		mkdir /mnt/boot
+		mount "/dev/${target_device}1" /mnt/boot
 		;;
 	esac
 fi
