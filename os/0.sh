@@ -1,8 +1,10 @@
 set -e
 
-fzy -v &> /dev/null || apt-get --yes install fzy
+command -v fzy || apt-get --yes install fzy
 
-answer="$(printf "install a new system\nrepair an existing system")"
+answer="$(printf "install a new system\nrepair an existing system" | fzy)"
+
+umount --recursive --quiet /mnt || true
 
 [ "$answer" = "repair an existing system" ] && {
 	echo "select the device containing the system:"
@@ -24,13 +26,16 @@ answer="$(printf "install a new system\nrepair an existing system")"
 	reboot
 }
 
-echo "select a device:"
-target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | fzy | cut -d " " -f 1)"
-
 arch="$(dpkg --print-architecture)"
 case "$arch" in
 s390x|mipsel|mips64el) echo "arichitecture \"$arch\" is not supported"; exit ;;
 esac
+
+echo "select a device:"
+target_device="$(lsblk --nodep --noheadings -o NAME,SIZE,MODEL | fzy | cut -d " " -f 1)"
+echo "WARNING! all the data on \"$target_device\" will be erase; do you want to continue?"
+answer="$(printf "no\nyes" | fzy)"
+[ "$answer" = yes ] || exit
 
 # create partitions
 if [ -d /sys/firmware/efi ]; then
@@ -56,7 +61,7 @@ else
 		;;
 	esac
 fi
-sfdisk -v &> /dev/null || apt-get --yes install fdisk
+command -v sfdisk || apt-get --yes install fdisk
 sfdisk --quiet --wipe always --label $part_label "/dev/$target_device" <<__EOF__
 1M,$first_part_size,$first_part_type
 ,,linux
@@ -81,16 +86,15 @@ else
 	esac
 fi
 
+command -v debootstrap || apt-get --yes install debootstrap
 debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
 	--components=main,contrib,non-free-firmware unstable /mnt
 # "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
 
-# https://salsa.debian.org/installer-team/debian-installer-utils/-/blob/master/chroot-setup.sh
-mount -t proc proc /mnt/proc
-mount -t sysfs sys /mnt/sys
+mount -t proc proc /target/proc
+mount -t sysfs sysfs /target/sys
 mount --bind /dev /mnt/dev
-mount -t devpts pts /mnt/dev/pts
-
+mount --bind /run /mnt/run
 mount --bind "$(dirname "$0")" /mnt/mnt
 
 chroot /mnt sh /mnt/install.sh

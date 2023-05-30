@@ -20,8 +20,10 @@ else
 	# recovery mode in Debian requires root password
 	# so there is no need to disable generation of recovery mode menu entries
 	# we just have to disable menu editing and other admin operations
-	[ -f /boot/grub/grub.cfg ] &&
+	[ -f /boot/grub/grub.cfg ] && {
 		printf 'set superusers=""\nset timeout=0\n' > /boot/grub/custom.cfg
+		update-grub
+	}
 fi
 
 case "$arch" in
