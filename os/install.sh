@@ -125,7 +125,7 @@ apt-get --yes install codev &> /dev/null || {
 		gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
 		libgtk-4-media-gstreamer gstreamer1.0-{plugins-good,plugins-ugly,libav} \
 		libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-		python3-gi python3-gi-cairo libarchive gnunet
+		python3-gi python3-gi-cairo libarchive13 gnunet
 	
 	# plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 	# libav is needed till

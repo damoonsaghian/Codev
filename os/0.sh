@@ -88,7 +88,7 @@ fi
 
 command -v debootstrap || apt-get --yes install debootstrap
 debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-is-merged" \
-	--components=main,contrib,non-free-firmware unstable /mnt
+	--components=main,contrib,non-free-firmware stable /mnt
 # "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
 
 mount --bind "$(dirname "$0")" /mnt/mnt
