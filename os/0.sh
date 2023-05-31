@@ -91,13 +91,11 @@ debootstrap --variant=minbase --include="init,udev,netbase,ca-certificates,usr-i
 	--components=main,contrib,non-free-firmware unstable /mnt
 # "usr-is-merged" is installed to avoid installing "usrmerge" (as a dependency for init-system-helpers)
 
-mount -t proc proc /target/proc
-mount -t sysfs sysfs /target/sys
-mount --bind /dev /mnt/dev
-mount --bind /run /mnt/run
 mount --bind "$(dirname "$0")" /mnt/mnt
 
-chroot /mnt sh /mnt/install.sh
+apt-get --yes install arch-install-scripts
+genfstab -U /mnt >> /mnt/etc/fstab
+arch-chroot /mnt sh /mnt/install.sh
 
 echo; printf "installation completed successfully; press a key to reboot"
 read -n 1 -s
