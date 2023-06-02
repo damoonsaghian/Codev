@@ -80,6 +80,8 @@ in action mode, press "space" to go to insert mode
 when "action" is pressed keyboard sends a special key combination,
 	which can be used by applications, eg to flash the location of the cursor
 
+note that, "enter" remains "enter" in action mode
+
 to insert punctuations (in insert mode), press "pun"
 	after entering a punctuation charactor, it automatically returns to normal insert mode
 to insert numbers, press and hold "num"

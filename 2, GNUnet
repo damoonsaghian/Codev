@@ -74,6 +74,8 @@ file tree diff
 "http://meldmerge.org/"
 "https://git-scm.com/docs/git-diff"
 
+changelog can be used to record credits, and at the same time, track backdoors
+
 IPVC is a distributed version control system similar to git, but built on IPFS:
 "https://github.com/martindbp/ipvc"
 
@@ -165,7 +167,7 @@ if any IO node receives the signed off tokens, but does not send them back to th
 
 the more i think, the more i'm convinced that identities capable to have tokens, must be related to real persons
 otherwise, criminals can force people (by kidnapping, violance ...) to send their money/assets to anonymous accounts
-nonetheless, one can always have different identities hidden from others, but identifiable by IO nodes
+one can always have different identities hidden from others, but identifiable by IO nodes
 
 taxes, i think, are out of the scope of transaction systems
 they must be evaluated according to the kind of job and a lot of other factors (like environmental damage)

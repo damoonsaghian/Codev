@@ -25,6 +25,13 @@ the only sane kind of asynchronous circuit which i could imagine is this:
 , registers operate only when all inputs are valid
 
 = computers
+computers must be portable devices with a USBC (USB4 without PCIe) port,
+	which connects to a display and also provides power
+ports on the display: USB dock, ethernet, audio jack, DP and HDMI (to connect to extra displays)
+the display can have speaker, camera, light sensor and auto brightness
+still, it's useful to have these extra ports (on the computer) for compatibility:
+	HDMI, audio jack, ethernet, USB
+
 cpu, memory, peripherals, this seems to be the only practical architecture for the hardware of computers
 cpu runs a sequence of simple computations, called instruction codes, one by one
 
