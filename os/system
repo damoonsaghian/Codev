@@ -6,7 +6,7 @@ manage_wifi() {
 	
 	if [ "$mode" = connect ]; then
 		echo 'select a device:'
-		device="$(iwctl device list | fzy | { read first _; echo $first; })"
+		device="$(iwctl device list | fzy | { read -r first _; echo "$first"; })"
 		
 		iwctl station "$device" scan
 		echo 'select a network to connect:'
@@ -18,7 +18,7 @@ manage_wifi() {
 		echo 'select a network to remove:'
 		ssid="$(iwctl known-networks list | fzy | cut -c5- | cut -d ' ' -f1)"
 		
-		printf "remove \"$ssid\"?"
+		echo "remove \"$ssid\"?"
 		answer="$(printf "no\nyes" | fzy)"
 		[ "$answer" = yes ] || exit
 		
@@ -48,7 +48,7 @@ manage_bluetooth() {
 		bluetoothctl scan on &
 		sleep 3
 		echo "select a device:"
-		device="$(bluetoothctl devices | fzy | { read _first mac_address; echo $mac_address; })"
+		device="$(bluetoothctl devices | fzy | { read -r _first mac_address; echo "$mac_address"; })"
 		
 		if bluetoothctl --agent -- pair "$device"; then
 			bluetoothctl trust "$device"
@@ -60,7 +60,7 @@ manage_bluetooth() {
 	
 	if [ "$mode" = remove ]; then
 		echo "select a device:"
-		device="$(bluetoothctl devices | fzy | { read _first mac_address; echo $mac_address; })"
+		device="$(bluetoothctl devices | fzy | { read -r _first mac_address; echo "$mac_address"; })"
 		bluetoothctl disconnect "$device"
 		bluetoothctl untrust "$device"
 	fi
@@ -70,9 +70,10 @@ manage_radio_devices() {
 	# wifi, cellular, bluetooth, gps
 	local lines= device= action=
 	
-	lines="all\n$(rfkill -n -o "TYPE,SOFT,HARD")"
+	lines="$(rfkill -n -o "TYPE,SOFT,HARD")"
+	lines="$(printf "all\n%s" "$lines")"
 	echo 'select a radio device:'
-	device="$(printf "$lines" | fzy | cut -d " " -f1)"
+	device="$(echo "$lines" | fzy | cut -d " " -f1)"
 
 	action="$(printf "block\nunblock" | fzy)"
 	rfkill "$action" "$device"
@@ -135,8 +136,8 @@ manage_connections() {
 set_timezone() {
 	# guess the timezone, but let the user to confirm it
 	local geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
-	local geoip_tz_continent="$(printf "$geoip_tz" | cut -d / -f1)"
-	local geoip_tz_city="$(printf "$geoip_tz" | cut -d / -f2)"
+	local geoip_tz_continent="$(echo "$geoip_tz" | cut -d / -f1)"
+	local geoip_tz_city="$(echo "$geoip_tz" | cut -d / -f2)"
 	local tz_continent= tz_city=
 	echo "select a continent:"
 	tz_continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 | fzy -q "$geoip_tz_continent")"
@@ -154,20 +155,20 @@ manage_packages() {
 		printf 'search for: '
 		read -r search_entry
 		pkexec apt-get update
-		package_name="$(apt-cache search "$search_entry" | fzy | { read first _rest; echo $first; })"
+		package_name="$(apt-cache search "$search_entry" | fzy | { read -r first _rest; echo "$first"; })"
 		apt-cache show "$package_name"
-		printf "install $package_name (Y/n)? "
-		read -r answer
-		[ "$answer" = n ] && exit
+		echo "install \"$package_name\"?"
+		answer="$(printf "yes\nno" | fzy)"
+		[ "$answer" = yes ] || exit
 	}
 	
 	[ "$mode" = remove ] && {
 		printf 'search for: '
 		read -r search_entry
-		package_name="$(apt-cache search "$search_entry" | fzy | { read first _rest; echo $first; })"
-		printf "remove $package_name (y/N)? "
-		read -r answer
-		[ "$answer" = y ] || exit
+		package_name="$(apt-cache search "$search_entry" | fzy | { read -r first _rest; echo "$first"; })"
+		printf "remove \"$package_name\"?"
+		answer="$(printf "no\nyes" | fzy)"
+		[ "$answer" = yes ] || exit
 	}
 	
 	sudo /usr/local/bin/system-packages "$mode" "$package_name"

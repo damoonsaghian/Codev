@@ -1,7 +1,7 @@
 apt-get --yes install sway swayidle swaylock i3status fonts-fork-awesome grim wl-clipboard xwayland fuzzel foot
 
 echo -n '# run sway (if this script is not called by a display manager, and this is the first tty)
-if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
 	[ -f "$HOME/.profile" ] && . "$HOME/.profile"
 	exec sway -c /usr/local/share/sway.conf
 fi
@@ -10,10 +10,10 @@ fi
 # console level keybinding: when "F8" is pressed: loginctl lock-sessions
 
 # to prevent BadUSB, when a new input device is connected lock the session
-echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="loginctl lock-sessions"' >
+echo 'ACTION=="add", ATTR{bInterfaceClass}=="03" RUN+="loginctl lock-sessions"' > \
 	/etc/udev/rules.d/80-lock-new-hid.rules
 
-cp /mnt/{sway.conf,sway-status.sh} /usr/local/share/
+cp /mnt/sway.conf /mnt/sway-status.sh /usr/local/share/
 
 echo -n 'general {
 	output_format = "none"
@@ -160,7 +160,9 @@ StartupNotify=true
 ' > /usr/local/share/applications/terminal.desktop
 echo -n '[Desktop Entry]
 NoDisplay=true
-' | tee /usr/local/share/applications/{foot,footclient,foot-server}.desktop
+' > /usr/local/share/applications.foot.desktop
+cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/footclient.desktop
+cp /usr/local/share/applications/foot.desktop /usr/local/share/applications/foot-server.desktop
 
 echo -n 'font=monospace:size=10.5
 [scrollback]

@@ -21,9 +21,10 @@ umount --recursive --quiet /mnt || true
 	
 	# search for required firmwares, and install them
 	
-	echo; printf "the system on \"$target_device\" repaired successfully; press a key to reboot"
-	read -n 1 -s
-	reboot
+	echo; echo -n "the system on \"$target_device\" repaired successfully; press a key to reboot"
+	answer="$(printf "no\nyes" | fzy)"
+	[ "$answer" = yes ] || reboot
+	exit
 }
 
 arch="$(dpkg --print-architecture)"
@@ -97,6 +98,6 @@ apt-get --yes install arch-install-scripts
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt sh /mnt/install.sh
 
-echo; printf "installation completed successfully; press a key to reboot"
-read -n 1 -s
-reboot
+echo; echo -n "installation completed successfully; press a key to reboot"
+answer="$(printf "no\nyes" | fzy)"
+[ "$answer" = yes ] || reboot

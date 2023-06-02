@@ -54,7 +54,7 @@ esac
 echo -n '#!/bin/sh
 ' > /usr/local/bin/install-firmware
 chmod +x /usr/local/bin/install-firmware
-echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' >
+echo 'SUBSYSTEM=="firmware", ACTION=="add", RUN+="/usr/local/bin/install-firmware %k"' > \
 	/etc/udev/rules.d/80-install-firmware.rules
 
 apt-get --yes install pipewire-audio dbus-user-session systemd-timesyncd
@@ -103,7 +103,7 @@ apt-get --yes install systemd-resolved
 echo; echo -n "set username: "
 read -r username
 useradd --create-home --groups netdev --shell /bin/bash "$username"
-while ! passwd --quiet $username; do
+while ! passwd --quiet "$username"; do
 	echo "an error occured; please try again"
 done
 echo; echo "set sudo password"
@@ -113,17 +113,22 @@ done
 # lock root account
 passwd --lock root
 
+# guest user:
+# read'only access to projects
+# in the same group as the first user
+# during login, creates a symlink for each project directory
+
 . /mnt/install-sudo.sh
 
 . /mnt/install-system.sh
 
 . /mnt/install-sway.sh
 
-apt-get --yes install codev &> /dev/null || {
+apt-get --yes install codev 2>/dev/null || {
 	apt-get --yes install gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
 		gir1.2-udisks-2.0 dosfstools exfatprogs btrfs-progs gvfs \
 		gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
-		libgtk-4-media-gstreamer gstreamer1.0-{plugins-good,plugins-ugly,libav} \
+		libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
 		libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
 		python3-gi python3-gi-cairo libarchive13 gnunet
 	

@@ -3,7 +3,7 @@ apt-get --yes install kbd whois pkexec
 # whois is needed for its mkpasswd
 
 cat <<'__EOF__' > /usr/local/bin/sudo-chkpasswd
-#!/bin/sh
+#!/bin/bash
 set -e
 root_passwd_hashed="$(sed -n '/root/p' /etc/shadow | cut -d ':' -f2)"
 hash_method="$(echo "$root_passwd_hashed" | cut -d '$' -f2)"
@@ -13,7 +13,7 @@ case "$hash_method" in
 	6) hash_method=sha-512 ;;
 	*) echo "error: password hash type is unsupported"; exit 1 ;;
 esac
-salt="$(echo $root_passwd_hashed | cut -d '$' -f3)"
+salt="$(echo "$root_passwd_hashed" | cut -d '$' -f3)"
 printf "enter root password: "
 IFS= read -rs entered_passwd
 entered_passwd_hashed="$(MKPASSWD_OPTIONS="--method='$hash_method' '$entered_passwd' '$salt'" mkpasswd)"

@@ -43,7 +43,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 ' > /usr/share/polkit-1/actions/codev.pkexec.apt.policy
 
 # https://www.freedesktop.org/wiki/Software/systemd/inhibit/
-echo -n '#/bin/sh
+echo -n '#!/bin/sh
 mode="$1" package_name="$2"
 
 autoupdate() {
@@ -54,7 +54,7 @@ autoupdate() {
 			ww*) is_metered=true ;;
 		esac
 		# todo: DHCP option 43 ANDROID_METERED
-		is_metered
+		$is_metered
 	}
 	metered_connection && exit 0
 	apt-get update
