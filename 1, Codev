@@ -4,7 +4,7 @@ Codev is a COllaborative DEVelopment environment with command'based user interfa
 list of all projects will appear in a floating layer, at the center of the screen, called overview layer
 overview layer:
 , left panel:
-	, roots: user home plus attached devices
+	, roots: user's home plus attached devices
 	, project groups: content of roots
 , main view:
 	projects: content of project groups
@@ -30,9 +30,10 @@ web pages: move caret between visual elements (ignoring structural elements)
 
 actions:
 , next/previous word, line, paragraph, section (righ/left middle row keys)
-, next/previous file (ask for confirmation)
+, next/previous file
 , next/previous section view, opened file
-, go to the list of files to open a new view
+, go to the list of files to open a file view
+, go to the list of sections to open a section view
 , start and end selection, then copy or cut
 , paste
 , undo
@@ -52,7 +53,7 @@ but with simple uniform GUI (ie the oposite of what we see in websites),
 	there is no need for a pointer based user interface
 
 touch interface has an additional problem: interaction at a distance is not possible
-it can be useful in some special cases, but is not a good choice as a general interface
+touch interface can be useful in some special cases, but it's not good as a general interface
 
 detection of voice commands is a relatively simple process (compared to general speech recognition),
 	because we only need to match against a relatively small set of commands
@@ -64,13 +65,6 @@ for those who neither can use all their fingers, nor can talk, gesture based (2d
 
 = the ideal keyboard
 ".data/keyboard.png"
-"https://github.com/abstracthat/dactyl-manuform"
-"https://zealot.hu/absolem/"
-"https://github.com/foostan/crkbd"
-"https://github.com/nglgzz/42"
-"https://github.com/adereth/dactyl-keyboard"
-Kinesis Advantage 2 keyboard
-"http://www.allthingsergo.com/the-best-ergonomic-mechanical-keyboards/"
 
 the keyboard has two modes: insert mode and action mode
 in action mode keys are mapped to navigation keys (arrows, page up, page down, home, end, esc),
@@ -100,3 +94,11 @@ when comma key is press, keyboard enters the cap mode in which:
 for compatibility with other applications, we may still need a mouse,
 	plus "ctrl" and "shift" keys which can be put in the middle of the keyboard
 for full compatibility we can add a row of function keys, plus the "delete" key
+
+"https://github.com/abstracthat/dactyl-manuform"
+"https://zealot.hu/absolem/"
+"https://github.com/foostan/crkbd"
+"https://github.com/nglgzz/42"
+"https://github.com/adereth/dactyl-keyboard"
+Kinesis Advantage 2 keyboard
+"http://www.allthingsergo.com/the-best-ergonomic-mechanical-keyboards/"
