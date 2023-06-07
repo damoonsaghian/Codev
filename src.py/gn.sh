@@ -1,4 +1,43 @@
+# "https://www.gnunet.org/en/use.html"
+# "https://wiki.archlinux.org/title/GNUnet"
+# "https://docs.gnunet.org/"
+# "https://manpages.debian.org/unstable/gnunet/"
+# "https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html"
+
+# keys:
+# , primary key pair (used for first encounter)
+# , mutual key triplets (a private/public key pair plus the public key of a trusted account)
+# backup (encrypted) keys
+
+# opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key (eg NitroKey)
+# since private key does not leave the smartcard, it can't be backed up
+# so we must be able to have multiple keys per identity, and to add keys to an identity,
+# 	and to inform mutual pairs of this addition
+# gnunet-identity does not have multiple keys per identity
+# "https://www.kernel.org/doc/html/latest/process/maintainer-pgp-guide.html"
+
+# Libgcrypt and libcrypto (OpenSSL) do not support NTRU Prime; wolfCrypt does
+# "https://openquantumsafe.org/"
+
+# "https://manpages.debian.org/unstable/gnunet/gnunet-directory.1.en.html"
+# "https://manpages.debian.org/unstable/gnunet/gnunet-fs.1.en.html"
+
+# "https://www.gnu.org/software/diffutils/manual/html_mono/diff.html"
+# "https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff"
+# file tree diff
+# "https://stackoverflow.com/questions/776854/how-do-i-compare-two-source-trees-in-linux"
+# "https://github.com/dandavison/delta"
+# "https://github.com/so-fancy/diff-so-fancy"
+# "https://diffoscope.org/"
+# "https://github.com/MightyCreak/diffuse"
+# "http://meldmerge.org/"
+# "https://git-scm.com/docs/git-diff"
+
 publish() {
+	# create ref links of the project files, in ".cache/gnunet/publish"
+	# this way GNUnet can publish the files using the indexed method
+	# note that projects reside in non-removable BTRFS'formated disks
+
 	# ".cache" directory will not be published
 	# also do not follow mount points
 }
@@ -131,6 +170,16 @@ website() {
 	wget --post-data="{\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}" \
 	--header='Content-Type: application/json' https://hashbang.sh/user/create
 }
+
+# audio conversasion is already implemented; add video
+# "https://git.gnunet.org/gnunet.git/tree/src/conversation"
+# "https://git.gnunet.org/gnunet.git/tree/src/conversation/gnunet_gst.c"
+# "https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html"
+# figure out how to send/receive streams to/from gnunet
+# use gstreamer gio plugin to send/receive streams to/from gstreamer
+# use gstreamer pipewire plugin to access camera
+# 	libaperture, libaravis
+# use gtk4 mediafile to put it on gui
 
 case "$1" in
 	publish) publish ;;
