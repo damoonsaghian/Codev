@@ -1,0 +1,29 @@
+glib' = import "//glib"
+gio' = import "//gio"
+gdk' = import "//gdk"
+gtk' = import "//gtk"
+
+Files = import "files"
+Editor = import "editor"
+Gallery = import "gallery"
+
+; floating layer to view web'pages, images and videos
+
+Project = (
+	main'view:,
+	overlay:,
+	container:,
+
+	new: {
+		self.main_view = gtk.Stack.new()
+		
+		self.overlay = gtk.Stack.new()
+		
+		self.container.set gtk.Overlay.new()
+		self.container.add self.main_view
+		self.container.add_overlay self.overlay
+		
+		; if there is a saved session file for the project, restore it
+		; if there is no view, open a view showing the project's files
+	}
+)

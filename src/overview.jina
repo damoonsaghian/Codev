@@ -1,0 +1,76 @@
+glib' = import "//glib"
+gio' = import "//gio"
+gdk' = import "//gdk"
+gtk' = import "//gtk"
+
+Project = import "project"
+
+; left panel
+;
+; attached devices:
+; https://docs.gtk.org/gio/class.VolumeMonitor.html
+;
+; ask the user if she wants to format the device, if:
+; , it's not formated
+; , it's a non'system device whose format is not vfat/exfat
+; , it's a system device whose format is not btrfs
+; http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-property-org-freedesktop-UDisks2-Block.HintSystem
+;
+; to format it get the volume identifier
+; https://docs.gtk.org/gio/iface.Volume.html
+; use udisks to format non'system devices with vfat or exfat (for files bigger than 4GB)
+; http://storaged.org/doc/udisks2-api/latest/index.html
+; https://lazka.github.io/pgi-docs/#Gio-2.0/classes/DBusConnection.html
+; https://gjs.guide/guides/gio/dbus.html#direct-calls
+; https://gjs.guide/guides/glib/gvariant.html#basic-usage
+; for system devices: sudo mkfs.btrfs
+;
+; projects on VFAT/exFAT formated devices will be opened as read'only
+; when you try to edit them, you will be asked to copy them on to a BTRFS formated device
+;
+; mount it (if it's not)
+; for non'system devices: https://docs.gtk.org/gio/method.Volume.mount.html
+; for system device: sudo mount
+
+ProjectsList = (
+	project'dir:,
+	
+	new: {projects'dir'path |
+		self.project'dir = gio.File.new'for'path project'dir'path
+		self.project_dir.enumerate'children(
+			"", gio.FileQueryInfoFlags.NONE, None,
+			{file'enumerator, result |}
+		)
+	},
+	
+	move'up: {},
+	
+	move'down: {},
+	
+	activate'project: {}
+)
+
+Overview = (
+	container:,
+	
+	new: {projects |
+		this.projects'dirs = []
+		; when a disk is mounted, add its "projects" directory to the list
+		
+		self.container = gtk.Stack.new()
+		
+		self.container.set_halign gtk.Align.CENTER
+		self.container.set_valign gtk.Align.CENTER
+	},
+	
+	activate'project: {project'dir |
+		; if project_uri is in project_views, bring it up
+		; otherwise create a new Project
+	},
+	
+	on'project'activated: {callback |
+		; hide overview when a project is activated;
+		
+		callback(this.selected'project'dir)
+	}
+)
