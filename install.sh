@@ -9,7 +9,7 @@ apt-get install libgtk-4-dev libgtk-4-1 libgtksourceview-5-dev libgtksourceview-
 	libarchive-dev libarchive13 gnunet
 
 # there is no .vapi file for webkitgtk6 yet (libwebkitgtk-6.0-dev, valac-0.56-vapi)
-# https://manpages.debian.org/unstable/valac/vala-gen-introspect.1.en.html
+# https://wiki.gnome.org/Projects/Vala/Bindings#Generating_the_VAPI_File
 # https://manpages.debian.org/unstable/valac/vapigen.1.en.html
 # https://manpages.debian.org/unstable/valac/valac.1.en.html
 
