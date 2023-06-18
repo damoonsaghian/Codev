@@ -22,14 +22,12 @@ the keyboard has two modes: insert mode and action mode
 in action mode keys are mapped to navigation keys (arrows, page up, page down, home, end, esc),
 	and ctrl/alt based keybindings
 in action mode, "pun" key acts like "alt" key
-in action mode, press "space" to go to insert mode
 when "action" is pressed keyboard sends a special key combination,
 	which can be used by applications, eg to flash the location of the cursor
 
-note that, "enter" remains "enter" in action mode
-
 to insert punctuations (in insert mode), press "pun"
 	after entering a punctuation charactor, it automatically returns to normal insert mode
+	unless the pun key is still pressed, in which case, it will return to normal mode after releasing pun
 to insert numbers, press and hold "num"
 
 to insert capital letters, press comma then press the letter
