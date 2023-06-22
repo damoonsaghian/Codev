@@ -52,6 +52,21 @@ cat <<-__EOF__ > /usr/local/share/icons/hicolor/scalable/apps/codev.svg
 </svg>
 __EOF__
 
+# allow udisks2 to mount all devices except when it's an EFI partition
+echo -n 'polkit.addRule(function(action, subject) {
+	function isNotEfiPartition(devicePath) {
+		var partitionType = polkit.spawn(["lsblk", "--noheadings", "-o", "PARTTYPENAME", devicePath]);
+		if (partitionType.indexOf("EFI System") === -1) return true;
+	}
+	if (subject.local && subject.active &&
+		action.id === "org.freedesktop.udisks2.filesystem-mount-system" &&
+		isNotEfiPartition(action.lookup("device"))
+	) {
+		return polkit.Result.YES;
+	}
+});
+' > /etc/polkit-1/rules.d/49-udisks.rules
+
 first_user="$(id -un 1000)"
 usermod -aG gnunet "$first_user"
 su -c "touch \"/home/$first_user/.config/gnunet.conf\"" "$first_user"
