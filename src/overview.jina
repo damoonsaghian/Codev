@@ -29,8 +29,7 @@ Project = import "project"
 ; when you try to edit them, you will be asked to copy them on to a BTRFS formated device
 ;
 ; mount it (if it's not)
-; for non'system devices: https://docs.gtk.org/gio/method.Volume.mount.html
-; for system device: sudo mount
+; https://docs.gtk.org/gio/method.Volume.mount.html
 
 ProjectsList = (
 	project'dir:,
