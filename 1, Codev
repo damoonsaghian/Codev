@@ -29,8 +29,8 @@ non'local projects, web pages, PDF documents, etc, accessed from links inside th
 web pages: move caret between visual elements (ignoring structural elements)
 
 actions:
-, next/previous word, line, paragraph, section (righ/left middle row keys)
-, next/previous file
+, next/previous word, line, paragraph, section
+	ask before crossing files
 , next/previous section view, opened file
 , go to the list of files to open a file view
 , go to the list of sections to open a section view

@@ -18,16 +18,14 @@ for those who neither can use all their fingers, nor can talk, gesture based (2d
 = the ideal keyboard
 ".data/keyboard.png"
 
-the keyboard has two modes: insert mode and action mode
-in action mode, press "space" to go to "insert" mode
-in action mode, keys are mapped to navigation keys (arrows, page up, page down, home, end, esc),
-	and ctrl/alt based keybindings
-in action mode, "pun" key acts like "alt" key
-when "action" key is pressed, keyboard sends a special key combination,
-	which can be used by applications, eg to flash the location of the cursor
+navigation keys (arrows, page up, page down, home, end, esc), and ctrl/shift/alt based keybindings,
+	are available by pressing and holding "action" key
+pressing one "action" key while holding the other one, activates "alt",
+	which will be released after both "action" keys are released
+	though pressing "action" more times, produces temporary release event, before producing each "press" events
 
 to insert punctuations (in insert mode), press "pun"
-	after entering a punctuation charactor, it automatically returns to normal insert mode
+	after entering a punctuation charactor, it automatically returns to normal mode
 	unless the "pun" key is still pressed, in which case, it will return to normal mode after releasing "pun"
 to insert numbers, press and hold "num"
 
@@ -41,10 +39,6 @@ when comma key is press, keyboard enters the cap mode in which:
 , pressing comma again, sends a "backspace" key, and activates caps mode,
 	which remains active until space (or enter or action) is pressed
 , pressing any other keys, acts like normal, and cancels the cap mode
-
-for compatibility with other applications, we may still need a mouse,
-	plus "ctrl" and "shift" keys which can be put in the middle of the keyboard
-for full compatibility we can add a row of function keys, plus the "delete" key
 
 "https://github.com/abstracthat/dactyl-manuform"
 "https://zealot.hu/absolem/"
