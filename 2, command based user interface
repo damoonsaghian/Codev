@@ -19,10 +19,11 @@ for those who neither can use all their fingers, nor can talk, gesture based (2d
 ".data/keyboard.png"
 
 the keyboard has two modes: insert mode and action mode
-in action mode keys are mapped to navigation keys (arrows, page up, page down, home, end, esc),
+in action mode, press "space" to go to "insert" mode
+in action mode, keys are mapped to navigation keys (arrows, page up, page down, home, end, esc),
 	and ctrl/alt based keybindings
 in action mode, "pun" key acts like "alt" key
-when "action" or "insert" keys are pressed keyboard sends a special key combination,
+when "action" key is pressed, keyboard sends a special key combination,
 	which can be used by applications, eg to flash the location of the cursor
 
 to insert punctuations (in insert mode), press "pun"
