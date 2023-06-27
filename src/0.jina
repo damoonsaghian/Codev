@@ -18,6 +18,8 @@ Overview = import "overview"
 
 ; new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
 
+; screen recording: gstreamer1.0-pipewire (like in Kooha, and GnomeShell)
+
 gtk.init()
 
 projects = gtk.Stack.new()
