@@ -19,9 +19,9 @@ for those who neither can use all their fingers, nor can talk, gesture based (2d
 ".data/keyboard.png"
 
 navigation keys (arrows, page up, page down, home, end, esc), and ctrl/shift/alt based keybindings,
-	are available by pressing and holding "action" key
-pressing one "action" key while holding the other one, activates "alt",
-	which will be released after both "action" keys are released
+	are available by pressing and holding "mod" key
+pressing one "mod" key while holding the other one, activates "alt",
+	which will be released after both "mod" keys are released
 
 to insert punctuations (in insert mode), press "pun"
 	after entering a punctuation charactor, it automatically returns to normal mode
@@ -36,7 +36,7 @@ when comma key is press, keyboard enters the cap mode in which:
 , pressing a letter key, sends a "backspace" key, and then the capitalized form of that letter,
 	and then the cap mode will be canceled
 , pressing comma again, sends a "backspace" key, and activates caps mode,
-	which remains active until space (or enter or action) is pressed
+	which remains active until space (or enter or mod) is pressed
 , pressing any other keys, acts like normal, and cancels the cap mode
 
 "https://github.com/abstracthat/dactyl-manuform"
