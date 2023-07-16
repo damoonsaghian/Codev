@@ -6,7 +6,7 @@ apt-get install libgtk-4-dev libgtk-4-1 libgtksourceview-5-dev libgtksourceview-
 	libgstreamer1.0-dev libgstreamer1.0-0 gstreamer1.0-pipewire \
 	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
 	libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-	libarchive13 gnunet
+	libarchive-dev libarchive13 gnunet
 
 # plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 # libav is needed till
@@ -20,7 +20,7 @@ jina build
 cp .cache/jina/codev /usr/local/bin/
 
 apt-get --yes purge libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev \
-	libudisks2-dev libgstreamer1.0-dev
+	libudisks2-dev libgstreamer1.0-dev libarchive-dev
 apt-get --yes --purge autoremove
 apt-get --yes autoclean
 
