@@ -2,11 +2,10 @@ command -v jina || apt-get install jina || echo "Jina compiler is needed, to bui
 
 apt-get install libgtk-4-dev libgtk-4-1 libgtksourceview-5-dev libgtksourceview-5-0 \
 	libwebkitgtk-6.0-dev libwebkitgtk-6.0-4 libpoppler-glib-dev libpoppler-glib8 \
-	libudisks2-dev libudisks2-0 dosfstools exfatprogs btrfs-progs gvfs \
 	libgstreamer1.0-dev libgstreamer1.0-0 gstreamer1.0-pipewire \
 	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
 	libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-	libarchive-dev libarchive13 gnunet
+	gvfs dosfstools exfatprogs btrfs-progs libarchive13 gnunet
 
 # plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 # libav is needed till
@@ -19,8 +18,7 @@ cd "$(dirname "$0")"
 jina build
 cp .cache/jina/codev /usr/local/bin/
 
-apt-get --yes purge libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev \
-	libudisks2-dev libgstreamer1.0-dev libarchive-dev
+apt-get --yes purge libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev libgstreamer1.0-dev
 apt-get --yes --purge autoremove
 apt-get --yes autoclean
 
