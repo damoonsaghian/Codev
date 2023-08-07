@@ -1,21 +1,8 @@
-glib' = import "//glib"
-gio' = import "//gio"
-gdk' = import "//gdk"
-gtk' = import "//gtk"
-
-; https://stackoverflow.com/questions/23433819/creating-a-simple-file-browser-using-python-and-gtktreeview
-; https://github.com/tchx84/Portfolio
-; http://zetcode.com/gui/pygtk/advancedwidgets/
-; https://github.com/MeanEYE/Sunflower
-; https://gitlab.xfce.org/apps/catfish/
-; https://gitlab.gnome.org/aviwad/organizer
-; https://github.com/donadigo/elementary-ide
+gui' = import "//hostname/gui-0.1"
 
 ; https://github.com/OSSystems/compress-tools-rs
 ; https://github.com/patr0nus/akv
-
-; .iso file: ask if you want to extract it, if not, ask for a device to write it into
-; then unmount it if mounted, and if sucessful, do:
+; iso file: ask if you want to view its content, if not, ask for a device to write it into
 ; ; sudo dd if=isofile of=devicename
 
 Files = (
@@ -25,15 +12,12 @@ Files = (
 	dir'icon:,
 	
 	_new: {project_dir |
-		self.view.set gtk.TreeView.new()
-		self.model = gtk.
+		self.view.set gui.TreeView.new()
 		
 		; directory monitor
 		
-		theme = gtk.icon'theme.get'default()
-		self.file'icon.set theme.load'icon(gtk.STOCK'FILE, 48, 0)
-		
-		self.dir'icon.set theme.load'icon(gtk.STOCK'DIRECTORY, 48, 0)
+		self.file'icon.set gui.theme.icons.load('file, 48, 0)
+		self.dir'icon.set gui.theme.icons.load('directory, 48, 0)
 	},
 	
 	move_up: {},

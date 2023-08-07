@@ -1,7 +1,4 @@
-glib' = import "//glib"
-gio' = import "//gio"
-gdk' = import "//gdk"
-gtk' = import "//gtk"
+gui' = import "//hostname/gui-0.1"
 
 Files = import "files"
 Editor = import "editor"
@@ -15,11 +12,11 @@ Project = (
 	container:,
 
 	new: {
-		self.main_view = gtk.Stack.new()
+		self.main_view = gui.Stack.new()
 		
-		self.overlay = gtk.Stack.new()
+		self.overlay = gui.Stack.new()
 		
-		self.container.set gtk.Overlay.new()
+		self.container.set gui.Overlay.new()
 		self.container.add self.main_view
 		self.container.add_overlay self.overlay
 		

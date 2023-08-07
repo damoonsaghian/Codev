@@ -1,40 +1,23 @@
-glib' = import "//glib"
-gio' = import "//gio"
-gdk' = import "//gdk"
-gtk' = import "//gtk"
+gui' = import "//hostname/gui-0.1"
 
 Overview = import "overview"
 
-; https://pygobject.readthedocs.io/en/latest/
-; https://github.com/GNOME/pygobject/tree/master/examples/demo/demos
-; https://lazka.github.io/pgi-docs/main.html
-; https://www.gtk.org/docs/apis/
-; https://developer.gnome.org/documentation/
-
 ; slightly dim unfocused panels
-; when moving or when "action" is pressed, create a flash which shows the location of the cursor
 
 ; backup: two'way diff
 
 ; new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
 
-; screen recording: gstreamer1.0-pipewire (like in Kooha, and GnomeShell)
-
-gtk.init()
-
-projects = gtk.Stack.new()
+projects = gui.Stack.new()
 
 overview = Overview.new projects
 
-main'view = gtk.Overlay.new()
+main'view = gui.Overlay.new()
 main'view.add projects
 main'view.add_overlay overview.container
 ; keybinding to show the overview
 
-win = gtk.Window.new()
-win.add(main'view)
-win.set'titlebar None
-win.connect "destroy" gtk.main'quit
-win.show'all()
-win.maximize()
-gtk.main()
+win =
+win.add main'view
+win.on_destroy mainloop.quit()
+mainloop()

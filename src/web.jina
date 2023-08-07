@@ -1,12 +1,4 @@
-glib' = import "//glib"
-gio' = import "//gio"
-gdk' = import "//gdk"
-gtk' = import "//gtk"
-webkit' = import "//webkit"
-
-; https://www.archlinux.org/packages/community/any/eolie/
-; https://github.com/liske/barkery
-; https://github.com/sonnyp/Tangram
+gui' = import "//hostname/gui-0.1"
 
 ; non'English pages are managed using a userscript
 ; on non'English pages:
@@ -19,7 +11,7 @@ webkit' = import "//webkit"
 
 Web = (
 	new: {
-		view = webkit.WebView.new()
+		view = gui.WebView.new()
 		view.load'uri "http://www.google.com/"
 	}
 )

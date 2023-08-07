@@ -1,56 +1,5 @@
-from gi.repository import GLib, Gio, Gdk, Gtk, Gst
-glib' = import "//glib"
-gio' = import "//gio"
-gdk' = import "//gdk"
-gtk' = import "//gtk"
-gst' = import "//gst"
-
-; gtk4 mediafile
-
-; for gallery view: gtk::FlowBox, gtk::Scrollable
-; https://github.com/karlch/vimiv
-; https://gitlab.com/Strit/griffith
-; https://gitlab.gnome.org/GNOME/shotwell/tree/master/src
-; https://gitlab.gnome.org/GNOME/gnome-music
-; https://gitlab.gnome.org/World/lollypop/-/tree/master/lollypop
-; https://github.com/quodlibet/quodlibet/
-; https://gitlab.gnome.org/GNOME/pitivi/-/tree/master/pitivi
-; https://github.com/jliljebl/flowblade
+gui' = import "//hostname/gui-0.1"
 
 ; subtitles and comments
-; https://github.com/otsaloma/gaupol/tree/master/gaupol
 
-; gdk-pixbuf-thumbnailer -s 128 %u %o
-
-; gtk_application_inhibit gtk_application_uninhibit
-
-Gallery = (
-	container:,
-	file'icon:,
-	dir'icon:,
-	store:,
-	view:,
-	
-	new: {
-		this.container.set gtk.ScrolledWindow.new()
-		this.container.set_policy gtk.POLICY'AUTOMATIC gtk.POLICY'AUTOMATIC
-		
-		theme = gtk.iconThemeGetDefault()
-		self.file'icon.set theme.loadIcon Gtk.STOCK'FILE 48 0
-		self.dir'icon.set theme.loadIcon Gtk.STOCK'DIRECTORY 48 0
-		
-		self.store.set gtk.ListStore(String, gtk.gdk.Pixbuf, Bool)
-		self.store.set'sort'column_id 0 gtk.SORT'ASCENDING
-		self.store.clear()
-		
-		self.view = gtk.IconView()
-	}
-	
-	move'up: {},
-	
-	move'down: {},
-	
-	go'to'item: {},
-	
-	find: {}
-)
+; thumbnailer
