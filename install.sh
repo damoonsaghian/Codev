@@ -1,26 +1,12 @@
-command -v jina || apt-get install jina || echo "Jina compiler is needed, to build Codev"
+command -v jina > /dev/null 2>&1 || apt-get install jina || {
+	echo 'to build Codev, "jina" must be installed on the system'
+	exit 1
+}
+apt-get install dosfstools exfatprogs btrfs-progs libarchive13 gnunet
 
-apt-get install libgtk-4-dev libgtk-4-1 libgtksourceview-5-dev libgtksourceview-5-0 \
-	libwebkitgtk-6.0-dev libwebkitgtk-6.0-4 libpoppler-glib-dev libpoppler-glib8 \
-	libgstreamer1.0-dev libgstreamer1.0-0 gstreamer1.0-pipewire \
-	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
-	libavif-gdk-pixbuf heif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-	gvfs dosfstools exfatprogs btrfs-progs libarchive13 gnunet
-
-# plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
-# libav is needed till
-# , h264(openh264), h265(libde265), and aac(fdk-aac) go into plugins-ugly
-# , and av1(aom-libs) goes into plugins-good
-
-# libjxl is compiled with gdk-pixbuf loader disabled, until skcms enters Debian
-
-cd "$(dirname "$0")"
-jina build
-cp .cache/jina/codev /usr/local/bin/
-
-apt-get --yes purge libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev libgstreamer1.0-dev
-apt-get --yes --purge autoremove
-apt-get --yes autoclean
+project_dir="$(dirname "$0")"
+jina build "$project_dir"
+cp "$project_dir/.cache/jina/codev" /usr/local/bin/
 
 mkdir -p /usr/local/share/applications
 cat <<-__EOF__ > /usr/local/share/applications/codev.desktop
