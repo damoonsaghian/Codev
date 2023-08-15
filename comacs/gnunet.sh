@@ -171,15 +171,6 @@ website() {
 	--header='Content-Type: application/json' https://hashbang.sh/user/create
 }
 
-# audio conversasion is already implemented; add video
-# "https://git.gnunet.org/gnunet.git/tree/src/conversation"
-# "https://git.gnunet.org/gnunet.git/tree/src/conversation/gnunet_gst.c"
-# "https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html"
-# figure out how to send/receive streams to/from gnunet
-# send/receive streams to/from encoder/decoder pipline
-# use pipewire to access camera
-# use video widget to put it on gui
-
 case "$1" in
 	publish) publish ;;
 	unpublish) unpublish ;;
