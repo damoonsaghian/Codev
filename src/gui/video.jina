@@ -1,0 +1,16 @@
+;[
+https://github.com/rust-av/rust-av
+libavfilter
+https://crates.io/crates/video-rs
+https://crates.io/crates/rusty_ffmpeg
+https://crates.io/crates/ac-ffmpeg
+https://crates.io/crates/ffmpeg-next
+
+mp4/matroska/webm containers
+AV1 Opus
+mp3 and vpx
+h264(openh264), h265(libde265), and aac(fdk-aac)
+av1(aom-libs)
+
+inhibit display off while playing
+]
