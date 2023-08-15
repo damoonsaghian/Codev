@@ -1,26 +1,13 @@
-gui' = import "//hostname/gui-0.1"
+gui' = ..gui
+Files' = ..files.Files
+Editor' = ..editor.Editor
+Gallery' = ..gallery.Gallery
 
-Files = import "files"
-Editor = import "editor"
-Gallery = import "gallery"
+; floating layer to view web'pages, images and videos
+; if there is a saved session file for the project, restore it
+
+Project :gui.Widget = .{}
 
 ; floating layer to view web'pages, images and videos
 
-Project = (
-	main'view:,
-	overlay:,
-	container:,
-
-	new: {
-		self.main_view = gui.Stack.new()
-		
-		self.overlay = gui.Stack.new()
-		
-		self.container.set gui.Overlay.new()
-		self.container.add self.main_view
-		self.container.add_overlay self.overlay
-		
-		; if there is a saved session file for the project, restore it
-		; if there is no view, open a view showing the project's files
-	}
-)
+; if there is a saved session file for the project, restore it

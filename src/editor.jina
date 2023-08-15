@@ -1,40 +1,30 @@
-gui' = import "//hostname/gui-0.1"
+gui' = ..gui
 
-; indentation guides:
-; change the background color of leading tabs; interchange between 2 colors
+Editor :gui.Widget = .{
+	new = {}
+}
+
+; next and previous: word, line, paragraph
 
 ; white space (space, tab, new line) + space -> tab
+; "psi" followed by two succesive apostrophes will be replaced by "ψ"
 
 ; elastic tabstops
+; tables
 
-; undo history
-; store and restore
+; store and restore undo history
 ; https://crates.io/crates/serde
 ; https://github.com/ron-rs/ron
 
 ; clipboard handling for text, image, and "text/uri-list"
 ; for the latter, ref'copy the files into the ".data" directory,
-; and insert the appropriate markup (first ask for a name)
+; ask for a name, and insert the path into the text buffer
 ; https://crates.io/crates/copypasta
-
-; spell check
-
-; mathematical symbols
-; "psi" followed by two succesive apostrophes will be replaced by "ψ"
-
-; WYSIWYG formula and diagram editor
-; cursor movement represents the movement inside the tree
-
-; https://nalgebra.org/
-; symbolic math
-
-; tables, 2D/3D diagrams
 
 ; screen recording: pipewire
 ; to insert a screenshot or screencast:
 ; move the file saved in "~/.cache/screen.png" or "~/.cache/screen.mp4" to ".data"
 ; ask for a name, and insert the path into the text buffer
 
-Editor = (
-	new: {},
-)
+; WYSIWYG formula and diagram editor
+; cursor movement represents the movement inside the tree

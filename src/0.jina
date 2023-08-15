@@ -1,23 +1,40 @@
-gui' = import "//hostname/gui-0.1"
+gui' = ..gui
 
-Overview = import "overview"
+Overview' = ..overview.Overvoew
 
-; slightly dim unfocused panels
+;[
+audio conversasion with gnunet is already implemented
+https://git.gnunet.org/gnunet.git/tree/src/conversation
+https://git.gnunet.org/gnunet.git/tree/src/conversation/gnunet_gst.c
+https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
+to add video:
+, figure out how to send/receive streams to/from gnunet
+, send/receive streams to/from encoder/decoder pipline
+, to access camera:	https://crates.io/crates/nokhwa
+, use video widget to put it on gui
+]
 
 ; backup: two'way diff
 
 ; new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
 
-projects = gui.Stack.new()
+; https://nalgebra.org/
+; symbolic math
+; physics: https://rapier.rs/
+; CAD: https://github.com/ricosjp/truck
 
-overview = Overview.new projects
+main = {
+	projects = gui.Stack.new()
 
-main'view = gui.Overlay.new()
-main'view.add projects
-main'view.add_overlay overview.container
-; keybinding to show the overview
+	overview = Overview.new projects
 
-win =
-win.add main'view
-win.on_destroy mainloop.quit()
-mainloop()
+	main'view = gui.Overlay.new()
+	main'view.add projects
+	main'view.add_overlay overview.container
+	; keybinding to show the overview
+
+	win =
+	win.add main'view
+	win.on'destroy mainloop.quit
+	mainloop()
+}

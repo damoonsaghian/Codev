@@ -1,13 +1,13 @@
-gui' = import "//hostname/gui-0.1"
+gui' = ..gui
 
-Project = import "project"
+Files' = ..files.Files
+Project' = ..project.Projects
 
 ;[
 left panel
 
-monitor for attached devices:
-https://crates.io/crates/drives
-mtp
+attached devices: udisksctl monitor
+http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Manager.html#gdbus-method-org-freedesktop-UDisks2-Manager.GetBlockDevices
 
 ask the user if she wants to format the device, if:
 , it's not formated
@@ -30,42 +30,37 @@ when you try to edit them, you will be asked to copy them on to a BTRFS formated
 mount it (if it's not) using udisks
 ]
 
-ProjectsList = (
-	project'dir:,
+ProjectsList :gui.Widget = .{
+	project'dir
 	
-	new: {projects'dir'path |
-		self.project'dir = File.new project'dir'path
+	new = { projects'dir'path |
+		project'dir = Files.new project'dir'path
 		; read the containg files async
-	},
+		Self. project'dir
+	}
 	
-	move'up: {},
+	move'up = {}
 	
-	move'down: {},
+	move'down = {}
 	
-	activate'project: {}
-)
+	activate'project = {}
+}
 
-Overview = (
-	container:,
+Overview :gui.Widget = {
+	container
+	selected'project'dir
 	
-	new: {projects |
-		self.projects'dirs = []
-		; when a disk is mounted, add its "projects" directory to the list
-		
-		self.container = gui.Stack.new()
-		
-		self.container.set_halign gui.Align'center
-		self.container.set_valign gui.Align'center
-	},
+	new = { projects |
+	}
 	
-	activate'project: {project'dir |
+	activate'project = { project'dir |
 		; if project_uri is in project_views, bring it up
 		; otherwise create a new Project
-	},
+	}
 	
-	on'project'activated: {callback |
+	on'project'activated = { callback |
 		; hide overview when a project is activated;
 		
 		callback(self.selected'project'dir)
 	}
-)
+}

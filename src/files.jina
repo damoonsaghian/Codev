@@ -1,30 +1,21 @@
-gui' = import "//hostname/gui-0.1"
+gui' = ..gui
 
-; https://github.com/OSSystems/compress-tools-rs
-; https://github.com/patr0nus/akv
-; iso file: ask if you want to view its content, if not, ask for a device to write it into
-; ; sudo dd if=isofile of=devicename
+Files :gui.Widget = .{
+	new = { project_dir |
+	}
+	
+	move_up = {}
+	
+	move_down = {}
+	
+	go_to_file = {}
+	
+	find_file = {}
+}
 
-Files = (
-	view:,
-	model:,
-	file'icon:,
-	dir'icon:,
-	
-	_new: {project_dir |
-		self.view.set gui.TreeView.new()
-		
-		; directory monitor
-		
-		self.file'icon.set gui.theme.icons.load('file, 48, 0)
-		self.dir'icon.set gui.theme.icons.load('directory, 48, 0)
-	},
-	
-	move_up: {},
-	
-	move_down: {},
-	
-	go_to_file: {},
-	
-	find_file: {}
-)
+;[
+https://github.com/OSSystems/compress-tools-rs
+https://github.com/patr0nus/akv
+iso file: ask if you want to view its content, if not, ask for a device to write it into
+; sudo dd if=isofile of=devicename
+]
