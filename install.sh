@@ -1,8 +1,25 @@
+apt-get install dosfstools exfatprogs btrfs-progs udisks2 libarchive-tools luakit mpv gnunet emacs
+mkdir -p /usr/local/share/comacs
+cp -r "$(dirname "$0")/comacs" "/usr/local/share/codev-proto/"
+
+first_user="$(id -un 1000)"
+usermod -aG gnunet "$first_user"
+su -c "touch \"/home/$first_user/.config/gnunet.conf\"" "$first_user"
+echo -n '[ats]
+WLAN_QUOTA_IN = unlimited
+WLAN_QUOTA_OUT = unlimited
+WAN_QUOTA_IN = unlimited
+WAN_QUOTA_OUT = unlimited
+' >> "/home/$first_user/.config/gnunet.conf"
+
+# for now just install Comacs, until the real Codev is ready
+exit 0
+
 command -v jina > /dev/null 2>&1 || apt-get install jina || {
 	echo 'to build Codev, "jina" must be installed on the system'
 	exit 1
 }
-apt-get install dosfstools exfatprogs btrfs-progs libarchive13 gnunet
+apt-get install dosfstools exfatprogs btrfs-progs udisks2 libarchive13 libwpewebkit-1.1-0 gnunet
 
 project_dir="$(dirname "$0")"
 jina build "$project_dir"
@@ -30,13 +47,3 @@ cat <<-__EOF__ > /usr/local/share/icons/hicolor/scalable/apps/codev.svg
 	<path style="fill:none;stroke:#555555;stroke-width:2;stroke-linecap" d="M 25,50 H 41"/>
 </svg>
 __EOF__
-
-first_user="$(id -un 1000)"
-usermod -aG gnunet "$first_user"
-su -c "touch \"/home/$first_user/.config/gnunet.conf\"" "$first_user"
-echo -n '[ats]
-WLAN_QUOTA_IN = unlimited
-WLAN_QUOTA_OUT = unlimited
-WAN_QUOTA_IN = unlimited
-WAN_QUOTA_OUT = unlimited
-' >> "/home/$first_user/.config/gnunet.conf"
