@@ -47,5 +47,5 @@ https://github.com/EmbarkStudios/rust-gpu (write shaders in rust)
 images:
 https://crates.io/crates/image
 libgraphicsmagick-q16-3 libimlib2
-libjxl libavif heif webp librsvg2
+libjxl libavif webp librsvg2
 ]
