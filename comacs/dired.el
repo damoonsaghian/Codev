@@ -59,26 +59,35 @@
 ))
 
 (add-hook
- 'dired-after-readin-hook
- (lambda ()
-   (let ((inhibit-read-only t))
-     (save-excursion
-       ;; hide the first line in dired;
-       (goto-char 1)
-       (forward-line 2)
-       (narrow-to-region (point) (point-max))
+	'dired-after-readin-hook
+	(lambda ()
+		(let ((inhibit-read-only t))
+			(save-excursion
+				;; hide the first line in dired;
+				(goto-char 1)
+				(forward-line 2)
+				(narrow-to-region (point) (point-max))
+				(while (not (eobp))
+					(let ((filename (dired-get-filename nil t)))
+						(when filename
+							;; hide the two spaces at the begining of each line in dired;
+							(let ((ov (make-overlay (point) (1+ (point)))))
+								(overlay-put ov 'invisible t)
+							)
+							(dired-goto-file filename)
+							(let ((ov (make-overlay (1- (point)) (point))))
+								(overlay-put ov 'invisible t)
+							)
+							(forward-line 1)
+						)
+					)
+				)
+			)
+		)
+	)
+)
 
-       (while (not (eobp))
-         (let ((filename (dired-get-filename nil t)))
-           (when filename
-             ;; hide the two spaces at the begining of each line in dired;
-             (let ((ov (make-overlay (point) (1+ (point)))))
-               (overlay-put ov 'invisible t))
-             (dired-goto-file filename)
-             (let ((ov (make-overlay (1- (point)) (point))))
-               (overlay-put ov 'invisible t))
-         (forward-line 1))))))
-
+;; open directories as subtree
 
 ;; async file operations in dired
 ;; https://github.com/jwiegley/emacs-async
@@ -93,22 +102,6 @@
 ;; bsdtar -xf <file-path>
 ;; iso file: ask if you want to view its content, if not, ask for a device to write it into
 ;; ; sudo dd if=isofile of=devicename
-
-;; view images in a floating emacs window
-;; 	libgraphicsmagick-q16-3 libimlib2
-;; 	libjxl libavif heif webp librsvg2
-;; play videos in a floating mpv window
-;; 	mp4/matroska/webm containers
-;; 	AV1 Opus
-;; 	mp3 and vpx
-;; 	h264(openh264), h265(libde265), and aac(fdk-aac)
-;; 	av1(aom-libs)
-;; view webpages in a floating luakit window
-
-;; WYSIWYG editor for formula and 2D/3D models
-;; cursor movement represents the movement inside the tree
-;; eg an external program which receives formula as input,
-;; 	shows a window for editing the formula, and at the end, outputs the formula and a generated png
 
 ;; http://pragmaticemacs.com/emacs/dired-emacs-as-a-file-browser/
 ;; http://pragmaticemacs.com/emacs/dired-marking-copying-moving-and-deleting-files/
