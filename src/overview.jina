@@ -27,7 +27,8 @@ for system devices:
 projects on VFAT/exFAT formated devices will be opened as read'only
 when you try to edit them, you will be asked to copy them on to a BTRFS formated device
 
-mount it (if it's not) using udisks
+mount it (if it's not)
+http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Filesystem.html#gdbus-method-org-freedesktop-UDisks2-Filesystem.Mount
 ]
 
 ProjectsList :gui.Widget = .{
