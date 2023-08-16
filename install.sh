@@ -1,6 +1,11 @@
-apt-get install dosfstools exfatprogs btrfs-progs udisks2 libarchive-tools luakit mpv gnunet emacs
+apt-get install dosfstools exfatprogs btrfs-progs udisks2 libarchive-tools luakit mpv gnunet emacs \
+	libjxl-gdk-pixbuf libavif-gdk-pixbuf webp-pixbuf-loader gstreamer1.0-plugins-ugly gstreamer1.0-libav
+# libav is needed till
+# , h264(openh264), h265(libde265), and aac(fdk-aac) go into plugins-ugly
+# , and av1(aom-libs) goes into plugins-good
+
 mkdir -p /usr/local/share/comacs
-cp -r "$(dirname "$0")/comacs" "/usr/local/share/codev-proto/"
+cp -r "$(dirname "$0")/comacs" "/usr/local/share/emacs/"
 
 first_user="$(id -un 1000)"
 usermod -aG gnunet "$first_user"
