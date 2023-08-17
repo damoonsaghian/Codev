@@ -36,8 +36,6 @@
 ;; slightly dim unfocused panels
 
 (setq blink-cursor-blinks 0)
-;; https://github.com/Malabarba/beacon
-;; https://github.com/alphapapa/scrollkeeper.el
 
 (setq-default truncate-lines t)
 
@@ -169,6 +167,7 @@
 ;; eg an external program which receives formula/model as input,
 ;; 	shows a window for editing the formula, and at the end, outputs the formula and a generated png
 ;; the window can be opened at exact location of the png image
+;; the window's app_id will be "comacs"
 ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Position-Parameters.html
 ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Coordinates-and-Windows.html
 ;; swaymsg move position <pos_x> <pos_y>
@@ -206,6 +205,7 @@
 ;; https://packages.debian.org/bookworm/emacs-window-layout
 ;; https://packages.debian.org/bookworm/elpa-pdf-tools
 
+;; https://emacsdocs.org/
 ;; https://github.com/emacs-mirror/emacs
 ;; https://www.emacswiki.org/emacs/ElispCookbook
 ;; https://www.gnu.org/software/emacs/refcards/pdf/refcard.pdf
