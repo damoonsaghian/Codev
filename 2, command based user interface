@@ -20,8 +20,7 @@ for those who neither can use all their fingers, nor can talk, gesture based (2d
 
 navigation keys (arrows, page up, page down, home, end, esc), and ctrl/shift/alt based keybindings,
 	are available by pressing and holding "mod" key
-pressing one "mod" key while holding the other one, activates "alt",
-	which will be released after both "mod" keys are released
+pressing one "mod" key while holding the other one, is equivalent to Super key
 
 to insert punctuations (in insert mode), press "pun"
 	after entering a punctuation charactor, it automatically returns to normal mode
