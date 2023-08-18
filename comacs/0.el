@@ -11,6 +11,7 @@
 ;; new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
 
 ;; run an emacs server to receive messages from other programs
+;; create a window with class "codev"
 
 (setq window-sides-vertical t)
 (setq display-buffer-alist `(
@@ -100,6 +101,20 @@
 
 ;; white space (space, tab, new line) + space -> tab
 ;; "psi" followed by two succesive apostrophes will be replaced by "ψ"
+;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Abbrevs.html
+(defun double-space-to-tab ()
+  (interactive)
+  (if (and (equal (char-before (point)) ?\s)
+           (not (equal (char-before (1- (point))) ?\s))
+           (not (equal (char-before (1- (point))) ?\t))
+           (not (equal (char-before (1- (point))) ?\n)))
+      (progn (delete-backward-char 1)
+             (if (equal "Find file: "
+                        (buffer-substring-no-properties (point-min) (minibuffer-prompt-end)))
+                 (minibuffer-complete)
+               (completion-at-point)))
+    (insert " ")))
+(global-set-key (kbd "SPC") 'double-space-to-tab)
 
 ; elastic tab'stops:
 ; https://github.com/tenbillionwords/spaceship-mode
@@ -176,6 +191,8 @@
 (load "./dired.el")
 
 ;; in minibuffer press "space" -> shell
+
+;; https://packages.debian.org/elpa-bash-completion
 
 ;; https://stackoverflow.com/questions/285660/automatically-wrapping-i-search
 ;; https://emacs.stackexchange.com/questions/41230/wraparound-search-with-isearch-mode
