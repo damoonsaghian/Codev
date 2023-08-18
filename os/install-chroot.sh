@@ -229,3 +229,11 @@ apt-get install emacs libarchive-tools mpv luakit \
 # , and av1(aom-libs) goes into plugins-good
 mkdir -p /usr/local/share/comacs
 cp -r "$this_directory/../comacs" "/usr/local/share/comacs/"
+echo -n '#!/bin/bash
+if [ "$1" = apps ]; then
+	emacsclient --eval "(apps)" || emacs
+else
+	emacs
+fi
+' > /usr/local/bin/codev
+chmod +x /usr/local/bin/codev
