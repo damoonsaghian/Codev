@@ -17,17 +17,16 @@ if Debian live is not available for an architecture, as a workaround,
 then run this in a terminal (note that s390x and mips architectures are not supported):
 ; sudo sh <path-to-this-project-directory>/install.sh
 
-after booting into the installed system, you will see Codev (or it's early prototype, Comacs)
-there is a terminal emulator too, in case Codev fails
+after booting into the installed system, you will see Codev
 
-press "super" (mod+mod), or "alt+tab" to open apps menu
-one of the options in the apps menu is "session", where you can manage current session:
-	lock, suspend, exit, reboot, poweroff
+press "super" (mod+mod), or "alt+tab" to open a list showing the installed apps
+one of the entries in the apps list is "session manager",
+	which can be used to lock the session, suspend, exit, reboot, or poweroff
 press "super+space" or "alt+grave" to switch between windows of an app
-press "super+backspace" to close a window
+press "super+backspace" or "alt+esc" to close a window
 
 "system" is a command'line program which can be used to:
-	manage connections, set timezone, change passwords, and manage installed packages
+	manage connections, set timezone, change passwords, or manage installed packages
 
 implementing atomic upgrade does not worth the effort, because to have a really fail'safe system,
 	redundant backups are necessary anyway
