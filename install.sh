@@ -2,20 +2,14 @@ apt-get install gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppl
 	gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
 	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
 	libjxl-gdk-pixbuf libavif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-	python3-gi gvfs-backends dosfstools exfatprogs btrfs-progs gnunet
+	lua-lgi lua5.3 gvfs-backends dosfstools exfatprogs btrfs-progs gnunet
 
 # plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 # libav is needed till
 # , h264(openh264), h265(libde265), and aac(fdk-aac) go into plugins-ugly
 # , and av1(aom-libs) goes into plugins-good
 
-cp -r "$(dirname "$0")"/src.py/* /usr/local/share/codev/
-
-cat <<-__EOF__ > /usr/local/bin/codev-proto
-#!/bin/sh
-python3 /usr/local/share/codev-proto/
-__EOF__
-chmod +x /usr/local/bin/codev-proto
+cp -r "$(dirname "$0")"/src.lua/* /usr/local/share/codev/
 
 mkdir -p /usr/local/share/applications
 cat <<-__EOF__ > /usr/local/share/applications/codev.desktop
@@ -23,7 +17,7 @@ cat <<-__EOF__ > /usr/local/share/applications/codev.desktop
 Type=Application
 Name=Codev
 Icon=codev
-Exec=/usr/local/bin/codev
+Exec=lua5.3 /usr/local/share/codev/0.lua
 StartupNotify=true
 __EOF__
 
