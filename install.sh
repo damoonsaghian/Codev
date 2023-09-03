@@ -9,6 +9,7 @@ apt-get install gjs gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-p
 # , h264(openh264), h265(libde265), and aac(fdk-aac) go into plugins-ugly
 # , and av1(aom-libs) goes into plugins-good
 
+mkdir -p /usr/local/share/codev
 cp -r "$(dirname "$0")"/src.gjs/* /usr/local/share/codev/
 
 echo -n '#!/bin/sh
