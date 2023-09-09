@@ -2,7 +2,7 @@ apt-get install gjs gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-p
 	gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
 	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
 	libjxl-gdk-pixbuf libavif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-	gvfs-backends dosfstools exfatprogs btrfs-progs gnunet
+	gvfs libarchive-tools mtp-tools libmtp-runtime dosfstools exfatprogs btrfs-progs gnunet
 
 # plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 # libav is needed till
