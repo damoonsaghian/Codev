@@ -28,8 +28,8 @@ slightly dim unfocused panels
 new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
 
 use colored lines on top and bottom of scrollables to show the amount of content above and below
-local style_provider = Gtk.CssProvider()
-local css_path =
+let style_provider = new Gtk.CssProvider()
+let css_path =
 style_provider.load_from_file(Gio.File.new_for_path(css_path))
 Gtk.StyleContext.add_provider_for_screen(
 	Gdk.Screen.get_default(),

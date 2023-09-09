@@ -11,9 +11,9 @@ https://github.com/MeanEYE/Sunflower
 https://gitlab.xfce.org/apps/catfish/
 https://gitlab.gnome.org/aviwad/organizer
 
-archives: create a temp dir, and mount the archive there
-.iso file: ask if user wants to view the content, if not, ask for a device to write it into
-then unmount it if mounted, and if sucessful, do:
+archives:
+	bsdtar -xf <file-path>
+.iso file: ask if user wants to extract it, if not, ask for a device to write it into, then:
 ; sudo dd if=isofile of=devicename
 */
 

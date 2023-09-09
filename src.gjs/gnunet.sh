@@ -3,6 +3,8 @@
 # "https://docs.gnunet.org/"
 # "https://manpages.debian.org/unstable/gnunet/"
 # "https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html"
+# Reticulum is interesting but very limited and primitive, compared to GNUnet
+# https://reticulum.network/
 
 # keys:
 # , primary key pair (used for first encounter)
