@@ -1,9 +1,10 @@
-import GLib from 'gi://GLib';
-import Gio from 'gi://Gio';
-import Gdk from 'gi://Gdk?version=4.0';
-import Gtk from 'gi://Gtk?version=4.0';
+import gLib from 'gi://GLib';
+import gio from 'gi://Gio';
+import gdk from 'gi://Gdk?version=4.0';
+import gtk from 'gi://Gtk?version=4.0';
 
-const { Project } = imports.project
+import Scroll from "scroll"
+import Project from "project"
 
 /*
 left panel
@@ -37,41 +38,43 @@ mount it (if it's not)
 https://docs.gtk.org/gio/method.Volume.mount.html
 */
 
-const ProjectsList = Gtk.Widget.extend(function(self, projects_dir_path) {
-	self.project_dir = Gio.File.new_for_path(project_dir_path)
-	self.project_dir.enumerate_children(
-		"", Gio.FileQueryInfoFlags.NONE, null,
+const ProjectsList = Scroll.extend(function(arg) {
+	let projects_dir_path = arg.projects_dir_path
+	this.project_dir = gio.File.new_for_path(projects_dir_path)
+	this.project_dir.enumerate_children(
+		"", gio.FileQueryInfoFlags.NONE, null,
 		function(file_enumerator, result) {}
 	)
 })
 
-ProjectsList.move_up = function(self) {}
+ProjectsList.prototype.move_up = function() {}
 	
-ProjectsList.move_down = function(self) {}
+ProjectsList.prototype.move_down = function() {}
 
-ProjectsList.activate_project = function(self) {}
+ProjectsList.prototype.activate_project = function() {}
 
-export
-const Overview = Gtk.Widget.extend(function() {
+const Overview = gtk.Widget.extend(function() {
 })
 
 Overview.new = function(projects) {
 	this.projects_dirs = []
 	// when a disk is mounted, add its "projects" directory to the list
 	
-	this.container = Gtk.Stack()
+	this.container = gtk.Stack()
 	
-	this.container.set_halign(Gtk.Align.CENTER)
-	this.container.set_valign(Gtk.Align.CENTER)
+	this.container.set_halign(gtk.Align.CENTER)
+	this.container.set_valign(gtk.Align.CENTER)
 }
 
-Overview.activate_project = function(self, project_dir) {
+Overview.prototype.activate_project = function(project_dir) {
 	// if project_uri is in project_views, bring it up
 	// otherwise create a new Project
 }
 	
-Overview.on_project_activated = function(self, callback) {
+Overview.prototype.on_project_activated = function(callback) {
 	// hide overview when a project is activated;
 	
-	callback(self.selected_project_dir)
+	callback(this.selected_project_dir)
 }
+
+export default Overview

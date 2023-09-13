@@ -1,13 +1,16 @@
-import GLib from 'gi://GLib'
-import Gio from 'gi://Gio'
-import Gdk from 'gi://Gdk?version=4.0'
-import Gtk from 'gi://Gtk?version=4.0'
-import GtkSource from 'gi://GtkSource?version=5.0'
+import gLib from 'gi://GLib'
+import gio from 'gi://Gio'
+import gdk from 'gi://Gdk?version=4.0'
+import gtk from 'gi://Gtk?version=4.0'
+import gtksource from 'gi://GtkSource?version=5.0'
+
+import Scroll from "scroll"
 
 /*
 https://gitlab.gnome.org/GNOME/gtk/-/blob/main/docs/text_widget_internals.txt
 https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/
 
+https://github.com/sonnyp/Workbench
 https://github.com/sriske2/umte/blob/master/umte.py
 https://github.com/Axel-Erfurt/TextEdit/blob/main/TextEdit.py
 https://gitlab.gnome.org/World/apostrophe
@@ -37,6 +40,9 @@ cursor movement represents the movement inside the tree
 https://github.com/alexhuntley/Plots
 https://github.com/gaphor/gaphor
 https://github.com/jrfonseca/xdot.py
+https://github.com/dubstar-04/Design
+https://gitlab.gnome.org/GNOME/gnome-weather/
+https://gitlab.gnome.org/GNOME/gnome-maps
 make graphical elements from Gsk cairo and opengl nodes, inside transform nodes
 https://docs.gtk.org/gtk4/class.Snapshot.html
 
@@ -52,5 +58,8 @@ move the file saved in "~/.cache/screen.png" or "~/.cache/screen.mp4" to ".data"
 ask for a name, and insert the path into the text buffer
 */
 
-export
-const Editor = Gtk.Widget.extend()
+const Editor = Scroll.extend(function() {
+	this.set_child(new gtksource.View())
+})
+
+export default Editor

@@ -1,8 +1,10 @@
-import GLib from 'gi://GLib'
-import Gio from 'gi://Gio'
-import Gdk from 'gi://Gdk?version=4.0'
-import Gtk from 'gi://Gtk?version=4.0'
-import Gst from 'gi://Gst?version=1.0'
+import gLib from 'gi://GLib'
+import gio from 'gi://Gio'
+import gdk from 'gi://Gdk?version=4.0'
+import gtk from 'gi://Gtk?version=4.0'
+import gst from 'gi://Gst?version=1.0'
+
+import Scroll from "scroll"
 
 // gtk4 mediafile
 
@@ -10,6 +12,7 @@ import Gst from 'gi://Gst?version=1.0'
 // https://github.com/karlch/vimiv
 // https://gitlab.com/Strit/griffith
 // https://gitlab.gnome.org/GNOME/shotwell/tree/master/src
+// https://gitlab.gnome.org/World/vocalis
 // https://gitlab.gnome.org/GNOME/gnome-music
 // https://gitlab.gnome.org/World/lollypop/-/tree/master/lollypop
 // https://github.com/quodlibet/quodlibet/
@@ -23,26 +26,24 @@ import Gst from 'gi://Gst?version=1.0'
 
 // gtk_application_inhibit gtk_application_uninhibit
 
-export
-const Gallery = Gtk.Widget.extend(function() {
-	this.container = Gtk.ScrolledWindow()
-	this.container.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
+const Gallery = Scroll.extend(function() {
+	const theme = gtk.iconThemeGetDefault()
+	this.file_icon = theme.loadIcon(gtk.STOCK_FILE, 48, 0)
+	this.dir_icon = theme.loadIcon(gtk.STOCK_DIRECTORY, 48, 0)
 	
-	const theme = Gtk.iconThemeGetDefault()
-	this.file_icon = theme.loadIcon(Gtk.STOCK_FILE, 48, 0)
-	this.dir_icon = theme.loadIcon(Gtk.STOCK_DIRECTORY, 48, 0)
-	
-	this.store = Gtk.ListStore(str, Gtk.gdk.Pixbuf, bool)
-	this.store.set_sort_column_id(0, Gtk.SORT_ASCENDING)
+	this.store = gtk.ListStore(str, gdk.Pixbuf, bool)
+	this.store.set_sort_column_id(0, gtk.SORT_ASCENDING)
 	this.store.clear()
 	
-	this.view = Gtk.IconView()
+	this.set_child(new gtk.IconView())
 })
 	
-Gallery.move_up = function(self) {}
+Gallery.prototype.move_up = function() {}
 
-Gallery.move_down = function(self) {}
+Gallery.prototype.move_down = function() {}
 
-Gallery.go_to_item = function(self) {}
+Gallery.prototype.go_to_item = function() {}
 
-Gallery.find = function(self) {}
+Gallery.prototype.find = function() {}
+
+export default Gallery
