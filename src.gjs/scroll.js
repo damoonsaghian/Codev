@@ -16,8 +16,10 @@ gtk.StyleContext.add_provider_for_screen(
 	gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
 )
 
-const Scroll = gtk.ScrolledWindow.extend(function() {
-	this.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+const Scroll = gtk.ScrolledWindow.extend({
+	init() {
+		this.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+	}
 })
 
 export default Scroll

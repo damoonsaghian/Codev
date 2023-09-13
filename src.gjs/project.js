@@ -13,14 +13,14 @@ import Gallery from "gallery"
 
 // backup: two'way diff
 
-const Project = gtk.Widget.extend(function() {
-	this.main_view = new gtk.Stack();
-	
-	this.overlay = new gtk.Stack();
-	
-	this.container = new gtk.Overlay();
-	this.container.add(this.main_view);
-	this.container.add_overlay(this.overlay);
+const Project = gtk.Widget.extend({
+	main_view: new gtk.Stack(),
+	overlay: new gtk.Stack(),
+	container: new gtk.Overlay(),
+	init() {
+		this.container.add(this.main_view);
+		this.container.add_overlay(this.overlay);
+	}
 })
 
 export default Project

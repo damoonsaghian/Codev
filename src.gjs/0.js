@@ -4,19 +4,28 @@ import gdk from 'gi://Gdk?version=4.0'
 import gtk from 'gi://Gtk?version=4.0'
 
 import gobject from 'gi://GObject'
-gobject.Object.prototype.extend = function(init, ...interfaces) {
-	return GObject.registerClass({
+gobject.Object.prototype.extend = function(class_object, ...interfaces) {
+	let new_class = GObject.registerClass({
 		Implements: interfaces
 	}, class extends this {
 		constructor(arg) {
-			super(arg)
-			init.call(this, arg)
+			super()
+			for (property in arg) {
+				this[property] = arg[property]
+			}
+			this.init()
 		}
 	})
+	
+	for (property in class_object) {
+		new_class.prototype[property] = class_object[property]
+	}
+	
+	return new_class
 }
 gobject.TypeInstance.prototype.extend = gobject.prototype.extend
 
-import { Overview } from "overview"
+import Overview from "overview"
 
 /*
 https://github.com/donadigo/elementary-ide

@@ -53,28 +53,23 @@ ProjectsList.prototype.move_down = function() {}
 
 ProjectsList.prototype.activate_project = function() {}
 
-const Overview = gtk.Widget.extend(function() {
+const Overview = gtk.Widget.extend({
+	project_dirs: [],
+	container: gtk.Stack(),
+	init() {
+		// when a disk is mounted, add it to "project_dirs"
+		this.container.set_halign(gtk.Align.CENTER)
+		this.container.set_valign(gtk.Align.CENTER)
+	},
+	activate_project(project_dir) {
+		// if project_uri is in project_views, bring it up
+		// otherwise create a new Project
+	},
+	on_project_activated(callback) {
+		// hide overview when a project is activated;
+		
+		callback(this.selected_project_dir)
+	}
 })
-
-Overview.new = function(projects) {
-	this.projects_dirs = []
-	// when a disk is mounted, add its "projects" directory to the list
-	
-	this.container = gtk.Stack()
-	
-	this.container.set_halign(gtk.Align.CENTER)
-	this.container.set_valign(gtk.Align.CENTER)
-}
-
-Overview.prototype.activate_project = function(project_dir) {
-	// if project_uri is in project_views, bring it up
-	// otherwise create a new Project
-}
-	
-Overview.prototype.on_project_activated = function(callback) {
-	// hide overview when a project is activated;
-	
-	callback(this.selected_project_dir)
-}
 
 export default Overview
