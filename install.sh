@@ -1,3 +1,5 @@
+# for implementing a prototype of Codev, it seems that the best tool at hand is GJS
+
 apt-get install gjs gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
 	gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
 	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
