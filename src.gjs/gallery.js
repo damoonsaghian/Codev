@@ -4,8 +4,6 @@ import gdk from 'gi://Gdk?version=4.0'
 import gtk from 'gi://Gtk?version=4.0'
 import gst from 'gi://Gst?version=1.0'
 
-import Scroll from "scroll"
-
 // gtk4 mediafile
 
 // for gallery view: gtk::FlowBox, gtk::Scrollable
@@ -26,24 +24,27 @@ import Scroll from "scroll"
 
 // gtk_application_inhibit gtk_application_uninhibit
 
-const Gallery = Scroll.extend(function() {
-	const theme = gtk.iconThemeGetDefault()
-	this.file_icon = theme.loadIcon(gtk.STOCK_FILE, 48, 0)
-	this.dir_icon = theme.loadIcon(gtk.STOCK_DIRECTORY, 48, 0)
+export
+const Gallery = gtk.IconView.extend({
+	store: gtk.ListStore(str, gdk.Pixbuf, bool),
 	
-	this.store = gtk.ListStore(str, gdk.Pixbuf, bool)
-	this.store.set_sort_column_id(0, gtk.SORT_ASCENDING)
-	this.store.clear()
+	init() {
+		const theme = gtk.iconThemeGetDefault()
+		this.file_icon = theme.loadIcon(gtk.STOCK_FILE, 48, 0)
+		this.dir_icon = theme.loadIcon(gtk.STOCK_DIRECTORY, 48, 0)
+		
+		this.store.set_sort_column_id(0, gtk.SORT_ASCENDING)
+		this.store.clear()
+		
+		// when scroll changes, change the css class of undershoot
+	},
 	
-	this.set_child(new gtk.IconView())
+	move_up() {},
+
+	move_down() {},
+
+	go_to_item() {},
+
+	find() {}
+
 })
-	
-Gallery.prototype.move_up = function() {}
-
-Gallery.prototype.move_down = function() {}
-
-Gallery.prototype.go_to_item = function() {}
-
-Gallery.prototype.find = function() {}
-
-export default Gallery

@@ -4,8 +4,6 @@ import gdk from 'gi://Gdk?version=4.0';
 import gtk from 'gi://Gtk?version=4.0';
 import webkit from 'gi://Webkit?version=6.0';
 
-import Scroll from "scroll"
-
 /*
 https://github.com/sonnyp/Tangram
 https://www.archlinux.org/packages/community/any/eolie/
@@ -21,8 +19,9 @@ if page contains emoji charactors add twemoji web font
 https://github.com/twitter/twemoji
 */
 
-const WebView = Scroll.extend(function() {
-	this.set_child(new webkit.WebView())
+export
+const WebView = webkit.WebView.extend({
+	init() {
+		// when scroll changes, change the css class of undershoot
+	}
 })
-
-export default WebView

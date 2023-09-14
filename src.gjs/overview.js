@@ -3,8 +3,7 @@ import gio from 'gi://Gio';
 import gdk from 'gi://Gdk?version=4.0';
 import gtk from 'gi://Gtk?version=4.0';
 
-import Scroll from "scroll"
-import Project from "project"
+import { Project } from "project"
 
 /*
 left panel
@@ -38,21 +37,25 @@ mount it (if it's not)
 https://docs.gtk.org/gio/method.Volume.mount.html
 */
 
-const ProjectsList = Scroll.extend(function(arg) {
-	let projects_dir_path = arg.projects_dir_path
-	this.project_dir = gio.File.new_for_path(projects_dir_path)
-	this.project_dir.enumerate_children(
-		"", gio.FileQueryInfoFlags.NONE, null,
-		function(file_enumerator, result) {}
-	)
+const ProjectsList = Scroll.extend({
+	init() {
+		let projects_dir_path = arg.projects_dir_path
+		this.project_dir = gio.File.new_for_path(projects_dir_path)
+		this.project_dir.enumerate_children(
+			"", gio.FileQueryInfoFlags.NONE, null,
+			function(file_enumerator, result) {}
+		)
+		// when scroll changes, change the css class of undershoot
+	},
+	
+	move_up() {},
+	
+	move_down() {},
+
+	activate_project() {}
 })
 
-ProjectsList.prototype.move_up = function() {}
-	
-ProjectsList.prototype.move_down = function() {}
-
-ProjectsList.prototype.activate_project = function() {}
-
+export
 const Overview = gtk.Widget.extend({
 	project_dirs: [],
 	container: gtk.Stack(),
@@ -71,5 +74,3 @@ const Overview = gtk.Widget.extend({
 		callback(this.selected_project_dir)
 	}
 })
-
-export default Overview

@@ -3,8 +3,7 @@ import gio from 'gi://Gio'
 import gdk from 'gi://Gdk?version=4.0'
 import gtk from 'gi://Gtk?version=4.0'
 
-import gobject from 'gi://GObject'
-gobject.Object.prototype.extend = function(class_object, ...interfaces) {
+Object.prototype.extend = function(class_object, ...interfaces) {
 	let new_class = GObject.registerClass({
 		Implements: interfaces
 	}, class extends this {
@@ -23,12 +22,24 @@ gobject.Object.prototype.extend = function(class_object, ...interfaces) {
 	
 	return new_class
 }
-gobject.TypeInstance.prototype.extend = gobject.prototype.extend
 
-import Overview from "overview"
+import { Overview } from "overview"
 
 /*
 https://github.com/donadigo/elementary-ide
+
+use colored lines on top and bottom of scrollables to show the amount of content above and below
+create css classes for undershoot, with various colors
+https://gist.github.com/epedroni/03e6058de2769e67ed00
+
+let style_provider = new gtk.CssProvider()
+let css_path =
+style_provider.load_from_file(gio.File.new_for_path(css_path))
+gtk.StyleContext.add_provider_for_screen(
+	gdk.Screen.get_default(),
+	style_provider,
+	gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+)
 
 slightly dim unfocused panels
 

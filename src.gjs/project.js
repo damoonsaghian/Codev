@@ -3,9 +3,9 @@ import gio from 'gi://Gio';
 import gdk from 'gi://Gdk?version=4.0';
 import gtk from 'gi://Gtk?version=4.0';
 
-import Files from "files"
-import Editor from "editor"
-import Gallery from "gallery"
+import { Files } from "files"
+import { Editor } from "editor"
+import { Gallery } from "gallery"
 
 // floating layer to view web'pages, images and videos
 
@@ -13,14 +13,12 @@ import Gallery from "gallery"
 
 // backup: two'way diff
 
-const Project = gtk.Widget.extend({
+export
+const Project = gtk.Overlay.extend({
 	main_view: new gtk.Stack(),
 	overlay: new gtk.Stack(),
-	container: new gtk.Overlay(),
 	init() {
-		this.container.add(this.main_view);
-		this.container.add_overlay(this.overlay);
+		this.add(this.main_view);
+		this.add_overlay(this.overlay);
 	}
 })
-
-export default Project

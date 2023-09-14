@@ -3,8 +3,6 @@ import gio from 'gi://Gio'
 import gdk from 'gi://Gdk?version=4.0'
 import gtk from 'gi://Gtk?version=4.0'
 
-import Scroll from "scroll"
-
 /*
 https://stackoverflow.com/questions/23433819/creating-a-simple-file-browser-using-python-and-gtktreeview
 https://github.com/tchx84/Portfolio
@@ -19,22 +17,25 @@ archives:
 ; sudo dd if=isofile of=devicename
 */
 
-const Files = Scroll.extend(function(arg) {
-	let project_directory = arg.project_directory
-	this.view = new gtk.TreeView()
-	this.model = new gtk.TreeModel()
-	const theme = gtk.icon_theme_get_default()
-	this.file_icon = theme.load_icon(gtk.STOCK_FILE, 48, 0)
-	this.dir_icon = theme.load_icon(gtk.STOCK_DIRECTORY, 48, 0)
-	this.project_directory = project_directory
+export
+const Files = gtk.Widget.extend({
+	project_directory: undefined,
+	view: new gtk.TreeView(),
+	model: new gtk.TreeModel(),
+	
+	init() {
+		const theme = gtk.icon_theme_get_default()
+		this.file_icon = theme.load_icon(gtk.STOCK_FILE, 48, 0)
+		this.dir_icon = theme.load_icon(gtk.STOCK_DIRECTORY, 48, 0)
+		
+		// when scroll changes, change the css class of undershoot
+	},
+	
+	move_up() {},
+
+	move_down() {},
+
+	go_to_file() {},
+
+	find_file() {}
 })
-
-Files.prototype.move_up = function() {}
-
-Files.prototype.move_down = function() {}
-
-Files.prototype.go_to_file = function() {}
-
-Files.prototype.find_file = function() {}
-
-export default Files

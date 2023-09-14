@@ -4,8 +4,6 @@ import gdk from 'gi://Gdk?version=4.0'
 import gtk from 'gi://Gtk?version=4.0'
 import gtksource from 'gi://GtkSource?version=5.0'
 
-import Scroll from "scroll"
-
 /*
 https://gitlab.gnome.org/GNOME/gtk/-/blob/main/docs/text_widget_internals.txt
 https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/
@@ -58,8 +56,9 @@ move the file saved in "~/.cache/screen.png" or "~/.cache/screen.mp4" to ".data"
 ask for a name, and insert the path into the text buffer
 */
 
-const Editor = Scroll.extend(function() {
-	this.set_child(new gtksource.View())
+export
+const Editor = gtksource.View.extend({
+	init() {
+		// when scroll changes, change the css class of undershoot
+	}
 })
-
-export default Editor
