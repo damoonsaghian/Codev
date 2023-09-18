@@ -57,7 +57,7 @@ const ProjectsList = Scroll.extend({
 
 export
 const Overview = gtk.Widget.extend({
-	project_dirs: [],
+	project_views: undefined,
 	container: gtk.Stack(),
 	init() {
 		// when a disk is mounted, add it to "project_dirs"

@@ -1,10 +1,30 @@
-import glib from 'gi://GLib'
-import gio from 'gi://Gio'
-import gdk from 'gi://Gdk?version=4.0'
-import gtk from 'gi://Gtk?version=4.0'
+Function.prototype.extend = function(class_object, ...interfaces) {
+	let NewClass = class extends this {
+		constructor(arg) {
+			super()
+			for (property in arg) {
+				this[property] = arg[property]
+			}
+			if (this.init) this.init()
+		}
+	}
+	
+	for (const iface of interfaces) {
+		for (const property in iface) {
+			NewClass.prototype[property] = iface[property]
+		}
+	}
+	
+	for (const property in class_object) {
+		NewClass.prototype[property] = class_object[property]
+	}
+	
+	return NewClass
+}
 
-Object.prototype.extend = function(class_object, ...interfaces) {
-	let new_class = GObject.registerClass({
+import gobject from 'gi://GObject'
+gobject.Object.extend = function(class_object, ...interfaces) {
+	let NewClass = GObject.registerClass({
 		Implements: interfaces
 	}, class extends this {
 		constructor(arg) {
@@ -12,16 +32,21 @@ Object.prototype.extend = function(class_object, ...interfaces) {
 			for (property in arg) {
 				this[property] = arg[property]
 			}
-			this.init()
+			if (this.init) this.init()
 		}
 	})
 	
-	for (property in class_object) {
-		new_class.prototype[property] = class_object[property]
+	for (const property in class_object) {
+		NewClass.prototype[property] = class_object[property]
 	}
 	
-	return new_class
+	return NewClass
 }
+
+import glib from 'gi://GLib'
+import gio from 'gi://Gio'
+import gdk from 'gi://Gdk?version=4.0'
+import gtk from 'gi://Gtk?version=4.0'
 
 import { Overview } from "overview"
 
@@ -42,35 +67,21 @@ gtk.StyleContext.add_provider_for_screen(
 )
 
 slightly dim unfocused panels
-
-new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
-
-GNUnet: audio conversasion is already implemented
-https://git.gnunet.org/gnunet.git/tree/src/conversation
-https://git.gnunet.org/gnunet.git/tree/src/conversation/gnunet_gst.c
-https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
-https://jami.net/
-https://packages.debian.org/bookworm/jami-daemon
-figure out how to send/receive streams to/from gnunet
-use gstreamer gio plugin to send/receive streams to/from gstreamer
-use gstreamer pipewire plugin to access camera
-	libaperture, libaravis
-use gtk4 mediafile to put it on gui
 */
 
-const projects = new gtk.Stack()
+const project_views = new gtk.Stack()
 
-const overview = new Overview(projects)
+const overview = new Overview({project_views})
 
 const main_view = new gtk.Overlay()
-main_view.add(projects)
-main_view.add_overlay(overview.container)
+main_view.add(project_views)
+main_view.add_overlay(overview)
 // keybinding to show the overview;
 
 const win = new gtk.Window()
 win.add(main_view)
 win.set_titlebar(null)
-win.connect("destroy", Gtk.main_quit)
+win.connect("destroy", gtk.main_quit)
 win.show_all()
 win.maximize()
 gtk.main()

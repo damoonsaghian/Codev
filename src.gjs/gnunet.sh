@@ -11,6 +11,10 @@
 # , mutual key triplets (a private/public key pair plus the public key of a trusted account)
 # backup (encrypted) keys
 
+# gnunet-identity stores private keys unencrypted
+# gnome-keyring
+# https://gnome.pages.gitlab.gnome.org/libsecret/
+
 # opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key (eg NitroKey)
 # since private key does not leave the smartcard, it can't be backed up
 # so we must be able to have multiple keys per identity, and to add keys to an identity,
