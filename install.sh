@@ -1,7 +1,10 @@
-# for implementing a prototype of Codev, it seems that the best tool at hand is GJS
+command -v jina > /dev/null 2>&1 || apt-get install jina || {
+	echo 'to build Codev, Jina must be installed on the system'
+	exit 1
+}
 
-apt-get install gjs gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
-	gir1.2-gstreamer-1.0 gstreamer1.0-pipewire \
+apt-get install libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev \
+	libgstreamer1.0-dev gstreamer1.0-pipewire \
 	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
 	libjxl-gdk-pixbuf libavif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
 	gvfs libarchive-tools mtp-tools libmtp-runtime dosfstools exfatprogs btrfs-progs gnunet
@@ -11,13 +14,12 @@ apt-get install gjs gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-p
 # , h264(openh264), h265(libde265), and aac(fdk-aac) go into plugins-ugly
 # , and av1(aom-libs) goes into plugins-good
 
-mkdir -p /usr/local/share/codev
-cp -r "$(dirname "$0")"/src.gjs/* /usr/local/share/codev/
+project_dir="$(dirname "$0")"
+jina build "$project_dir"
+cp "$project_dir/.cache/jina/codev" /usr/local/bin/
 
-echo -n '#!/bin/sh
-gjs /usr/local/share/codev/0.js
-' > /usr/local/bin/codev
-chmod +x /usr/local/bin/codev
+apt-get purge libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev libgstreamer1.0-dev
+apt-get autoremove
 
 mkdir -p /usr/local/share/applications
 cat <<-__EOF__ > /usr/local/share/applications/codev.desktop
