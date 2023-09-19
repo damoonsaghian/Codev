@@ -1,0 +1,91 @@
+glib = .."local://glib-2.0"
+gio = .."local://gio-2.0"
+gdk = .."local://gtk4/gdk"
+gtk = .."local://gtk4/gtk"
+
+Project = ..project.Project
+
+;[
+left panel
+
+attached devices:
+https://docs.gtk.org/gio/class.VolumeMonitor.html
+
+ask the user if she wants to format the device, if:
+, it's not formated
+, it's a non'system device whose format is not vfat/exfat
+, it's a system device whose format is not btrfs
+http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-property-org-freedesktop-UDisks2-Block.HintSystem
+http://storaged.org/doc/udisks2-api/latest/index.html
+https://lazka.github.io/pgi-docs/#Gio-2.0/classes/DBusConnection.html
+https://gjs.guide/guides/gio/dbus.html#direct-calls
+https://gjs.guide/guides/glib/gvariant.html#basic-usage
+
+to format it get the volume identifier
+https://docs.gtk.org/gio/iface.Volume.html
+use udisks to format non'system devices with vfat or exfat (if wants files bigger than 4GB)
+http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.Format
+type: fat
+mkfs-args: -F, 32, -I (to override partitions)
+for system devices:
+; sudo sh -c "mkfs.btrfs -f <dev-path>; mount <dev-path> /mnt; chmod 777 /mnt; umount /mnt"
+
+projects on VFAT/exFAT formated devices will be opened as read'only
+when you try to edit them, you will be asked to copy them on to a BTRFS formated device
+
+mount it (if it's not)
+https://docs.gtk.org/gio/method.Volume.mount.html
+]
+
+Projects'list :gtk.Widget'i = #
+	widget: gtk.Widget
+	
+	new: { projects'dir'path :String |
+		project'dir = gio.File.new'for'path(projects'dir'path)
+		project'dir.enumerate'children(
+			"", gio.File'query'info'flags.NONE, null,
+			{ file'enumerator, result | }
+		)
+		
+		; when scroll changes, change the css class of undershoot
+		
+		Projects'list. widget
+	}
+	
+	'base() { self | :gtk.Widget
+		self.widget
+	}
+	
+	move'up: {}
+	
+	move'down: {}
+
+	activate'project: {}
+
+Overview' :gtk.Widget'i = #
+	project'views:
+	container: gtk.Stack
+	
+	new: {
+		container = gtk.Stack.new()
+		container.set_halign(gtk.Align.CENTER)
+		container.set_valign(gtk.Align.CENTER)
+		
+		; when a disk is mounted, add it to "project_dirs"
+		
+		Overview. project'views container
+	}
+	
+	base() { self | :gtk.Widget
+	}
+
+	activate'project(project'dir) {
+		; if project'uri is in project'views, bring it up
+		; otherwise create a new Project
+	}
+
+	on'project'activated(self, callback) {
+		; hide overview when a project is activated
+		
+		callback(self.selected'project'dir)
+	}

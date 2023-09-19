@@ -1,0 +1,31 @@
+glib = .."local://glib-2.0"
+gio = .."local://gio-2.0"
+gdk = .."local://gtk4/gdk"
+gtk = .."local://gtk4/gtk"
+webkit = .."local://webkitgtk-6.0"
+
+;[
+https://github.com/sonnyp/Tangram
+https://www.archlinux.org/packages/community/any/eolie/
+https://github.com/liske/barkery
+
+non'English pages are managed using a userscript
+on non'English pages:
+, activate the relevant keyboard layout
+, show keyboard layout indicator near cursor
+, provide a keybinding to switch between keyboard layouts
+if a page contains non'latin characters, and web fonts are not provided, install the relevant Noto web font
+if page contains emoji charactors add twemoji web font
+https://github.com/twitter/twemoji
+]
+
+Webview' :webkit.Web'view'i = #
+	'view: webkit.Web'view
+	
+	new: {
+		; when scroll changes, change the css class of undershoot
+	}
+	
+	'base: { self | :webkit.Web'view
+		self.view
+	}

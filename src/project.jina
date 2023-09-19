@@ -1,0 +1,35 @@
+glib = .."local://glib-2.0"
+gio = .."local://gio-2.0"
+gdk = .."local://gtk4/gdk"
+gtk = .."local://gtk4/gtk"
+
+Files = ..files.Files
+Editor = ..editor.Editor
+Gallery = ..gallery.Gallery
+Conversation = ..conversation.Conversation
+
+; floating layer to view web'pages, images and videos
+
+; if there is a saved session file for the project, restore it
+
+; backup: two'way diff
+
+; new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
+
+Project' :gtk.Overlay'i = #
+	'overlay: gtk.Overlay
+	'main'view: gtk.Stack
+	'layer: gtk.Stack
+	
+	new: {
+		main'view = gtk.Stack.new()
+		floating'layer = gtk.Stack.new()
+		overlay = gtk.Overlay.new()
+		overlay.add(main'view)
+		widget.add'overlay(floating'layer)
+		Project. overlay main'view floating'layer
+	}
+	
+	'base: { self | :gtk.Overlay
+		self.overlay
+	}
