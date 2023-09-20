@@ -3,8 +3,6 @@ gio = .."local://gio-2.0"
 gdk = .."local://gtk4/gdk"
 gtk = .."local://gtk4/gtk"
 
-Project = ..project.Project
-
 ;[
 left panel
 
@@ -37,55 +35,17 @@ mount it (if it's not)
 https://docs.gtk.org/gio/method.Volume.mount.html
 ]
 
-Projects'list :gtk.Widget'i = #
-	widget: gtk.Widget
-	
-	new: { projects'dir'path :String |
-		project'dir = gio.File.new'for'path(projects'dir'path)
-		project'dir.enumerate'children(
-			"", gio.File'query'info'flags.NONE, null,
-			{ file'enumerator, result | }
-		)
-		
-		; when scroll changes, change the css class of undershoot
-		
-		Projects'list. widget
-	}
-	
-	'base() { self | :gtk.Widget
-		self.widget
-	}
-	
-	move'up: {}
-	
-	move'down: {}
-
-	activate'project: {}
-
-Overview' :gtk.Widget'i = #
-	project'views:
-	container: gtk.Stack
+Overview' :gtk.Stack'i = #
+	view: gtk.Stack
 	
 	new: {
-		container = gtk.Stack.new()
-		container.set_halign(gtk.Align.CENTER)
-		container.set_valign(gtk.Align.CENTER)
+		stack = gtk.Stack.new()
+		stack.set_halign(gtk.Align.CENTER)
+		stack.set_valign(gtk.Align.CENTER)
 		
-		; when a disk is mounted, add it to "project_dirs"
+		; when a disk is mounted, add it to "project'dirs"
 		
-		Overview. project'views container
-	}
-	
-	base() { self | :gtk.Widget
-	}
-
-	activate'project(project'dir) {
-		; if project'uri is in project'views, bring it up
-		; otherwise create a new Project
-	}
-
-	on'project'activated(self, callback) {
-		; hide overview when a project is activated
+		; when a project is selected, hide overview, and return the project's path
 		
-		callback(self.selected'project'dir)
+		Overview. stack
 	}

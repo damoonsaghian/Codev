@@ -29,7 +29,3 @@ Project' :gtk.Overlay'i = #
 		widget.add'overlay(floating'layer)
 		Project. overlay main'view floating'layer
 	}
-	
-	'base: { self | :gtk.Overlay
-		self.overlay
-	}

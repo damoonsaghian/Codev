@@ -4,6 +4,7 @@ gdk = .."local://gtk4/gdk"
 gtk = .."local://gtk4/gtk"
 
 Overview = ..overview.Overview
+Project = ..project.Project
 
 ;[
 https://github.com/donadigo/elementary-ide
@@ -31,7 +32,12 @@ overview = Overview.new(project'views)
 main'view = gtk.Overlay.new()
 main'view.add(project'views)
 main'view.add'overlay(overview)
-; keybinding to show the overview;
+; keybinding to show the overview
+;[
+overview returns the selected project's directory path
+if project'path is in project'views, bring it up
+	otherwise create a new Project
+]
 
 win = gtk.Window.new()
 win.add(main'view)

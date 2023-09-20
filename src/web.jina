@@ -25,7 +25,3 @@ Webview' :webkit.Web'view'i = #
 	new: {
 		; when scroll changes, change the css class of undershoot
 	}
-	
-	'base: { self | :webkit.Web'view
-		self.view
-	}

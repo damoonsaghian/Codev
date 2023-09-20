@@ -46,10 +46,6 @@ Gallery' :gtk.Icon'view'i = #
 		Gallery. view store file'icon dir'icon
 	}
 	
-	'base: { self | :gtk.Icon'view
-		self.view
-	}
-	
 	move'up: {}
 
 	move'down: {}

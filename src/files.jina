@@ -17,6 +17,8 @@ archives:
 ; sudo dd if=isofile of=devicename
 ]
 
+; DirectoryList
+
 Files' :gtk.Tree'view'i = #
 	'view: gtk.Tree'view
 	'model: gtk.Tree'model
@@ -32,11 +34,7 @@ Files' :gtk.Tree'view'i = #
 		
 		Files. view model file'icon dir'icon
 	}
-	
-	'base: { self | :Tree'view
-		self.view
-	}
-	
+		
 	move'up: {}
 
 	move'down: {}

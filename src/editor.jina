@@ -62,11 +62,3 @@ Editor' :gsv.View'i = #
 	new: {
 		; when scroll changes, change the css class of undershoot
 	}
-	
-	'base: { self | :gsv.View
-		self.editor
-	}
-	
-	'base: { self | :gsv.View
-		self.editor
-	}
