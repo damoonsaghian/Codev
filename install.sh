@@ -16,7 +16,7 @@ apt-get install libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpopp
 
 project_dir="$(dirname "$0")"
 jina build "$project_dir"
-cp "$project_dir/.cache/jina/codev" /usr/local/bin/
+cp "$project_dir/.cache/jina/bin" /usr/local/bin/codev
 
 apt-get purge libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev libgstreamer1.0-dev
 apt-get autoremove
