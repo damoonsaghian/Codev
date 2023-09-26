@@ -17,6 +17,8 @@ gst = .."local://gstreamer-1.0"
 ; https://gitlab.gnome.org/GNOME/pitivi/-/tree/master/pitivi
 ; https://github.com/jliljebl/flowblade
 
+; https://packages.debian.org/bookworm/libgegl-dev
+
 ; subtitles and comments
 ; https://github.com/otsaloma/gaupol/tree/master/gaupol
 
