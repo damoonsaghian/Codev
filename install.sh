@@ -3,11 +3,12 @@ command -v jina > /dev/null 2>&1 || apt-get install jina || {
 	exit 1
 }
 
-apt-get install libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev \
-	libgstreamer1.0-dev gstreamer1.0-pipewire \
+apt-get install libgtk-4-dev libgtk-4-1 libgtksourceview-5-dev libgtksourceview-5-0\
+	libwebkitgtk-6.0-dev libwebkitgtk-6.0-4 libpoppler-glib-dev libpoppler-glib8 \
+	libgstreamer1.0-dev libgstreamer1.0-0 gstreamer1.0-pipewire \
 	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
 	libjxl-gdk-pixbuf libavif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-	gvfs libarchive-tools mtp-tools libmtp-runtime dosfstools exfatprogs btrfs-progs gnunet
+	libarchive-tools gvfs dosfstools exfatprogs btrfs-progs gnunet
 
 # plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 # libav is needed till
