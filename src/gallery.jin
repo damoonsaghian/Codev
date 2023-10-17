@@ -1,51 +1,22 @@
-glib = .."local://glib-2.0"
-gio = .."local://gio-2.0"
-gdk = .."local://gtk4/gdk"
-gtk = .."local://gtk4/gtk"
-gst = .."local://gstreamer-1.0"
+gui = ..gui
 
-; gtk4 mediafile
-
-; for gallery view: gtk.Flow'box, gtk.Scrollable
-; https://github.com/karlch/vimiv
-; https://gitlab.com/Strit/griffith
-; https://gitlab.gnome.org/GNOME/shotwell/tree/master/src
-; https://gitlab.gnome.org/World/vocalis
-; https://gitlab.gnome.org/GNOME/gnome-music
-; https://gitlab.gnome.org/World/lollypop/-/tree/master/lollypop
-; https://github.com/quodlibet/quodlibet/
-; https://gitlab.gnome.org/GNOME/pitivi/-/tree/master/pitivi
-; https://github.com/jliljebl/flowblade
-
-; https://packages.debian.org/bookworm/libgegl-dev
-
-; subtitles and comments
-; https://github.com/otsaloma/gaupol/tree/master/gaupol
-
-; gdk-pixbuf-thumbnailer -s 128 %u %o
-
-; gtk'application'inhibit gtk'application'uninhibit
-
-Gallery' :gtk.Icon'view'i = #
-	'view: gtk.Icon'view
-	store: gtk.List'store(str, gdk.Pixbuf, bool)
-	'file'icon: gtk.Icon'paintable
-	'dir'icon: gtk.Icon'paintable
+Gallery :gui.Widget'i = #
+	widget': gui.Gallery
+	file'icon': gui.Icon'paintable
+	dir'icon': gui.Icon'paintable
 	
 	new: {
-		view = gtk.Icon'view.new()
+		widget = gui.Icon'view.new()
 		
-		icon'theme = gtk.Icon'theme.new()
-		file'icon = icon'theme.lookup'icon(gtk.STOCK'FILE, 48, 1, 0)
-		dir'icon = icon'theme.lookup'icon(gtk.STOCK'DIRECTORY, 48, 1, 0)
+		icon'theme = gui.Icon'theme.new()
+		file'icon = icon'theme.lookup'icon(gui.STOCK'FILE, 48, 1, 0)
+		dir'icon = icon'theme.lookup'icon(gui.STOCK'DIRECTORY, 48, 1, 0)
 		
-		store = gtk.List'store(str, gdk.Pixbuf, bool)
-		store.set'sort'column'id(0, gtk.SORT'ASCENDING)
-		store.clear()
-		
-		; when scroll changes, change the css class of undershoot
-		
-		Gallery. view store file'icon dir'icon
+		Gallery. widget file'icon dir'icon
+	}
+	
+	get'widget: { self | :gui.Widget
+		self.widget.get'widget()
 	}
 	
 	move'up: {}

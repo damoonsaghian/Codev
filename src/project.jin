@@ -1,12 +1,7 @@
-glib = .."local://glib-2.0"
-gio = .."local://gio-2.0"
-gdk = .."local://gtk4/gdk"
-gtk = .."local://gtk4/gtk"
-
+gst = ..gstreamer
+gui = ..gui
 Files = ..files.Files
 Editor = ..editor.Editor
-Gallery = ..gallery.Gallery
-Conversation = ..conversation.Conversation
 
 ; floating layer to view web'pages, images and videos
 
@@ -16,16 +11,22 @@ Conversation = ..conversation.Conversation
 
 ; new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
 
-Project' :gtk.Overlay'i = #
-	'overlay: gtk.Overlay
-	'main'view: gtk.Stack
-	'layer: gtk.Stack
+Project' :gui.Widget'i = #
+	dir'path: String
+	widget': gui.Overlay
+	main'view': gui.Stack
+	floating'layer': gui.Stack
 	
-	new: {
-		main'view = gtk.Stack.new()
-		floating'layer = gtk.Stack.new()
-		overlay = gtk.Overlay.new()
-		overlay.add(main'view)
+	new: { dir'path :String |
+		main'view = gui.Stack.new()
+		; create a File and send it a weak ref of this Project
+		floating'layer = gui.Stack.new()
+		widget = gui.Overlay.new()
+		widget.add(main'view)
 		widget.add'overlay(floating'layer)
-		Project. overlay main'view floating'layer
+		Project. dir'path [] widget main'view floating'layer
+	}
+	
+	get'widget: { self | :gui.Widget
+		self.widget.get'widget()
 	}

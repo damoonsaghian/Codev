@@ -1,51 +1,42 @@
-glib = .."local://glib-2.0"
-gio = .."local://gio-2.0"
-gdk = .."local://gtk4/gdk"
-gtk = .."local://gtk4/gtk"
+sd = ..sd
+gui = ..gui
+Project = ..project
 
 ;[
-left panel
-
-attached devices:
-https://docs.gtk.org/gio/class.VolumeMonitor.html
+in the left panel show the storage devices, and the group directories inside them
 
 ask the user if she wants to format the device, if:
 , it's not formated
 , it's a non'system device whose format is not vfat/exfat
 , it's a system device whose format is not btrfs
-http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-property-org-freedesktop-UDisks2-Block.HintSystem
-http://storaged.org/doc/udisks2-api/latest/index.html
-https://lazka.github.io/pgi-docs/#Gio-2.0/classes/DBusConnection.html
-https://gjs.guide/guides/gio/dbus.html#direct-calls
-https://gjs.guide/guides/glib/gvariant.html#basic-usage
 
-to format it get the volume identifier
-https://docs.gtk.org/gio/iface.Volume.html
-use udisks to format non'system devices with vfat or exfat (if wants files bigger than 4GB)
-http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-method-org-freedesktop-UDisks2-Block.Format
-type: fat
-mkfs-args: -F, 32, -I (to override partitions)
+to format it, first get the volume identifier
+use "sd" module to format non'system devices with vfat or exfat (if wants files bigger than 4GB)
 for system devices:
 ; sudo sh -c "mkfs.btrfs -f <dev-path>; mount <dev-path> /mnt; chmod 777 /mnt; umount /mnt"
 
 projects on VFAT/exFAT formated devices will be opened as read'only
-when you try to edit them, you will be asked to copy them on to a BTRFS formated device
+when you try to edit them, you will be asked to copy them into a BTRFS formated device
 
-mount it (if it's not)
-https://docs.gtk.org/gio/method.Volume.mount.html
+use "sd" module to mount the device (if it's not)
 ]
 
-Overview' :gtk.Stack'i = #
-	view: gtk.Stack
+Overview :gui.Widget'i = #
+	widget': gui.Stack
+	project'views :gui.Stack
 	
-	new: {
-		stack = gtk.Stack.new()
-		stack.set_halign(gtk.Align.CENTER)
-		stack.set_valign(gtk.Align.CENTER)
-		
-		; when a disk is mounted, add it to "project'dirs"
+	new: { project'views :gui.Stack
+		widget = gui.Stack.new()
 		
 		; when a project is selected, hide overview, and return the project's path
 		
-		Overview. stack
+		Overview. widget project'views
+	}
+	
+	get'widget: { self | :gui.Widget
+		self.widget.get'widget()
+	}
+	
+	open'project: {
+		; if project'path is in project'views, bring it up; otherwise create a new Project
 	}

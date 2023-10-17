@@ -1,38 +1,20 @@
-glib = .."local://glib-2.0"
-gio = .."local://gio-2.0"
-gdk = .."local://gtk4/gdk"
-gtk = .."local://gtk4/gtk"
+gui = ..gui
 
 ;[
-https://stackoverflow.com/questions/23433819/creating-a-simple-file-browser-using-python-and-gtktreeview
-https://github.com/tchx84/Portfolio
-http://zetcode.com/gui/pygtk/advancedwidgets/
-https://github.com/MeanEYE/Sunflower
-https://gitlab.xfce.org/apps/catfish/
-https://gitlab.gnome.org/aviwad/organizer
-
 archives:
 	bsdtar -xf <file-path>
 .iso file: ask if user wants to extract it, if not, ask for a device to write it into, then:
 ; sudo dd if=isofile of=devicename
 ]
 
-; DirectoryList
-
-Files' :gtk.Tree'view'i = #
-	'view: gtk.Tree'view
-	'model: gtk.Tree'model
-	'file'icon: gtk.Icon'paintable
-	'dir'icon: gtk.Icon'paintable
+Files' :gui.Widget'i = #
+	widget': gui.Tree'view
 	
 	new: { project'directory :String |
-		icon'theme = gtk.Icon'theme.new()
-		file'icon = icon'theme.lookup'icon(gtk.STOCK'FILE, 48, 1, 0)
-		dir'icon = icon'theme.lookup'icon(gtk.STOCK'DIRECTORY, 48, 1, 0)
-		
-		; when scroll changes, change the css class of undershoot
-		
-		Files. view model file'icon dir'icon
+	}
+	
+	get'widget: { self | :gui.Widget
+		self.widget.get'widget()
 	}
 		
 	move'up: {}

@@ -1,48 +1,17 @@
-glib = .."local://glib-2.0"
-gio = .."local://gio-2.0"
-gdk = .."local://gtk4/gdk"
-gtk = .."local://gtk4/gtk"
-
+gui = ..gui
 Overview = ..overview.Overview
 Project = ..project.Project
 
-;[
-https://github.com/donadigo/elementary-ide
+project'views = gui.Stack.new()
 
-use colored lines on top and bottom of scrollables to show the amount of content above and below
-create css classes for undershoot, with various colors
-https://gist.github.com/epedroni/03e6058de2769e67ed00
+overview = Overview.new project'views
 
-let style'provider = gtk.Css'provider.new()
-let css'path =
-style'provider.load'from'file(gio.File.new'for'path(css'path))
-gtk.Style'context.add'provider'for'screen(
-	gdk.Screen.get'default(),
-	style'provider,
-	gtk.STYLE'PROVIDER'PRIORITY'APPLICATION
-)
+main'view = gui.Overlay.new()
+main'view.add project'views
+main'view.add'overlay overview
 
-slightly dim unfocused panels
-]
-
-project'views = gtk.Stack.new()
-
-overview = Overview.new(project'views)
-
-main'view = gtk.Overlay.new()
-main'view.add(project'views)
-main'view.add'overlay(overview)
 ; keybinding to show the overview
-;[
-overview returns the selected project's directory path
-if project'path is in project'views, bring it up
-	otherwise create a new Project
-]
 
-win = gtk.Window.new()
-win.add(main'view)
-win.set'titlebar(null)
-win.connect('destroy, gtk.main'quit)
-win.show'all()
-win.maximize()
-gtk.main()
+win = gui.Window.new()
+win.add main'view
+gui.main()
