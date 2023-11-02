@@ -1,5 +1,3 @@
-gui = ..gui
-
 ;[
 archives:
 	bsdtar -xf <file-path>
@@ -7,14 +5,11 @@ archives:
 ; sudo dd if=isofile of=devicename
 ]
 
-Files' :gui.Widget'i = #
+Files := #
 	widget': gui.Tree'view
-	
+
+Files :gui.widget = #
 	new: { project'directory :String |
-	}
-	
-	get'widget: { self | :gui.Widget
-		self.widget.get'widget()
 	}
 		
 	move'up: {}
@@ -24,3 +19,7 @@ Files' :gui.Widget'i = #
 	go'to'file: {}
 
 	find'file: {}
+	
+	get'widget: { self | :gui.Widget
+		self.widget.get'widget()
+	}

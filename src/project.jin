@@ -1,8 +1,3 @@
-gst = ..gstreamer
-gui = ..gui
-Files = ..files.Files
-Editor = ..editor.Editor
-
 ; floating layer to view web'pages, images and videos
 
 ; if there is a saved session file for the project, restore it
@@ -11,12 +6,13 @@ Editor = ..editor.Editor
 
 ; new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
 
-Project' :gui.Widget'i = #
+Project := #
 	dir'path: String
 	widget': gui.Overlay
 	main'view': gui.Stack
 	floating'layer': gui.Stack
 	
+Project :gui.widget = #
 	new: { dir'path :String |
 		main'view = gui.Stack.new()
 		; create a File and send it a weak ref of this Project

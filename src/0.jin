@@ -1,17 +1,15 @@
-gui = ..gui
-Overview = ..overview.Overview
-Project = ..project.Project
-
-project'views = gui.Stack.new()
-
-overview = Overview.new project'views
-
-main'view = gui.Overlay.new()
-main'view.add project'views
-main'view.add'overlay overview
-
-; keybinding to show the overview
-
-win = gui.Window.new()
-win.add main'view
-gui.main()
+main = {
+	project'views = gui.Stack.new()
+	
+	overview = Overview.new project'views
+	
+	main'view = gui.Overlay.new()
+	main'view.add project'views
+	main'view.add'overlay overview
+	
+	; keybinding to show the overview
+	
+	win = gui.Window.new()
+	win.add main'view
+	gui.main()
+}

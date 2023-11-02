@@ -1,22 +1,10 @@
-gui = ..gui
-
-Gallery :gui.Widget'i = #
+Gallery := #
 	widget': gui.Gallery
-	file'icon': gui.Icon'paintable
-	dir'icon': gui.Icon'paintable
-	
+
+Gallery :gui.widget = #
 	new: {
-		widget = gui.Icon'view.new()
-		
-		icon'theme = gui.Icon'theme.new()
-		file'icon = icon'theme.lookup'icon(gui.STOCK'FILE, 48, 1, 0)
-		dir'icon = icon'theme.lookup'icon(gui.STOCK'DIRECTORY, 48, 1, 0)
-		
-		Gallery. widget file'icon dir'icon
-	}
-	
-	get'widget: { self | :gui.Widget
-		self.widget.get'widget()
+		widget = gui.Gallery()
+		Gallery. widget
 	}
 	
 	move'up: {}
@@ -26,3 +14,7 @@ Gallery :gui.Widget'i = #
 	go'to'item: {}
 
 	find: {}
+	
+	get'widget: { self | :gui.Widget
+		self.widget.get'widget()
+	}

@@ -1,5 +1,3 @@
-gui = ..gui
-
 ;[
 next and previous: word, line, paragraph
 
@@ -22,9 +20,10 @@ move the file saved in "~/.cache/screen.png" or "~/.cache/screen.mp4" to ".data"
 ask for a name, and insert the path into the text buffer
 ]
 
-Editor' :gui.Widget'i = #
-	widget': gui.Text'editor
-	
+Editor := #
+	widget': gui.Text
+
+Editor :gui.widget = #
 	new: {
 	}
 	

@@ -3,7 +3,7 @@
 /*
 https://docs.gtk.org/gio/class.VolumeMonitor.html
 
-to see if it's a system device, and what is it's format
+to see if it's a system device, and what is its format
 http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Block.html#gdbus-property-org-freedesktop-UDisks2-Block.HintSystem
 http://storaged.org/doc/udisks2-api/latest/index.html
 https://lazka.github.io/pgi-docs/#Gio-2.0/classes/DBusConnection.html
