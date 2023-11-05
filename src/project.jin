@@ -4,15 +4,13 @@
 
 ; backup: two'way diff
 
-; new messages and upcoming schedules: send notifications to be shown in the tray area of the statusbar
-
 Project := #
 	dir'path: String
 	widget': gui.Overlay
 	main'view': gui.Stack
 	floating'layer': gui.Stack
 	
-Project :gui.widget = #
+Project = #
 	new: { dir'path :String |
 		main'view = gui.Stack.new()
 		; create a File and send it a weak ref of this Project
@@ -22,7 +20,8 @@ Project :gui.widget = #
 		widget.add'overlay(floating'layer)
 		Project. dir'path [] widget main'view floating'layer
 	}
-	
+
+.. gui.Widget.
 	get'widget: { self | :gui.Widget
 		self.widget.get'widget()
 	}

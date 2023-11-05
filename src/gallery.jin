@@ -1,9 +1,32 @@
-Gallery := #
-	widget': gui.Gallery
+;[
+https://github.com/karlch/vimiv
+https://gitlab.com/Strit/griffith
+https://gitlab.gnome.org/GNOME/shotwell/tree/master/src
 
-Gallery :gui.widget = #
+subtitles and comments
+https://github.com/otsaloma/gaupol/tree/master/gaupol
+
+https://gitlab.gnome.org/GNOME/gnome-music
+https://gitlab.gnome.org/World/lollypop/-/tree/master/lollypop
+https://github.com/quodlibet/quodlibet/
+
+Generic Graphics Library is a graph based image processing framework
+https://packages.debian.org/bookworm/libgegl-dev
+
+https://gitlab.gnome.org/GNOME/pitivi/-/tree/master/pitivi
+https://github.com/jliljebl/flowblade
+
+gdk-pixbuf-thumbnailer -s 128 %u %o
+
+inhibit lock during video play
+]
+
+Gallery := #
+	widget': gui.Flowbox
+
+Gallery = #
 	new: {
-		widget = gui.Gallery()
+		widget = gui.Flowbox()
 		Gallery. widget
 	}
 	
@@ -14,7 +37,8 @@ Gallery :gui.widget = #
 	go'to'item: {}
 
 	find: {}
-	
+
+.. gui.Widget.
 	get'widget: { self | :gui.Widget
 		self.widget.get'widget()
 	}
