@@ -4,13 +4,12 @@
 
 ; backup: two'way diff
 
-Project := #
+Project :gui.Widget = &
 	dir'path: String
 	widget': gui.Overlay
 	main'view': gui.Stack
 	floating'layer': gui.Stack
 	
-Project = #
 	new: { dir'path :String |
 		main'view = gui.Stack.new()
 		; create a File and send it a weak ref of this Project

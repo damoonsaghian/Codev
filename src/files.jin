@@ -14,10 +14,9 @@ archives:
 ; sudo dd if=isofile of=devicename
 ]
 
-Files := #
+Files :gui.Widget = &
 	widget': gui.Treeview
-
-Files = #
+	
 	new: { project'directory :String |
 	}
 		
