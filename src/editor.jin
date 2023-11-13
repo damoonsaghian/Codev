@@ -42,9 +42,10 @@ http://meldmerge.org/
 https://git-scm.com/docs/git-diff
 ]
 
-Editor :gui.Widget = &
+Editor := &
 	widget': gui.Editor
-	
+
+Editor = &
 	new: {
 	}
 

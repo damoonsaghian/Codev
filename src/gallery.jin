@@ -21,9 +21,10 @@ gdk-pixbuf-thumbnailer -s 128 %u %o
 inhibit lock during video play
 ]
 
-Gallery :gui.Widget = &
+Gallery := &
 	widget': gui.Flowbox
-	
+
+Gallery = &
 	new: {
 		widget = gui.Flowbox()
 		Gallery. widget
