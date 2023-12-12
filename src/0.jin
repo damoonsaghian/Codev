@@ -1,4 +1,4 @@
-main = {
+init = {
 	project'views = gui.Stack.new()
 	
 	overview = Overview.new project'views
