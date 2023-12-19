@@ -34,6 +34,9 @@ https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
 https://jami.net/
 https://packages.debian.org/bookworm/jami-daemon
 figure out how to send/receive streams to/from gnunet
+
+three way merge:
+https://github.com/samsquire/text-diff
 ]
 
 Gnu = &
