@@ -41,12 +41,12 @@ https://github.com/samsquire/text-diff
 
 Gnu = &
 	publish: {
-		// create ref links of the project files, in ".cache/gnunet/publish"
-		// this way GNUnet can publish the files using the indexed method
-		// note that projects reside in non-removable BTRFS'formated disks
+		; create ref links of the project files, in ".cache/gnunet/publish"
+		; this way GNUnet can publish the files using the indexed method
+		; note that projects reside in non-removable BTRFS'formated disks
 		
-		// ".cache" directory will not be published
-		// also do not follow mount points
+		; ".cache" directory will not be published
+		; also do not follow mount points
 	}
 	
 	unpublish: {}
