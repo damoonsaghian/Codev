@@ -1,4 +1,4 @@
-;[
+;(
 https://toshiocp.github.io/Gtk4-tutorial/
 https://www.gtk.org/docs/getting-started/hello-world/
 https://www.gtk.org/docs/dev-tools/
@@ -31,4 +31,4 @@ gtk.Style'context.add'provider'for'screen(
 )
 
 slightly dim unfocused panels
-]
+)
