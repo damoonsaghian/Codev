@@ -1,4 +1,4 @@
-;[
+;(
 in the left panel show the storage devices, and the group directories inside them
 
 ask the user if she wants to format the device, if:
@@ -15,11 +15,11 @@ projects on VFAT/exFAT formated devices will be opened as read'only
 when you try to edit them, you will be asked to copy them into a BTRFS formated device
 
 use "sd" module to mount the device (if it's not)
-]
+)
 
-; new messages and upcoming schedules
-; show indicators on overview
-; send notifications to be shown in the tray area of the statusbar
+;; new messages and upcoming schedules
+;; show indicators on overview
+;; send notifications to be shown in the tray area of the statusbar
 
 Overview := &
 	widget': gui.Stack
@@ -29,13 +29,13 @@ Overview = &
 	new: { project'views :gui.Stack |
 		widget = gui.Stack.new()
 		
-		; when a project is selected, hide overview, and return the project's path
+		;; when a project is selected, hide overview, and return the project's path
 		
 		Overview. widget project'views
 	}
 	
 	open'project: {
-		; if project'path is in project'views, bring it up; otherwise create a new Project
+		;; if project'path is in project'views, bring it up; otherwise create a new Project
 	}
 
 .. gui.Widget.

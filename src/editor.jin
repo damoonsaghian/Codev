@@ -1,4 +1,4 @@
-;[
+;(
 "psi" followed by two succesive apostrophes will be replaced by "ψ"
 
 white space (space, tab, new line) + space -> tab
@@ -40,7 +40,7 @@ https://diffoscope.org/
 https://github.com/MightyCreak/diffuse
 http://meldmerge.org/
 https://git-scm.com/docs/git-diff
-]
+)
 
 Editor := &
 	widget': gui.Editor

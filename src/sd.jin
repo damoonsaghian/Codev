@@ -1,6 +1,6 @@
-; storage devices
+;; storage devices
 
-;[
+;(
 https://docs.gtk.org/gio/class.VolumeMonitor.html
 
 to see if it's a system device, and what is its format
@@ -19,4 +19,4 @@ type: fat
 mkfs-args: -F, 32, -I (to override partitions)
 
 https://docs.gtk.org/gio/method.Volume.mount.html
-]
+)

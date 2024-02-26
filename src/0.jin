@@ -7,7 +7,7 @@ init = {
 	main'view.add project'views
 	main'view.add'overlay overview
 	
-	; keybinding to show the overview
+	;; keybinding to show the overview
 	
 	win = gui.Window.new()
 	win.add main'view

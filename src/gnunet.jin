@@ -1,4 +1,4 @@
-;[
+;(
 https://www.gnunet.org/en/use.html
 https://docs.gnunet.org/
 https://wiki.archlinux.org/title/GNUnet
@@ -37,16 +37,16 @@ figure out how to send/receive streams to/from gnunet
 
 three way merge:
 https://github.com/samsquire/text-diff
-]
+)
 
 Gnu = &
 	publish: {
-		; create ref links of the project files, in ".cache/gnunet/publish"
-		; this way GNUnet can publish the files using the indexed method
-		; note that projects reside in non-removable BTRFS'formated disks
+		;; create ref links of the project files, in ".cache/gnunet/publish"
+		;; this way GNUnet can publish the files using the indexed method
+		;; note that projects reside in non-removable BTRFS'formated disks
 		
-		; ".cache" directory will not be published
-		; also do not follow mount points
+		;; ".cache" directory will not be published
+		;; also do not follow mount points
 	}
 	
 	unpublish: {}
@@ -58,7 +58,7 @@ Gnu = &
 	pull'request: {}
 
 	website: { remote'host :String , user :String |
-		;[
+		;(
 		we still need a website so the unfortunate users of conventional internet can see and find us
 		
 		on a linux server use gnunet to download projects, and host a website
@@ -107,13 +107,13 @@ Gnu = &
 		https://render.com/docs/docker
 		https://fly.io/
 		https://www.ibm.com/cloud/free/
-		]
+		)
 		
-		; hashbang init:
+		;; hashbang init:
 		
-		; if "remote_host" or "user" are empty, ask for them
+		;; if "remote_host" or "user" are empty, ask for them
 		
-		;[
+		;(
 		printf "\nHost %s\n  User %s\n" "$remote_host" "$user" >> ~/.ssh/config
 		
 		{ echo "$user" | sed -n "/^[a-z][a-z0-9]{0,30}$/!{q1}"; } || {
@@ -173,5 +173,5 @@ Gnu = &
 		host=de1.hashbang.sh
 		wget --post-data="{\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}" \
 		--header='Content-Type: application/json' https://hashbang.sh/user/create
-		]
+		)
 	}
