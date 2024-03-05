@@ -39,7 +39,7 @@ three way merge:
 https://github.com/samsquire/text-diff
 )
 
-Gnu = &
+Gnu = .
 	publish: {
 		;; create ref links of the project files, in ".cache/gnunet/publish"
 		;; this way GNUnet can publish the files using the indexed method

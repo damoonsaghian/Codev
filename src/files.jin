@@ -14,10 +14,10 @@ archives:
 ; sudo dd if=isofile of=devicename
 )
 
-Files := &
+Files := .
 	widget': gui.Treeview
 
-Files = &
+Files = .
 	new: { project'directory :String |
 	}
 		
@@ -29,7 +29,7 @@ Files = &
 
 	find'file: {}
 
-.. gui.Widget.
+& gui.Widget.
 	get'widget: { self | :gui.Widget
-		self.widget.get'widget()
+		self.widget..get'widget()
 	}

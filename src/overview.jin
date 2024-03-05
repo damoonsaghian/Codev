@@ -21,11 +21,11 @@ use "sd" module to mount the device (if it's not)
 ;; show indicators on overview
 ;; send notifications to be shown in the tray area of the statusbar
 
-Overview := &
+Overview := .
 	widget': gui.Stack
 	project'views :gui.Stack
 
-Overview = &
+Overview = .
 	new: { project'views :gui.Stack |
 		widget = gui.Stack.new()
 		
@@ -38,7 +38,7 @@ Overview = &
 		;; if project'path is in project'views, bring it up; otherwise create a new Project
 	}
 
-.. gui.Widget.
+& gui.Widget.
 	get'widget: { self | :gui.Widget
-		self.widget.get'widget()
+		self.widget..get'widget()
 	}
