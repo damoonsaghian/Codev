@@ -18,7 +18,7 @@ Project = .
 		widget = gui.Overlay.new()
 		widget..add(main'view)
 		widget..add'overlay(floating'layer)
-		Project. dir'path [] widget main'view floating'layer
+		Project. dir'path widget main'view floating'layer
 	}
 
 & gui.Widget.
