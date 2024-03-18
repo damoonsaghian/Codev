@@ -16,7 +16,7 @@ apt-get install libgtk-4-dev libgtk-4-1 libgtksourceview-5-dev libgtksourceview-
 # , and av1(aom-libs) goes into plugins-good
 
 project_dir="$(dirname "$0")"
-jina "$project_dir"
+jina "$project_dir" -lgtk-4,gtksourceview-5,webkitgtk-6,poppler-glib,libgstreamer-1.0
 cp "$project_dir/.cache/jina/bin" /usr/local/bin/codev
 
 apt-get purge libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev libgstreamer1.0-dev
