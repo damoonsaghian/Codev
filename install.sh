@@ -1,26 +1,23 @@
-command -v jina > /dev/null 2>&1 || sudo apt-get install jina || {
-	echo 'to build Codev, Jina must be installed on the system'
-	exit 1
+if [ $1 = remove ]; then
+	rm "$HOME/.local/bin/codev"
+	rm "$HOME/.local/share/applications/codev.desktop"
+	rm "$HOME/.local/share/icons/hicolor/scalable/apps/codev.svg"
+	rm -r "$HOME/.local/packages/codev"
+	exit
+fi
+
+command -v jina > /dev/null 2>&1 || {
+	# download and install Jina
 }
 
-sudo apt-get install libgtk-4-dev libgtk-4-1 libgtksourceview-5-dev libgtksourceview-5-0 \
-	libwebkitgtk-6.0-dev libwebkitgtk-6.0-4 libpoppler-glib-dev libpoppler-glib8 \
-	libgstreamer1.0-dev libgstreamer1.0-0 gstreamer1.0-pipewire \
-	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav \
-	libjxl-gdk-pixbuf libavif-gdk-pixbuf webp-pixbuf-loader librsvg2-common \
-	libarchive-tools gvfs dosfstools exfatprogs btrfs-progs gnunet
-
-# plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
-# libav is needed till
-# , h264(openh264), h265(libde265), and aac(fdk-aac) go into plugins-ugly
-# , and av1(aom-libs) goes into plugins-good
-
 project_dir="$(dirname "$0")"
-jina "$project_dir" -lgtk-4,gtksourceview-5,webkitgtk-6,poppler-glib,libgstreamer-1.0
-cp "$project_dir/.cache/jina/bin" /usr/local/bin/codev
 
-sudo apt-get remove --auto-remove --purge \
-	libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev libgstreamer1.0-dev
+jina "$project_dir"
+
+mkdir -p "$HOME/.local/packages/codev"
+ln "$project_dir/.cache/jina/out/*" "$HOME/.local/packages/codev"
+mkdir -p "$HOME/.local/bin"
+echo 'LD_LIBRARY_PATH=. $HOME/.local/packages/codev/codev' > "$HOME/.local/bin/codev"
 
 mkdir -p "$HOME/.local/share/applications"
 cat <<-__EOF__ > "$HOME/.local/share/applications/codev.desktop"
