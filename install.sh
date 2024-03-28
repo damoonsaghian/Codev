@@ -15,9 +15,12 @@ project_dir="$(dirname "$0")"
 jina "$project_dir"
 
 mkdir -p "$HOME/.local/packages/codev"
-ln "$project_dir/.cache/jina/out/*" "$HOME/.local/packages/codev"
+ln "$project_dir/.cache/jina/out/*" "$HOME/.local/packages/codev/"
 mkdir -p "$HOME/.local/bin"
-echo 'LD_LIBRARY_PATH=. $HOME/.local/packages/codev/codev' > "$HOME/.local/bin/codev"
+echo '#!/usr/bin/sh
+LD_LIBRARY_PATH=. $HOME/.local/packages/codev/codev
+' > "$HOME/.local/bin/codev"
+chmod +x "$HOME/.local/bin/codev"
 
 mkdir -p "$HOME/.local/share/applications"
 cat <<-__EOF__ > "$HOME/.local/share/applications/codev.desktop"
