@@ -1,11 +1,3 @@
-if [ $1 = remove ]; then
-	rm "$HOME/.local/bin/codev"
-	rm "$HOME/.local/share/applications/codev.desktop"
-	rm "$HOME/.local/share/icons/hicolor/scalable/apps/codev.svg"
-	rm -r "$HOME/.local/packages/codev"
-	exit
-fi
-
 command -v jina > /dev/null 2>&1 || {
 	# download and install Jina
 }
@@ -43,4 +35,12 @@ cat <<-__EOF__ > "$HOME/.local/share/icons/hicolor/scalable/apps/codev.svg"
 	<path style="fill:none;stroke:#555555;stroke-width:2;stroke-linecap" d="M 30,41 H 48"/>
 	<path style="fill:none;stroke:#555555;stroke-width:2;stroke-linecap" d="M 25,50 H 41"/>
 </svg>
+__EOF__
+
+cat <<-'__EOF__' > "$HOME/.local/packages/codev/uninstall.sh"
+rm "$HOME/.local/bin/codev"
+rm "$HOME/.local/share/applications/codev.desktop"
+rm "$HOME/.local/share/icons/hicolor/scalable/apps/codev.svg"
+rm -r "$HOME/.local/packages/codev"
+exit
 __EOF__
