@@ -4,6 +4,8 @@ command -v jina > /dev/null 2>&1 || {
 
 project_dir="$(dirname "$0")"
 
+sh "$project_dir/gui.sh" &> /dev/null
+
 jina "$project_dir"
 
 mkdir -p "$HOME/.local/packages/codev"
