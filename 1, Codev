@@ -4,7 +4,8 @@ Codev is a COllaborative DEVelopment environment with command'based user interfa
 list of all projects will appear in a floating layer, at the center of the screen, called overview layer
 overview layer:
 , left panel:
-	, roots: user's home plus attached devices
+	, roots: home directory of current user and other users, plus attached devices
+		if a directory is read'only and does not have any visible entry, hide it
 	, project groups: content of roots
 , main view:
 	projects: content of project groups
