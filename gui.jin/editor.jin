@@ -1,6 +1,9 @@
-;(
-https://gitlab.gnome.org/GNOME/gtk/-/blob/main/docs/text_widget_internals.txt
-https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/
+;{ #inlude <> }
+;ospkg-deb: libgtk-4-dev libgtksourceview-5-dev libwebkitgtk-6.0-dev libpoppler-glib-dev
+	libjxl-gdk-pixbuf libavif-gdk-pixbuf webp-pixbuf-loader librsvg2-common
+;dlibs: -lgtk-4 -lgtksourceview-5 -lwebkitgtk-6 -lpoppler-glib
 
-next and previous: word, line, paragraph
-)
+;; https://gitlab.gnome.org/GNOME/gtk/-/blob/main/docs/text_widget_internals.txt
+;; https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/
+
+;; next and previous: word, line, paragraph
