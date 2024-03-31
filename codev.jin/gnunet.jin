@@ -1,43 +1,41 @@
-;(
-https://www.gnunet.org/en/use.html
-https://docs.gnunet.org/
-https://wiki.archlinux.org/title/GNUnet
-https://manpages.debian.org/unstable/gnunet/
-https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html
+;;	https://www.gnunet.org/en/use.html
+	https://docs.gnunet.org/
+	https://wiki.archlinux.org/title/GNUnet
+	https://manpages.debian.org/unstable/gnunet/
+	https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html
 
-keys:
-, primary key pair (used for first encounter)
-, mutual key triplets (a private/public key pair plus the public key of a trusted account)
-backup (encrypted) keys
+;;	keys:
+	, primary key pair (used for first encounter)
+	, mutual key triplets (a private/public key pair plus the public key of a trusted account)
+	backup (encrypted) keys
 
-gnunet-identity stores private keys unencrypted
-gnome-keyring
-https://gnome.pages.gitlab.gnome.org/libsecret/
+;;	gnunet-identity stores private keys unencrypted
+	gnome-keyring
+	https://gnome.pages.gitlab.gnome.org/libsecret/
 
-opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key (eg NitroKey)
-since private key does not leave the smartcard, it can't be backed up
-so we must be able to have multiple keys per identity, and to add keys to an identity,
-	and to inform mutual pairs of this addition
-gnunet-identity does not have multiple keys per identity
-"https://www.kernel.org/doc/html/latest/process/maintainer-pgp-guide.html"
+;;	opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key (eg NitroKey)
+	since private key does not leave the smartcard, it can't be backed up
+	so we must be able to have multiple keys per identity, and to add keys to an identity,
+		and to inform mutual pairs of this addition
+	gnunet-identity does not have multiple keys per identity
+	"https://www.kernel.org/doc/html/latest/process/maintainer-pgp-guide.html"
 
-Libgcrypt and libcrypto (OpenSSL) do not support NTRU Prime; wolfCrypt does
-https://openquantumsafe.org/
+;; Libgcrypt and libcrypto (OpenSSL) do not support NTRU Prime; wolfCrypt does
+	https://openquantumsafe.org/
 
-https://manpages.debian.org/unstable/gnunet/gnunet-directory.1.en.html
-https://manpages.debian.org/unstable/gnunet/gnunet-fs.1.en.html
+;; https://manpages.debian.org/unstable/gnunet/gnunet-directory.1.en.html
+;; https://manpages.debian.org/unstable/gnunet/gnunet-fs.1.en.html
 
-GNUnet: audio conversasion is already implemented
-https://git.gnunet.org/gnunet.git/tree/src/conversation
-https://git.gnunet.org/gnunet.git/tree/src/conversation/gnunet_gst.c
-https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
-https://jami.net/
-https://packages.debian.org/bookworm/jami-daemon
-figure out how to send/receive streams to/from gnunet
+;; GNUnet: audio conversasion is already implemented
+	figure out how to send/receive streams to/from gnunet
+	https://git.gnunet.org/gnunet.git/tree/src/conversation
+	https://git.gnunet.org/gnunet.git/tree/src/conversation/gnunet_gst.c
+	https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
+	https://jami.net/
+	https://packages.debian.org/bookworm/jami-daemon
 
-three way merge:
-https://github.com/samsquire/text-diff
-)
+;; three way merge:
+	https://github.com/samsquire/text-diff
 
 Gnu = .
 	publish: {
@@ -93,7 +91,7 @@ Gnu = .
 		https://docs.antora.org/
 		when converting to html, convert tabs to html tables, to have elastic tabstops
 	
-		alternaties to hashbang.sh:	
+		alternaties to hashbang.sh:
 		http://m-net.arbornet.org/index.php
 		https://freeshell.de/
 		https://envs.net/
