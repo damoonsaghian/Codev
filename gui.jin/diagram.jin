@@ -1,6 +1,6 @@
-;{ #inlude <> }
-;ospkg-deb: libgtk-4-dev
-;dlibs: -lgtk-4
+;inlude
+;ospkg-deb libgtk-4-dev
+;dlibs -lgtk-4
 
 ;;	WYSIWYG formula and 2D/3D model editor
 	cursor movement represents the movement inside the tree

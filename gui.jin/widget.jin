@@ -1,6 +1,6 @@
-;{ #inlude <> }
-;ospkg-deb: libgtk-4-dev libarchive-tools gvfs dosfstools exfatprogs btrfs-progs gnunet
-;dlibs: -lgtk-4 -lgtksourceview-5 -lwebkitgtk-6 -lpoppler-glib
+;include
+;ospkg-deb libgtk-4-dev
+;dlibs -lgtk-4
 
 ;;	https://toshiocp.github.io/Gtk4-tutorial/
 	https://www.gtk.org/docs/getting-started/hello-world/
