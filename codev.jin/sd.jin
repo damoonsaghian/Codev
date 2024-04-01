@@ -1,3 +1,6 @@
+;include
+;ospkg-deb libarchive-tools gvfs dosfstools exfatprogs btrfs-progs
+
 ;; storage devices
 
 ;; https://docs.gtk.org/gio/class.VolumeMonitor.html
