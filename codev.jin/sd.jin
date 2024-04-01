@@ -1,5 +1,5 @@
 ;include
-;ospkg-deb libarchive-tools gvfs dosfstools exfatprogs btrfs-progs
+;ospkg-deb libarchive-tools, gvfs, dosfstools, exfatprogs, btrfs-progs
 
 ;; storage devices
 
