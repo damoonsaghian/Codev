@@ -6,11 +6,12 @@ project_dir="$(dirname "$0")"
 
 jina "$project_dir"
 
-mkdir -p "$HOME/.local/packages/codev"
-ln "$project_dir/.cache/jina/out/*" "$HOME/.local/packages/codev/"
+mkdir -p "$HOME/.local/apps/codev"
+ln "$project_dir/.cache/jina/out/codev/*" "$HOME/.local/apps/codev/"
+
 mkdir -p "$HOME/.local/bin"
 echo '#!/usr/bin/sh
-LD_LIBRARY_PATH=. $HOME/.local/packages/codev/codev
+LD_LIBRARY_PATH=. "$HOME/.local/apps/codev/codev"
 ' > "$HOME/.local/bin/codev"
 chmod +x "$HOME/.local/bin/codev"
 
@@ -37,10 +38,11 @@ cat <<-__EOF__ > "$HOME/.local/share/icons/hicolor/scalable/apps/codev.svg"
 </svg>
 __EOF__
 
-cat <<-'__EOF__' > "$HOME/.local/packages/codev/uninstall.sh"
+cat <<-'__EOF__' > "$HOME/.local/apps/codev/uninstall.sh"
 rm "$HOME/.local/bin/codev"
 rm "$HOME/.local/share/applications/codev.desktop"
 rm "$HOME/.local/share/icons/hicolor/scalable/apps/codev.svg"
-rm -r "$HOME/.local/packages/codev"
-exit
+rm -r "$HOME/.local/apps/codev"
+ospkg-deb remove jina-codev
+ospkg-deb remove jina-gui
 __EOF__
