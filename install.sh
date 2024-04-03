@@ -11,7 +11,8 @@ ln "$project_dir/.cache/jina/out/codev/*" "$HOME/.local/apps/codev/"
 
 mkdir -p "$HOME/.local/bin"
 echo '#!/usr/bin/sh
-LD_LIBRARY_PATH=. "$HOME/.local/apps/codev/codev"
+export LD_LIBRARY_PATH=.
+exec "$HOME/.local/apps/codev/codev"
 ' > "$HOME/.local/bin/codev"
 chmod +x "$HOME/.local/bin/codev"
 
