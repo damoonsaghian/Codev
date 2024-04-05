@@ -16,6 +16,8 @@ to send a pull request to the main branch, first publish the pristine and the wo
 	the main developer will make a diff based on these two, plus her own working directory
 a pull request can be removed by sending a message to the main developer, and unpublishing the two links
 
+projects can be published to two branches: the main branch (the default), and the release branch
+
 changelog can be used to record credits, and at the same time, track backdoors
 
 = trustless secure transaction systems
@@ -72,7 +74,7 @@ each line has three parts seperated by space:
 	in the case of the first line, the signature made by the IO node
 
 tokens are produced and signed by IO nodes based on real resources
-to prevent a single point of failure, tokens will be signed by multiple IO nodes	
+to prevent a single point of failure, tokens will be signed by multiple IO nodes
 
 each IO node publishes all the issued tokens
 for each token, a file will be published, with the token as the file name
