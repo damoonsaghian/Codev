@@ -16,8 +16,6 @@ to send a pull request to the main branch, first publish the pristine and the wo
 	the main developer will make a diff based on these two, plus her own working directory
 a pull request can be removed by sending a message to the main developer, and unpublishing the two links
 
-projects can be published to two branches: the main branch (the default), and the release branch
-
 changelog can be used to record credits, and at the same time, track backdoors
 
 = trustless secure transaction systems
