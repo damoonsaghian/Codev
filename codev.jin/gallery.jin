@@ -19,24 +19,24 @@
 
 ;; inhibit lock during video play
 
-Gallery := .
+Gallery :=
 	widget': gui.Flowbox
 
-Gallery = .
-	new: {
+;ns Gallery
+	new = {
 		widget = gui.Flowbox()
-		Gallery. widget
+		widget: widget
 	}
 	
-	move'up: {}
+	move'up = {}
+	
+	move'down = {}
+	
+	go'to'item = {}
+	
+	find = {}
 
-	move'down: {}
-
-	go'to'item: {}
-
-	find: {}
-
-& gui.Widget.
-	get'widget: { self | :gui.Widget
-		self.widget..get'widget()
+impl gui.Widget
+	get'widget = { self | :gui.Widget
+		self..widget.get'widget()
 	}

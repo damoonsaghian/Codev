@@ -39,8 +39,8 @@
 ;; three way merge:
 	https://github.com/samsquire/text-diff
 
-Gnu = .
-	publish: {
+;ns Gnu
+	publish = {
 		;; create ref links of the project files, in ".cache/gnunet/publish"
 		;; this way GNUnet can publish the files using the indexed method
 		;; note that projects reside in non-removable BTRFS'formated disks
@@ -49,16 +49,16 @@ Gnu = .
 		;; also do not follow mount points
 	}
 	
-	unpublish: {}
+	unpublish = {}
 
-	download: {}
+	download = {}
 
-	pull: {}
+	pull = {}
 
-	pull'request: {}
+	pull'request = {}
 
-	website: { remote'host :String , user :String |
-		;(
+	create'website = { remote'host :String , user :String |
+		;;;
 		we still need a website so the unfortunate users of conventional internet can see and find us
 		
 		on a linux server use gnunet to download projects, and host a website
@@ -107,13 +107,13 @@ Gnu = .
 		https://render.com/docs/docker
 		https://fly.io/
 		https://www.ibm.com/cloud/free/
-		)
+		;
 		
 		;; hashbang init:
 		
 		;; if "remote_host" or "user" are empty, ask for them
 		
-		;(
+		;;;
 		printf "\nHost %s\n  User %s\n" "$remote_host" "$user" >> ~/.ssh/config
 		
 		{ echo "$user" | sed -n "/^[a-z][a-z0-9]{0,30}$/!{q1}"; } || {
@@ -173,5 +173,5 @@ Gnu = .
 		host=de1.hashbang.sh
 		wget --post-data="{\"user\":\"$user\",\"key\":\"$public_key\",\"host\":\"$host\"}" \
 		--header='Content-Type: application/json' https://hashbang.sh/user/create
-		)
+		;
 	}

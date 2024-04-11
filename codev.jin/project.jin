@@ -4,24 +4,24 @@
 
 ;; backup: two'way diff
 
-Project := .
+Project :=
 	dir'path: String
 	widget': gui.Overlay
 	main'view': gui.Stack
 	floating'layer': gui.Stack
 
-Project = .
-	new: { dir'path :String |
-		main'view = gui.Stack.new()
+;ns Project
+	new = { dir'path :String | :Project
+		main'view = gui.Stack'new()
 		;; create a File and send it a weak ref of this Project
-		floating'layer = gui.Stack.new()
-		widget = gui.Overlay.new()
-		widget..add(main'view)
-		widget..add'overlay(floating'layer)
-		Project. dir'path widget main'view floating'layer
+		floating'layer = gui.Stack'new()
+		widget = gui.Overlay'new()
+		widget.add(main'view)
+		widget.add'overlay(floating'layer)
+		dir'path, widget, main'view, floating'layer
 	}
 
-& gui.Widget.
-	get'widget: { self | :gui.Widget
-		self.widget..get'widget()
+;impl gui.Widget
+	get'widget = { self | :gui.Widget
+		self..widget.get'widget()
 	}

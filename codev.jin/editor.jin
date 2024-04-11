@@ -40,14 +40,14 @@
 	http://meldmerge.org/
 	https://git-scm.com/docs/git-diff
 
-Editor := .
+Editor :=
 	widget': gui.Editor
 
-Editor = .
-	new: {
+;ns Editor
+	new = {
 	}
 
-& gui.Widget.
-	get'widget: { self | :gui.Widget
-		self.widget..get'widget()
+;impl gui.Widget
+	get'widget = { self | :gui.Widget
+		self..widget.get'widget()
 	}

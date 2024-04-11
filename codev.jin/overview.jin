@@ -19,24 +19,24 @@
 ;; show indicators on overview
 ;; send notifications to be shown in the tray area of the statusbar
 
-Overview := .
+Overview :=
 	widget': gui.Stack
 	project'views :gui.Stack
 
-Overview = .
-	new: { project'views :gui.Stack |
+;ns Overview
+	new = { project'views :gui.Stack | :Overview
 		widget = gui.Stack.new()
 		
 		;; when a project is selected, hide overview, and return the project's path
 		
-		Overview. widget project'views
+		widget, project'views
 	}
 	
-	open'project: {
+	open'project = {
 		;; if project'path is in project'views, bring it up; otherwise create a new Project
 	}
 
-& gui.Widget.
-	get'widget: { self | :gui.Widget
-		self.widget..get'widget()
+;impl gui.Widget
+	get'widget = { self | :gui.Widget
+		self..widget.get'widget()
 	}
