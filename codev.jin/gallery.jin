@@ -19,11 +19,11 @@
 
 ;; inhibit lock during video play
 
-Gallery :=
-	widget': gui.Flowbox
+Gallery' :=
+	widget: gui.Flowbox
 
 ;ns Gallery
-	new = {
+	{ | :Self
 		widget = gui.Flowbox()
 		widget: widget
 	}

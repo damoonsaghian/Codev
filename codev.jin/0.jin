@@ -1,14 +1,14 @@
 init = {
-	project'views = gui.Stack.new()
+	project'views = gui.Stack()
 	
-	overview = Overview.new project'views
+	overview = Overview project'views
 	
-	main'view = gui.Overlay.new()
+	main'view = gui.Overlay()
 	main'view.add project'views
 	main'view.add'overlay overview
 	
 	;; keybinding to show the overview
 	
-	win = gui.Window.new()
+	win = gui.Window()
 	win.add main'view
 }

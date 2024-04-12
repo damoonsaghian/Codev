@@ -40,11 +40,11 @@
 	http://meldmerge.org/
 	https://git-scm.com/docs/git-diff
 
-Editor :=
-	widget': gui.Editor
+Editor' :=
+	widget: gui.Editor
 
 ;ns Editor
-	new = {
+	{ | :Editor
 	}
 
 ;impl gui.Widget
