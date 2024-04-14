@@ -39,11 +39,12 @@ cat <<-__EOF__ > "$HOME/.local/share/icons/hicolor/scalable/apps/codev.svg"
 </svg>
 __EOF__
 
-cat <<-'__EOF__' > "$HOME/.local/apps/codev/uninstall.sh"
-rm "$HOME/.local/bin/codev"
-rm "$HOME/.local/share/applications/codev.desktop"
-rm "$HOME/.local/share/icons/hicolor/scalable/apps/codev.svg"
-rm -r "$HOME/.local/apps/codev"
-ospkg-deb remove jina-codev
-ospkg-deb remove jina-gui
+project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
+
+cat <<-__EOF__ > "$HOME/.local/apps/codev/uninstall.sh"
+rm ~/.local/bin/codev
+rm ~/.local/share/applications/codev.desktop
+rm ~/.local/share/icons/hicolor/scalable/apps/codev.svg
+rm -r ~/.local/apps/codev
+ospkg-deb remove jina-$project_path_hash
 __EOF__
