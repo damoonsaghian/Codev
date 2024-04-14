@@ -1,3 +1,5 @@
+[ -f "$HOME/.local/apps/codev/uninstall.sh" ] && sh "$HOME/.local/apps/codev/uninstall.sh"
+
 command -v jina > /dev/null 2>&1 || {
 	# download and install Jina
 }
