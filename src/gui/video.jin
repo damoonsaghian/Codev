@@ -1,0 +1,13 @@
+;include
+;ospkg-deb libgtk-4-dev, libgstreamer1.0-dev, gstreamer1.0-pipewire,
+	libgtk-4-media-gstreamer, gstreamer1.0-plugins-good, gstreamer1.0-plugins-ugly, gstreamer1.0-libav
+;dlibs -lgtk-4 -llibgstreamer-1.0
+
+;;;
+plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
+libav is needed till
+, h264(openh264), h265(libde265), and aac(fdk-aac) go into plugins-ugly
+, and av1(aom-libs) goes into plugins-good
+;
+
+;; gtk4 mediafile
