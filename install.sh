@@ -9,7 +9,7 @@ project_dir="$(dirname "$0")"
 jina "$project_dir"
 
 mkdir -p "$HOME/.local/apps/codev"
-ln "$project_dir/.cache/jina/app/*" "$HOME/.local/apps/codev/"
+ln "$project_dir/.cache/jina/out/app/*" "$HOME/.local/apps/codev/"
 
 mkdir -p "$HOME/.local/bin"
 echo '#!/usr/bin/sh
