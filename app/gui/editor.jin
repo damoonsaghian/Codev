@@ -1,8 +1,0 @@
-;include
-;ospkg-deb libgtksourceview-5-dev
-;dlibs -lgtksourceview-5
-
-;; https://gitlab.gnome.org/GNOME/gtk/-/blob/main/docs/text_widget_internals.txt
-;; https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/
-
-;; next and previous: word, line, paragraph
