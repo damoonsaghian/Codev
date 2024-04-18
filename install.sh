@@ -9,12 +9,12 @@ project_dir="$(dirname "$0")"
 jina "$project_dir"
 
 mkdir -p "$HOME/.local/apps/codev"
-ln "$project_dir/.cache/jina/out/app/*" "$HOME/.local/apps/codev/"
+ln "$project_dir/.cache/jina/out/codev/*" "$HOME/.local/apps/codev/"
 
 mkdir -p "$HOME/.local/bin"
 echo '#!/usr/bin/sh
 export LD_LIBRARY_PATH=.
-exec "$HOME/.local/apps/codev/0"
+exec "$HOME/.local/apps/codev/codev"
 ' > "$HOME/.local/bin/codev"
 chmod +x "$HOME/.local/bin/codev"
 
