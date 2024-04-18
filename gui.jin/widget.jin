@@ -1,6 +1,6 @@
 ;include
 ;ospkg-deb libgtk-4-dev
-;dlibs -lgtk-4
+;dlibs gtk-4
 
 ;;	https://toshiocp.github.io/Gtk4-tutorial/
 	https://www.gtk.org/docs/getting-started/hello-world/

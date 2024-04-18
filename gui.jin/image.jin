@@ -1,4 +1,4 @@
 ;include
-;ospkg-deb libgtk-4-dev, libpoppler-glib-dev,
-	libjxl-gdk-pixbuf, libavif-gdk-pixbuf, webp-pixbuf-loader, librsvg2-common
-;dlibs -lgtk-4 -lpoppler-glib
+;ospkg-deb libgtk-4-dev libpoppler-glib-dev
+	libjxl-gdk-pixbuf libavif-gdk-pixbuf webp-pixbuf-loader librsvg2-common
+;dlibs gtk-4 poppler-glib

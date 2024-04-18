@@ -1,7 +1,7 @@
 ;include
-;ospkg-deb libgtk-4-dev, libgstreamer1.0-dev, gstreamer1.0-pipewire,
-	libgtk-4-media-gstreamer, gstreamer1.0-plugins-good, gstreamer1.0-plugins-ugly, gstreamer1.0-libav
-;dlibs -lgtk-4 -llibgstreamer-1.0
+;ospkg-deb libgtk-4-dev libgstreamer1.0-dev gstreamer1.0-pipewire
+	libgtk-4-media-gstreamer gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav
+;dlibs gtk-4 gstreamer-1.0
 
 ;;;
 plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
