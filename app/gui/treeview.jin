@@ -1,5 +1,0 @@
-;include
-;ospkg-deb libgtk-4-dev
-;dlibs -lgtk-4
-
-;; https://docs.gtk.org/gtk4/class.TreeView.html
