@@ -40,6 +40,8 @@
 	http://meldmerge.org/
 	https://git-scm.com/docs/git-diff
 
+;; https://github.com/alexhuntley/Plots/blob/main/plots/formula.py
+
 Editor' :=
 	widget: gui.Editor
 
