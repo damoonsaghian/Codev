@@ -109,7 +109,7 @@
 	scrolledwindow.overflow-r10 undershoot.righ { background-size: 1px 2px; }
 	]]
 	gtk.StyleContext.add_provider_for_display(
-		gdk.Screen.get_default(),
+		gdk.Display.get_default(),
 		css_provider,
 		gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
 	)
