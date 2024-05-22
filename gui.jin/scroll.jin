@@ -111,5 +111,5 @@
 	gtk.StyleContext.add_provider_for_display(
 		gdk.Screen.get_default(),
 		css_provider,
-		gtk.StyleProvider.PRIORITY_APPLICATION
+		gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
 	)
