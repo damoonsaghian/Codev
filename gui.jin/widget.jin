@@ -19,18 +19,4 @@
 	
 	gtk'application'inhibit gtk'application'uninhibit
 	
-	use colored lines on top and bottom of ScrolledWindow to show the amount of content above and below
-	https://docs.gtk.org/gtk4/class.ScrolledWindow.html
-	create css classes for undershoot, with various colors
-	https://gist.github.com/epedroni/03e6058de2769e67ed00
-	when scroll changes, change the css class of undershoot
-	let style'provider = gtk.Css'provider.new()
-	let css'path =
-	style'provider.load'from'file(gio.File.new'for'path(css'path))
-	gtk.Style'context.add'provider'for'screen(
-		gdk.Screen.get'default(),
-		style'provider,
-		gtk.STYLE'PROVIDER'PRIORITY'APPLICATION
-	)
-	
 	slightly dim unfocused panels
