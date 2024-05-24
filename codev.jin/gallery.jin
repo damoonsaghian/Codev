@@ -20,11 +20,11 @@
 ;; inhibit lock during video play
 
 Gallery' :=
-	widget: gui.GridView
+	widget: gui.Flowbox
 
 ;ns Gallery
 	{ | :Self
-		widget = gui.Gridview()
+		widget = gui.Flowbox()
 		widget: widget
 	}
 	
