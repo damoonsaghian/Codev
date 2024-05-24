@@ -13,7 +13,7 @@
 	; sudo dd if=isofile of=devicename
 
 Files' :=
-	widget: gui.Treeview
+	widget: gui.Listbox
 
 ;ns Files
 	{ project'directory :String | :Self
