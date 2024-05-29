@@ -1,5 +1,0 @@
-;include
-;ospkg-deb libgtk-4-dev
-;dlibs gtk-4
-
-;; GtkFlowBox
