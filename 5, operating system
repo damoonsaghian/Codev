@@ -1,0 +1,58 @@
+programs usually do not run directly on computer hardware
+instead they run on a more sophisticated software machine (a virtual machine) called the kernel
+in theory we can live without a kernel (an idea sometimes called a library operating system),
+	and it can be useful for some use cases (like IoT devices),
+	but a kernel based operating system makes developing and testing programs, much easier
+Linux is a highly developed, constantly evolving, open'source kernel
+using Debian we can easily setup a Linux based operating system
+
+boot to a Debian live system
+if Debian live is not available for an architecture, as a workaround,
+	install Debian on a removable storage device, and use that as a live system
+then run this in a terminal (note that s390x and mips architectures are not supported):
+; sudo sh os/install.sh
+
+after booting into the installed system, Codev is ready to use
+Codev is the main application, and fills the screen
+	other applications will be opened in floating windows above Codev
+when "super" (mod+mod) or "alt+tab" is pressed:
+, if there is no floating windows, "swapps" will be shown (in a floating window)
+, otherwise, the floating windows will disappear, and we are back to Codev
+"swapps" contains two views:
+, the first view shows the list of installed GUI applications
+, the second view is the session manager: lock, suspend, exit, reboot, poweroff
+	in apps view, press "comma", to open the session manager
+press "super+space" or "alt+space" to toggle fullscreen for floating windows
+press "super+backspace" or "alt+backspace" or "alt+esc" to close a window
+
+there is a terminal application for running command'line programs
+"system" is a command'line program which can be used to:
+	manage connections, set timezone, change passwords, or manage installed packages
+
+implementing atomic upgrade doesn't worth the effort, because to have a really fail'safe system,
+	redundant backups are necessary anyway
+to fix a broken system (eg due to power outage during a system upgrade), the live system can be used
+
+to run a command as root:
+; sudo command
+this will switch to the first available virtual terminal, shows the command at the top,
+	and asks for root password
+if the entered password is correct it returns back to previous virtual terminal,
+	and runs the command as root
+
+note that you can't login as root; root account is locked
+also you must never type the user's password anywhere except at the login prompt
+	(and make sure that the login prompt isn't fake, by pressing "F8" key for locking/unlocking)
+this means that if a malicious program steals root password (eg by faking the password entry),
+	it still can't run programs as root (because it can't enter the password in a virtual terminal)
+take a look at these:
+"https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
+"https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
+
+to protect the computer from physical attacks, don't leave the computer with an unlocked session
+in addition you must:
+, somehow prevent tampering with hardware
+, protect boot firmware by a password
+, disable changing the storage device used for booting
+these can make physical attacks more difficult, but keep this in mind:
+	physical access to a computer is root access, given enough time and resources
