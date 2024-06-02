@@ -1,3 +1,5 @@
+import subprocess
+
 import gi
 gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
@@ -60,6 +62,8 @@ def create_app_launcher_view(root_view):
 		if error_code != 0:
 			os.execute('swaymsg exec ' .. string.format('%q', app:get_commandline()))
 		os.execute("swaymsg move scratchpad")
+		# swaymsg "[con_id=codev] focus" || python3 /usr/local/share/codev
+		# swaymsg "[app_id=codev] move workspace $app; workspace $app"; app.exec
 	
 	apps_flowbox = Gtk.FlowBox(
 		orientation = gtk.Orientation.HORIZONTAL,
@@ -235,15 +239,14 @@ def create_session_manager_view():
 
 app = Gtk.Application(application_id='swayapps')
 
-app.on_startup = function(app)
-	local search_entry = gtk.TextView()
+def on_startup(app):
+	search_entry = Gtk.TextView()
 	
-	local root_view = gtk.Notebook()
-	root_view:append_page(create_app_launcher_view(root_view), gtk.Label"apps")
-	root_view:append_page(create_terminal_view(), gtk.Label"terminal")
-	root_view:append_page(create_session_manager_view(), gtk.Label"session")
+	root_view = Gtk.Notebook()
+	root_view.append_page(create_app_launcher_view(root_view), Gtk.Label("apps"))
+	root_view.append_page(create_session_manager_view(), gtk.Label("session"))
 	
-	local css_provider = gtk.CssProvider()
+	css_provider = Gtk.CssProvider()
 	css_provider.load_from_string('''
 	scrolledwindow undershoot.top {
 		background-color: transparent;
@@ -331,20 +334,14 @@ app.on_startup = function(app)
 	
 	win = Gtk.ApplicationWindow(application=app)
 	win.set_child(root_view)
-	# escape: os.execute("swaymsg move scratchpad")
-	# ctrl-pageup/pagedown -> switch between terminal views
+	win.present()
 	
-	# when window is unfocused:
-	# , if there is no window focused, focus swayapps
-	# , otherwise os.execute("swaymsg '[app_id=swayapps] move scratchpad'")
-	# 
 	# when window is focused, go to app view
 	
-	# when window is closed: swaymsg mode default
-end
+	# when window is unfocused:
+	# swaymsg "[con_id=codev] focus" || python3 /usr/local/share/codev
 
-app.on_activate = function(app)
-	app.get_windows()[1].present()
-end
-
-app.run()
+app = Gtk.Application(application_id='swapps')
+app.connect('startup', on_startup)
+app.connect('activate', lambda: subprocess.run(['swaymsg', '[app_id=swapps] focus']))
+app.run(None)
