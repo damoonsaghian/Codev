@@ -22,7 +22,7 @@ if [ ! "$(id -u)" = 0 ] && [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
 fi
 ' > /etc/profile.d/zz-sway.sh
 
-cp /mnt/os/sway.conf /mnt/os/swapps.{sh,py} /mnt/os/terminal.py /usr/local/share/
+cp /mnt/os/sway.conf /mnt/os/swapps.py /mnt/os/terminal.py /usr/local/share/
 cp /mnt/codev /usr/local/share/
 
 mkdir -p /usr/local/share/applications
