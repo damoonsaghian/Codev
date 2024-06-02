@@ -15,4 +15,9 @@ main_view.add_overlay(overview)
 
 win = Gtk.Window()
 win.add(main_view)
-# when Codev's window is focused: swaymsg "[floating] move scratchpad"
+
+# when window is unfocused, make it insensitive
+
+# when window is focused:
+# , make it sensitive again
+# , sh /usr/local/share/swapps.sh

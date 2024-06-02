@@ -183,18 +183,8 @@ active_net_device="$(networkctl list | grep routable | { read -r _ net_dev _; ec
 # 	function() print "System just resumed from hibernate or suspend" end
 # )
 
-# show workspaces (applications) at the left corner
-
-# click on first app icon (current workspace) -> toggle swayapps
-
-# click on empty space -> toggle swayapps
+# click on empty space, or status area:
+# swaymsg '[app_id=swapps] focus' || python3 /usr/local/share/swapps.py
 
 window = Gtk.ApplicationWindow(application=app, decorated=False)
 window.present()
-# when focused, select the second workspace icon, then:
-# , if there is no other window in workspace, run swayapps
-# , if sway mode is not "switch_app", hide window
-
-# when window gets hidden, show it again, swaymsg mode default
-
-# when alt is released: move the selected workspace to the beginning, hide window, switchrkspac'
