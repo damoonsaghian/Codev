@@ -284,47 +284,47 @@ def on_startup(app):
 	scrolledwindow.overflow-t2 undershoot.top { background-size: 18px 1px; }
 	scrolledwindow.overflow-b2 undershoot.bottom { background-size: 18px 1px; }
 	scrolledwindow.overflow-l2 undershoot.left { background-size: 1px 18px; }
-	scrolledwindow.overflow-r2 undershoot.righ { background-size: 1px 18px; }
+	scrolledwindow.overflow-r2 undershoot.right { background-size: 1px 18px; }
 	
 	scrolledwindow.overflow-t3 undershoot.top { background-size: 16px 1px; }
 	scrolledwindow.overflow-b3 undershoot.bottom { background-size: 16px 1px; }
 	scrolledwindow.overflow-l3 undershoot.left { background-size: 1px 16px; }
-	scrolledwindow.overflow-r3 undershoot.righ { background-size: 1px 16px; }
+	scrolledwindow.overflow-r3 undershoot.right { background-size: 1px 16px; }
 	
 	scrolledwindow.overflow-t4 undershoot.top { background-size: 14px 1px; }
 	scrolledwindow.overflow-b4 undershoot.bottom { background-size: 14px 1px; }
 	scrolledwindow.overflow-l4 undershoot.left { background-size: 1px 14px; }
-	scrolledwindow.overflow-r4 undershoot.righ { background-size: 1px 14px; }
+	scrolledwindow.overflow-r4 undershoot.right { background-size: 1px 14px; }
 	
 	scrolledwindow.overflow-t5 undershoot.top { background-size: 12px 1px; }
 	scrolledwindow.overflow-b5 undershoot.bottom { background-size: 12px 1px; }
 	scrolledwindow.overflow-l5 undershoot.left { background-size: 1px 12px; }
-	scrolledwindow.overflow-r5 undershoot.righ { background-size: 1px 12px; }
+	scrolledwindow.overflow-r5 undershoot.right { background-size: 1px 12px; }
 	
 	scrolledwindow.overflow-t6 undershoot.top { background-size: 10px 1px; }
 	scrolledwindow.overflow-b6 undershoot.bottom { background-size: 10px 1px; }
 	scrolledwindow.overflow-l6 undershoot.left { background-size: 1px 10px; }
-	scrolledwindow.overflow-r6 undershoot.righ { background-size: 1px 10px; }
+	scrolledwindow.overflow-r6 undershoot.right { background-size: 1px 10px; }
 	
 	scrolledwindow.overflow-t7 undershoot.top { background-size: 8px 1px; }
 	scrolledwindow.overflow-b7 undershoot.bottom { background-size: 8px 1px; }
 	scrolledwindow.overflow-l7 undershoot.left { background-size: 1px 8px; }
-	scrolledwindow.overflow-r7 undershoot.righ { background-size: 1px 8px; }
+	scrolledwindow.overflow-r7 undershoot.right { background-size: 1px 8px; }
 	
 	scrolledwindow.overflow-t8 undershoot.top { background-size: 6px 1px; }
 	scrolledwindow.overflow-b8 undershoot.bottom { background-size: 6px 1px; }
 	scrolledwindow.overflow-l8 undershoot.left { background-size: 1px 6px; }
-	scrolledwindow.overflow-r8 undershoot.righ { background-size: 1px 6px; }
+	scrolledwindow.overflow-r8 undershoot.right { background-size: 1px 6px; }
 	
 	scrolledwindow.overflow-t9 undershoot.top { background-size: 4px 1px; }
 	scrolledwindow.overflow-b9 undershoot.bottom { background-size: 4px 1px; }
 	scrolledwindow.overflow-l9 undershoot.left { background-size: 1px 4px; }
-	scrolledwindow.overflow-r9 undershoot.righ { background-size: 1px 4px; }
+	scrolledwindow.overflow-r9 undershoot.right { background-size: 1px 4px; }
 	
 	scrolledwindow.overflow-t10 undershoot.top { background-size: 2px 1px; }
 	scrolledwindow.overflow-b10 undershoot.bottom { background-size: 2px 1px; }
 	scrolledwindow.overflow-l10 undershoot.left { background-size: 1px 2px; }
-	scrolledwindow.overflow-r10 undershoot.righ { background-size: 1px 2px; }
+	scrolledwindow.overflow-r10 undershoot.right { background-size: 1px 2px; }
 	''')
 	Gtk.StyleContext.add_provider_for_display(
 		Gdk.Display.get_default(),
@@ -339,7 +339,7 @@ def on_startup(app):
 	# when window is focused, go to app view
 	
 	# when window is unfocused:
-	# swaymsg "[con_id=codev] focus" || python3 /usr/local/share/codev
+	# swaymsg "[con_id=__focused__] focus" || python3 /usr/local/share/codev || swaymsg "[app_id=swapps] focus"
 
 app = Gtk.Application(application_id='swapps')
 app.connect('startup', on_startup)
