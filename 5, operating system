@@ -16,14 +16,13 @@ after booting into the installed system, Codev is ready to use
 Codev is the main application, and fills the screen
 	other applications will be opened in floating windows above Codev
 when "super" (mod+mod) or "alt+tab" is pressed:
-, if there is no floating windows, "swapps" will be shown (in a floating window)
-, otherwise, the floating windows will disappear, and we are back to Codev
+, if there are floating windows, they will be hidden, and we're back to Codev
+, otherwise "swapps" will be opened (in a floating window)
 "swapps" contains two views:
 , the first view shows the list of installed GUI applications
 , the second view is the session manager: lock, suspend, exit, reboot, poweroff
-	in apps view, press "comma", to open the session manager
-press "super+space" or "alt+space" to toggle fullscreen for floating windows
-press "super+backspace" or "alt+backspace" or "alt+esc" to close a window
+	when in apps view, you can press "comma", to go to the session manager
+press "super+space" or "alt+escape" to close a window
 
 there is a terminal application for running command'line programs
 "system" is a command'line program which can be used to:
