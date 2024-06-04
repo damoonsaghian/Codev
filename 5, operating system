@@ -17,22 +17,25 @@ Codev is the main application, and fills the screen
 	other applications will be opened in floating windows above Codev
 when "super" (mod+mod) or "alt+tab" is pressed:
 , if there are floating windows, they will be hidden, and we're back to Codev
-, otherwise "swapps" will be opened (in a floating window)
-"swapps" contains two views:
+, otherwise the main menu will be opened (in a floating window)
+the main menu contains two views:
 , the first view shows the list of installed GUI applications
-, the second view is the session manager: lock, suspend, exit, reboot, poweroff
-	when in apps view, you can press "comma", to go to the session manager
-press "super+space" or "alt+escape" to close a window
-
-there is a terminal application for running command'line programs
-"system" is a command'line program which can be used to:
-	manage connections, set timezone, change passwords, or manage installed packages
+, the second view is the system manager:
+	, manage session: lock, suspend, exit, reboot, poweroff
+	, manage connections
+	, set timezone
+	, change passwords
+	, manage installed packages
+in the main menu:
+, enter "space" at the beginning of search entry, to switch between views
+, press any punctuation character, to clear the search entry
+press "super+backspace" or "alt+escape" to close a window
 
 implementing atomic upgrade doesn't worth the effort, because to have a really fail'safe system,
 	redundant backups are necessary anyway
 to fix a broken system (eg due to power outage during a system upgrade), the live system can be used
 
-to run a command as root:
+to run a program as root:
 ; sudo command
 this will switch to the first available virtual terminal, shows the command at the top,
 	and asks for root password
@@ -40,10 +43,10 @@ if the entered password is correct it returns back to previous virtual terminal,
 	and runs the command as root
 
 note that you can't login as root; root account is locked
-also you must never type the user's password anywhere except at the login prompt
-	(and make sure that the login prompt isn't fake, by pressing "F8" key for locking/unlocking)
 this means that if a malicious program steals root password (eg by faking the password entry),
 	it still can't run programs as root (because it can't enter the password in a virtual terminal)
+also you must never type the user's password anywhere except at the login prompt
+	(and make sure that the login prompt isn't fake, by pressing "F8" key for locking/unlocking)
 take a look at these:
 "https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/"
 "https://security.stackexchange.com/questions/119410/why-should-one-use-sudo"
