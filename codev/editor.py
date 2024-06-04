@@ -45,9 +45,9 @@
 # http://meldmerge.org/
 # https://git-scm.com/docs/git-diff
 
-# app URL
-# an app is simply a source code directory, containing a file named "install.sh"
-# to install an app, just add its URL (gnunet/git) to "~/.local/apps/url-list"
+# UPM app URL
+# UPM app is simply a source code directory, containing a file named "install.sh"
+# to install a UPM app, just add its URL (gnunet/git) to "~/.local/upm/apps"
 # there must be an empty line between URL lines
 # after each URL line, there can be a public key, which will be used to check the signature of the downloaded files
 
