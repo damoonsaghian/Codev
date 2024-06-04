@@ -5,33 +5,6 @@ gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gio, Gdk, Gtk
 
-def create_scroll(widget):
-	scrolled_widget = Gtk.ScrolledWindow{
-		child = widget,
-		hscrollbar_policy = gtk.Policy.Never,
-		vscrollbar_policy = gtk.Policy.Never
-	}
-	
-	# use undershoot lines on borders of ScrolledWindow to show the amount of overflowed content
-	def update_css_classes():
-		vadjust = scrolled_widget.vadjustment
-		top_overflow = vadjust.value * 10 // vadjust.upper
-		bottom_overflow = (vadjust.upper - vadjust.page_size - vadjust.value)*10 // vadjust.upper
-		
-		hadjust = scrolled_widget.hadjustment
-		left_overflow = hadjust.value * 10 // hadjust.upper
-		right_overflow = (hadjust.upper - hadjust.page_size - hadjust.value)*10 // hadjust.upper
-		
-		scrolled_widget:set_css_class[
-			"overflow-t"..top_overflow, "overflow-b"..bottom_overflow,
-			"overflow-l"..left_overflow, "overflow-r"..right_overflow
-		]
-	
-	scrolled_widget.vadjustment.on_changed = update_css_classes
-	scrolled_widget.hadjustment.on_changed = update_css_classes
-	
-	return scrolled_widget
-
 def create_app_launcher_view(root_view):
 	apps_list = gio.ListStore(Gtk.Application)
 	filter = gtk.StringFilter()
@@ -118,46 +91,216 @@ def create_app_launcher_view(root_view):
 	app_launcher_view = Gtk.Box(gtk.Orientation.VERTICAL, 0)
 	app_launcher_view.append(search_entry)
 	app_launcher_view.append(caption)
-	app_launcher_view.append(create_scroll(apps_flowbox))
+	app_launcher_view.append(Gtk.ScrolledWindow(child=apps_flowbox))
 	return app_launcher_view
 
-def create_terminal_view():
-	terminal_view = create_scroll(vte.Terminal())
+# system manager
+'''
+#!/bin/sh
+set -e
+
+manage_wifi() {
+	local mode="$(printf "connect\nremove" | fzy)" device= ssid= answer=
+	# filtered fzy
+	local ffzy=""
 	
-	# entering a space at the beginning -> open a new terminal window (whose app_id is not swayapps)
+	if [ "$mode" = connect ]; then
+		echo 'select a device:'
+		device="$(iwctl device list |
+			tail --line=+5 | cut -c 7- | fzy | { read -r first _; echo "$first"; })"
+		
+		iwctl station "$device" scan
+		echo 'select a network to connect:'
+		ssid="$(iwctl station "$device" get-networks |
+			tail --line=+5 | cut -c 7- | fzy | { read -r first _; echo "$first"; })"
+		iwctl station "$device" connect "$ssid"
+	fi
 	
-	# enter "system" to configure system settings
+	if [ "$mode" = remove ]; then
+		echo 'select a network to remove:'
+		ssid="$(iwctl known-networks list |
+			tail --line=+5 | cut -c 7- | fzy | { read -r first _; echo "$first"; })"
+		
+		echo "remove \"$ssid\"?"
+		answer="$(printf "no\nyes" | fzy)"
+		[ "$answer" = yes ] || exit
+		
+		iwctl known-networks "$ssid" forget
+	fi
+}
+
+manage_cell() {
+	echo "not yet implemented"
+}
+
+manage_bluetooth() {
+	local mode= device=
 	
-	# pageup
-	# pagedown
-	# ctrl+c
-	# ctrl+v
-	# ctrll+n or ctrl+t: new terminal
-	# ctrl+f
-	# esc: enter \x03 (ctrl+c) character
+	echo "not yet implemented"; exit
+	# https://forum.endeavouros.com/t/how-to-script-bluetoothctl-commands/18225/10
+	# https://gist.github.com/RamonGilabert/046727b302b4d9fb0055
+	# "echo '' | ..." or expect
+	#
+	# https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/test/simple-agent
+	# https://ukbaz.github.io/howto/python_gio_1.html
+	# https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
 	
-	# background=000000
-	# foreground=FFFFFF
-	# regular0=403E41
-	# regular1=FF6188
-	# regular2=A9DC76
-	# regular3=FFD866
-	# regular4=FC9867
-	# regular5=AB9DF2
-	# regular6=78DCE8
-	# regular7=FCFCFA
-	# bright0=727072
-	# bright1=FF6188
-	# bright2=A9DC76
-	# bright3=FFD866
-	# bright4=FC9867
-	# bright5=AB9DF2
-	# bright6=78DCE8
-	# bright7=FCFCFA
-	# selection-background=555555
-	# selection-foreground=dddddd
+	mode="$(printf "add\nremove" | fzy)"
 	
-	return terminal_view
+	if [ "$mode" = remove ]; then
+		bluetoothctl scan on &
+		sleep 3
+		echo "select a device:"
+		device="$(bluetoothctl devices | fzy | { read -r _first mac_address; echo "$mac_address"; })"
+		
+		if bluetoothctl --agent -- pair "$device"; then
+			bluetoothctl trust "$device"
+			bluetoothctl connect "$device"
+		else
+			bluetoothctl untrust "$device"
+		fi
+	fi
+	
+	if [ "$mode" = remove ]; then
+		echo "select a device:"
+		device="$(bluetoothctl devices | fzy | { read -r _first mac_address; echo "$mac_address"; })"
+		bluetoothctl disconnect "$device"
+		bluetoothctl untrust "$device"
+	fi
+}
+
+manage_radio_devices() {
+	# wifi, cellular, bluetooth, gps
+	local lines= device= action=
+	
+	lines="$(rfkill -n -o "TYPE,SOFT,HARD")"
+	lines="$(printf "all\n%s" "$lines")"
+	echo 'select a radio device:'
+	device="$(echo "$lines" | fzy | cut -d " " -f1)"
+
+	action="$(printf "block\nunblock" | fzy)"
+	rfkill "$action" "$device"
+}
+
+manage_router() {
+	echo "not yet implemented"
+	
+	# https://wiki.archlinux.org/title/Router
+	# https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking#veth
+	
+	# ask for add/remove
+	# if remove:
+	# , show the out devices
+	# , ask for the name of devices (or all)
+	# , remove the devices from ifupdown-ng config, and from Connman unmanaged
+	# if add:
+	# , ask for the name of devices to add
+	# , put the devices in connman unmanaged
+	# , install busybox-extras (for udhcpd)
+	# , run a dhcp server on them, using ifupdown-ng (https://github.com/ifupdown-ng/ifupdown-ng/tree/main/doc)
+	
+	# if the device is a wireless LAN (ie we want a wifi access point)
+	# if there is only one wifi device, create a virtual one (concurrent AP-STA mode)
+	# https://wiki.archlinux.org/title/software_access_point
+	# https://variwiki.com/index.php?title=Wifi_NetworkManager#WiFi_STA.2FAP_concurrency
+	# activate AP mode on it, using iwd
+	# http://blog.hoxnox.com/gentoo/wifi-hotspot.html
+	# https://wiki.alpinelinux.org/wiki/Wireless_AP_with_udhcpd_and_NAT
+	# when removing a wireless device, disable AP mode, and delete the virtual device (if any)
+	
+	#echo -n '[Match]
+	#Type=wlan
+	#WLANInterfaceType=ap
+	#[Network]
+	#Address=0.0.0.0/24
+	#DHCPServer=yes
+	#IPMasquerade=both
+	#' > /etc/systemd/network/80-wifi-ap.network
+	# https://hackaday.io/project/162164/instructions?page=2
+	# https://raspberrypi.stackexchange.com/questions/133403/configure-usb-wi-fi-dongle-as-stand-alone-access-point-with-systemd-networkd
+	# https://man.archlinux.org/man/core/systemd/systemd.netdev.5.en
+}
+
+# VPN
+# https://fedoramagazine.org/systemd-resolved-introduction-to-split-dns/
+# https://blogs.gnome.org/mcatanzaro/2020/12/17/understanding-systemd-resolved-split-dns-and-vpn-configuration/
+
+manage_connections() {
+	local selected_option="$(printf "wifi\ncellular\nbluetooth\nradio\nrouter" | fzy)"
+	case "$selected_option" in
+		wifi) manage_wifi ;;
+		cellular) manage_cell ;;
+		bluetooth) manage_bluetooth ;;
+		radio) manage_radio_devices ;;
+		router) manage_router ;;
+	esac
+}
+
+set_timezone() {
+	# guess the timezone, but let the user to confirm it
+	local geoip_tz= geoip_tz_continent= geoip_tz_city= tz_continent= tz_city=
+	command -v wget > /dev/null 2>&1 || apt-get -qq install wget > /dev/null 2>&1 || true
+	geoip_tz="$(wget -q -O- 'http://ip-api.com/line/?fields=timezone')"
+	geoip_tz_continent="$(echo "$geoip_tz" | cut -d / -f1)"
+	geoip_tz_city="$(echo "$geoip_tz" | cut -d / -f2)"
+	tz_continent="$(ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5 |
+		fzy -p "select a continent: " -q "$geoip_tz_continent")"
+	tz_city="$(ls -1 /usr/share/zoneinfo/"$tz_continent"/* | cut -d / -f6 |
+		fzy -p "select a city: " -q "$geoip_tz_city")"
+	timedatectl set-timezone "${tz_continent}/${tz_city}"
+}
+
+change_passwords() {
+	local answer="$(printf "user password\nsudo password" | fzy)"
+	
+	[ "$answer" = "user password" ] && while ! passwd --quiet; do
+		echo "an error occured; please try again"
+	done
+	
+	[ "$answer" = "sudo password" ] && while ! sudo passwd --quiet; do
+		echo "an error occured; please try again"
+	done
+}
+
+manage_packages() {
+	local mode= package_name= answer=no
+	echo 'packages:'
+	mode="$(printf "upgrade\nadd\nremove" | fzy)"
+	
+	[ "$mode" = add ] && {
+		printf 'search for: '
+		read -r search_entry
+		ospkg-deb update
+		package_name="$(apt-cache search "$search_entry" | fzy | { read -r first _rest; echo "$first"; })"
+		apt-cache show "$package_name"
+		echo "install \"$package_name\"?"
+		answer="$(printf "yes\nno" | fzy)"
+		[ "$answer" = yes ] || exit
+	}
+	
+	[ "$mode" = remove ] && {
+		package_name="$(apt-cache search --names-only "^ospkg-$(id -u)--.*" | sed s/^.*--// |
+			fzy | { read -r first _rest; echo "$first"; })"
+		printf "remove \"$package_name\"?"
+		answer="$(printf "no\nyes" | fzy)"
+		[ "$answer" = yes ] || exit
+	}
+	ospkg-deb "$mode" "$package_name" "$package_name"
+}
+
+if [ -z "$1" ]; then
+	selected_option="$(printf "connections\ntimezone\npasswords\npackages" | fzy)"
+else
+	selected_option="$1"
+fi
+
+case "$selected_option" in
+	connections) manage_connections ;;
+	timezone) set_timezone ;;
+	passwords) change_passwords ;;
+	packages) manage_packages ;;
+esac
+'''
 
 def create_session_manager_view():
 	session_manager_list = Gio.ListStore(glib.HashTable)
@@ -234,7 +377,7 @@ def create_session_manager_view():
 	
 	session_manager_view = Gtk.Box(Gtk.Orientation.VERTICAL, 0)
 	session_manager_view.append(search_entry)
-	session_manager_view.append(create_scroll(session_manager_flowbox))
+	session_manager_view.append(Gtk.ScrolledWindow(child=session_manager_flowbox))
 	return session_manager_view
 
 app = Gtk.Application(application_id='swayapps')
@@ -244,93 +387,7 @@ def on_startup(app):
 	
 	root_view = Gtk.Notebook()
 	root_view.append_page(create_app_launcher_view(root_view), Gtk.Label("apps"))
-	root_view.append_page(create_session_manager_view(), gtk.Label("session"))
-	
-	css_provider = Gtk.CssProvider()
-	css_provider.load_from_string('''
-	scrolledwindow undershoot.top {
-		background-color: transparent;
-		background-image: linear-gradient(to left, rgba(255, 255, 255, 0.2) 50%, rgba(0, 0, 0, 0.2) 50%);
-		padding-top: 1px;
-		background-size: 20px 1px;
-		background-repeat: repeat-x;
-		background-origin: content-box;
-		background-position: center top; }
-	scrolledwindow undershoot.bottom {
-		background-color: transparent;
-		background-image: linear-gradient(to left, rgba(255, 255, 255, 0.2) 50%, rgba(0, 0, 0, 0.2) 50%);
-		padding-bottom: 1px;
-		background-size: 20px 1px;
-		background-repeat: repeat-x;
-		background-origin: content-box;
-		background-position: center bottom; }
-	scrolledwindow undershoot.left {
-		background-color: transparent;
-		background-image: linear-gradient(to top, rgba(255, 255, 255, 0.2) 50%, rgba(0, 0, 0, 0.2) 50%);
-		padding-left: 1px;
-		background-size: 1px 20px;
-		background-repeat: repeat-y;
-		background-origin: content-box;
-		background-position: left center; }
-	scrolledwindow undershoot.right {
-		background-color: transparent;
-		background-image: linear-gradient(to top, rgba(255, 255, 255, 0.2) 50%, rgba(0, 0, 0, 0.2) 50%);
-		padding-right: 1px;
-		background-size: 1px 20px;
-		background-repeat: repeat-y;
-		background-origin: content-box;
-		background-position: right center; }
-	
-	scrolledwindow.overflow-t2 undershoot.top { background-size: 18px 1px; }
-	scrolledwindow.overflow-b2 undershoot.bottom { background-size: 18px 1px; }
-	scrolledwindow.overflow-l2 undershoot.left { background-size: 1px 18px; }
-	scrolledwindow.overflow-r2 undershoot.right { background-size: 1px 18px; }
-	
-	scrolledwindow.overflow-t3 undershoot.top { background-size: 16px 1px; }
-	scrolledwindow.overflow-b3 undershoot.bottom { background-size: 16px 1px; }
-	scrolledwindow.overflow-l3 undershoot.left { background-size: 1px 16px; }
-	scrolledwindow.overflow-r3 undershoot.right { background-size: 1px 16px; }
-	
-	scrolledwindow.overflow-t4 undershoot.top { background-size: 14px 1px; }
-	scrolledwindow.overflow-b4 undershoot.bottom { background-size: 14px 1px; }
-	scrolledwindow.overflow-l4 undershoot.left { background-size: 1px 14px; }
-	scrolledwindow.overflow-r4 undershoot.right { background-size: 1px 14px; }
-	
-	scrolledwindow.overflow-t5 undershoot.top { background-size: 12px 1px; }
-	scrolledwindow.overflow-b5 undershoot.bottom { background-size: 12px 1px; }
-	scrolledwindow.overflow-l5 undershoot.left { background-size: 1px 12px; }
-	scrolledwindow.overflow-r5 undershoot.right { background-size: 1px 12px; }
-	
-	scrolledwindow.overflow-t6 undershoot.top { background-size: 10px 1px; }
-	scrolledwindow.overflow-b6 undershoot.bottom { background-size: 10px 1px; }
-	scrolledwindow.overflow-l6 undershoot.left { background-size: 1px 10px; }
-	scrolledwindow.overflow-r6 undershoot.right { background-size: 1px 10px; }
-	
-	scrolledwindow.overflow-t7 undershoot.top { background-size: 8px 1px; }
-	scrolledwindow.overflow-b7 undershoot.bottom { background-size: 8px 1px; }
-	scrolledwindow.overflow-l7 undershoot.left { background-size: 1px 8px; }
-	scrolledwindow.overflow-r7 undershoot.right { background-size: 1px 8px; }
-	
-	scrolledwindow.overflow-t8 undershoot.top { background-size: 6px 1px; }
-	scrolledwindow.overflow-b8 undershoot.bottom { background-size: 6px 1px; }
-	scrolledwindow.overflow-l8 undershoot.left { background-size: 1px 6px; }
-	scrolledwindow.overflow-r8 undershoot.right { background-size: 1px 6px; }
-	
-	scrolledwindow.overflow-t9 undershoot.top { background-size: 4px 1px; }
-	scrolledwindow.overflow-b9 undershoot.bottom { background-size: 4px 1px; }
-	scrolledwindow.overflow-l9 undershoot.left { background-size: 1px 4px; }
-	scrolledwindow.overflow-r9 undershoot.right { background-size: 1px 4px; }
-	
-	scrolledwindow.overflow-t10 undershoot.top { background-size: 2px 1px; }
-	scrolledwindow.overflow-b10 undershoot.bottom { background-size: 2px 1px; }
-	scrolledwindow.overflow-l10 undershoot.left { background-size: 1px 2px; }
-	scrolledwindow.overflow-r10 undershoot.right { background-size: 1px 2px; }
-	''')
-	Gtk.StyleContext.add_provider_for_display(
-		Gdk.Display.get_default(),
-		css_provider,
-		Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-	)
+	root_view.append_page(create_session_manager_view(), gtk.Label("system"))
 	
 	win = Gtk.ApplicationWindow(application=app)
 	win.set_child(root_view)

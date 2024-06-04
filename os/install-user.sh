@@ -40,7 +40,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
 	"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
-	<action id="org.local.pkexec.sudo">
+	<action id="local.pkexec.sudo">
 		<description>sudo</description>
 		<message>sudo</message>
 		<defaults><allow_active>yes</allow_active></defaults>
@@ -48,7 +48,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 		<annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/sudo</annotate>
 	</action>
 </policyconfig>
-' > /usr/share/polkit-1/actions/org.local.pkexec.sudo.policy
+' > /usr/share/polkit-1/actions/local.pkexec.sudo.policy
 
 cat <<'__EOF__' > /usr/local/bin/lock
 #!/usr/bin/pkexec /bin/sh
@@ -71,7 +71,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
 	"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
-	<action id="org.local.pkexec.lock">
+	<action id="local.pkexec.lock">
 		<description>lock</description>
 		<message>lock</message>
 		<defaults><allow_active>yes</allow_active></defaults>
@@ -79,7 +79,7 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 		<annotate key="org.freedesktop.policykit.exec.argv1">/usr/local/bin/lock</annotate>
 	</action>
 </policyconfig>
-' > /usr/share/polkit-1/actions/org.local.pkexec.lock.policy
+' > /usr/share/polkit-1/actions/local.pkexec.lock.policy
 
 # allow udisks2 to mount all devices except when it's an EFI partition
 echo -n 'polkit.addRule(function(action, subject) {
