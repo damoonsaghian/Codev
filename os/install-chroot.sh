@@ -190,7 +190,9 @@ if [ ! "$(id -u)" = 0 ] && [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
 fi
 ' > /etc/profile.d/zz-sway.sh
 
-/mnt/install.sh
-cp /mnt/.cache/spm/bin/* /usr/local/bin
+su -c sh /mnt/install.sh
+ln /mnt/.cache/spm/bin/codev /usr/local/bin/
 mkdir -p /usr/local/app/codev
-cp /mnt/.cache/spm/app/* /usr/local/app/codev/
+cp /mnt/.cache/spm/app/codev/* /usr/local/app/codev/
+# store the gnunet url of Codev, for SMP to automaticallu update Codev
+# echo '' > /var/local/spm/url-list
