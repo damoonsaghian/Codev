@@ -11,3 +11,6 @@ apt-get -qq install gir1.2-gtksource-5 gir1.2-webkit-6.0 gir1.2-poppler-0.18 \
 # libav is needed till
 # , h264(openh264), h265(libde265), and aac(fdk-aac) go into plugins-ugly
 # , and av1(aom-libs) goes into plugins-good
+
+# .cache/spm/bin/codev
+# .cache/spm/app/codev/*
