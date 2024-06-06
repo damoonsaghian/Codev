@@ -1,7 +1,7 @@
 #!/usr/bin/env -S pkexec /bin/bash
 
 mode="$1"
-meta_package=upm-"$PKEXEC_UID"--"$2"
+meta_package=spm-"$PKEXEC_UID"--"$2"
 packages="$3"
 
 # simple package manager
@@ -11,28 +11,35 @@ packages="$3"
 # there must be an empty line between URL lines
 # after each URL line, there can be a public key, which will be used to check the signature of the downloaded files
 
-# read url lines in "$HOME/.local/spm/url-list"
-if [ "$protocol" = gnunet ]; then
-	spm-os add gnunet
-elif [ "$protocol" = git ]; then
-	spm-os add git
-end
-# download it to "$HOME/.cache/packages/url_hash/"
-# if there is no update, just exit
-# if next line is not empty, it's a public key; use it to check the signature (in ".data/sig")
-# run install.sh in each one
-
-# when copying the shell scripts in .cache/spm/bin/* to /usr/local/bin:
-# replace "../app" in the file, with the installation path
+add_external() {
+	if [ "$protocol" = gnunet ]; then
+		spm add gnunet
+	elif [ "$protocol" = git ]; then
+		spm add git
+	end
+	# download it to "$HOME/.cache/packages/url_hash/"
+	
+	# if $PKEXEC_UID = 0 add the url to /var/local/spm/url_list
+	# download to /var/local/spm/url_hash/
+	# run install.sh as spm user
+}
 
 update_externals() {
+	# if $PKEXEC_UID = 0 read url lines in /var/local/spm/url_list
+	# otherwise, read url lines in "/home/$(id -n $PKEXEC_UID)/.local/spm/url-list"
+	
+	# download it to "$HOME/.cache/packages/url_hash/"
+	# if there is no update, just exit
+	# if next line is not empty, it's a public key; use it to check the signature (in ".data/sig")
+	# run install.sh in each one
+	
 }
 
 # uninstall
 # /usr/local/share/spm/package-url-hash
-# list of files in ~/.config/spm/packagename (if root: /var/local/)
+# list of files in ~/.local/spm/packagename (if root: /var/local/)
 project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
-spm-os remove jina-$project_path_hash 2>/dev/null
+spm remove jina-$project_path_hash 2>/dev/null
 
 if [ "$1" = add ]; then
 	# grab "--deb=" args, and if there isn't any:
