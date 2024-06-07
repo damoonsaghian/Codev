@@ -75,9 +75,10 @@ def create_app_launcher_view(root_view):
 	search_entry.search_changed = function(search_entry)
 		filter:set_search(string:gsub(search_entry.text, " ", ".* "))
 		
-		# pressing "space" when search entry is empty -> go to terminal view
+		# to switch between views in the main menu:
+		# , enter "space" at the beginning of search entry
+		# , or press any punctuation character
 		# root_view.set_current_page(1)
-		# pressing "comma" -> go to session manager
 		# root_view.set_current_page(2)
 	end
 	
