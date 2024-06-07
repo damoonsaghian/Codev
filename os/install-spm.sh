@@ -1,9 +1,8 @@
-useradd --system spm
-mkdir -p /var/local/spm
-chown spm /var/local/spm
+apt-get -qq install gnunet
 
-cp /mnt/os/spm.sh /usr/local/bin/spm
-chmod +x /usr/local/bin/spm
+useradd --system spm
+mkdir -p /var/spm
+chown spm /var/spm
 
 echo -n '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
@@ -19,8 +18,10 @@ echo -n '<?xml version="1.0" encoding="UTF-8"?>
 </policyconfig>
 ' > /usr/share/polkit-1/actions/local.pkexec.spm.policy
 
-mkdir -p /usr/local/lib/systemd/user
+cp /mnt/os/spm.sh /usr/local/bin/spm
+chmod +x /usr/local/bin/spm
 
+mkdir -p /usr/local/lib/systemd/user
 echo -n '[Unit]
 Description=automatic update
 ConditionACPower=true
@@ -33,7 +34,6 @@ KillMode=process
 TimeoutStopSec=900
 Nice=19
 ' > /usr/local/lib/systemd/user/spm-autoupdate.service
-
 echo -n '[Unit]
 Description=automatic update
 [Timer]
@@ -43,32 +43,9 @@ RandomizedDelaySec=5min
 [Install]
 WantedBy=timers.target
 ' > /usr/local/lib/systemd/user/spm-autoupdate.timer
-
-systemctl --global enable spm.timer
+systemctl --global enable spm-autoupdate.timer
 
 mkdir -p /usr/local/lib/systemd/system
-
-echo -n '[Unit]
-Description=automatic update
-ConditionACPower=true
-After=network-online.target
-[Service]
-Type=oneshot
-ExecStartPre=-/usr/lib/apt/apt-helper wait-online
-ExecStart=/usr/local/bin/spm autoupdate
-KillMode=process
-TimeoutStopSec=900
-Nice=19
-' > /usr/local/lib/systemd/system/spm-autoupdate.service
-
-echo -n '[Unit]
-Description=automatic update
-[Timer]
-OnBootSec=5min
-OnUnitInactiveSec=24h
-RandomizedDelaySec=5min
-[Install]
-WantedBy=timers.target
-' > /usr/local/lib/systemd/system/spm-autoupdate.timer
-
+cp /usr/local/lib/systemd/user/spm-autoupdate.service /usr/local/lib/systemd/system/spm-autoupdate.service
+cp /usr/local/lib/systemd/user/spm-autoupdate.timer /usr/local/lib/systemd/system/spm-autoupdate.timer
 systemctl enable spm-autoupdate.timer

@@ -1,8 +1,12 @@
 #!/usr/bin/env -S pkexec /bin/bash
 
 # simple package manager
-# an SPM package is simply a source code directory, containing a file named "install.sh"
-# spm add <package-url> ...
+# manages two kinds of packages
+# , debian packages
+# , SPM packages, which are simply source code directories, containing a file named "install.sh"
+# SPM packages do not need dependency tracking
+# managing dependencies is the job of language level package managers
+
 # this just adds the package-url to $HOME/.local/share/spm/url-list and runs install.sh script
 # there must be an empty line between URL lines
 # after each URL line, there can be a public key, which will be used to check the signature of the downloaded files
@@ -10,6 +14,12 @@
 mode="$1"
 meta_package=spm-"$PKEXEC_UID"--"$2"
 packages="$3"
+
+if [ "$PKEXEC_UID" = 0 ]; then
+	install_path=/usr/local/
+else
+	install_path="/home/$(id -n $PKEXEC_UID)/.local/"
+fi
 
 download_external() {
 	url="$1"
@@ -21,30 +31,37 @@ download_external() {
 }
 
 add_external() {
-	# if $PKEXEC_UID = 0 add the url to /var/local/spm/url_list
-	# download to /var/local/spm/url_hash/
-	# run install.sh as spm user
+	# add the url to $install_path/apps/url-list
 	
-	# otherwise download it to "$HOME/.cache/packages/url_hash/"
+	if [ "$protocol" = git ] && ! command -v git 1>/dev/null; then
+		spm add git
+	end
+	
+	# download to /var/spm/url_hash/ (run gnunet/git as spm)
+	# run install.sh as spm user
+	# pkexec --user spm sh /var/spm/url-hash/install.sh
+	
+	# "$install_path"/{app,bin,share}
+	
+	# $install_path/app/package-name/url
 }
 
 update_externals() {
-	# if $PKEXEC_UID = 0 read url lines in /var/local/spm/url_list
-	# otherwise, read url lines in "/home/$(id -n $PKEXEC_UID)/.local/spm/url-list"
+	# read url lines in $install_path/apps/url-list
 	
-	# download it to "$HOME/.cache/packages/url_hash/"
-	# if there is no update, just exit
+	# download it to "/var/spm/url_hash/"
+	
 	# if next line is not empty, it's a public key; use it to check the signature (in ".data/sig")
+	
 	# run install.sh in each one
 	
-	# in each update, check if the number of hard links to files in .cache/spm/app is 2, clean that package
+	# check in each update, if the number of hard links to files in .cache/spm/app is 2, clean that package
 	# number_of_links=$(stat -c %h filename)
 }
 
 # uninstall
-# /var/local/app/packagename
-# list of files in ~/.local/app/package-name/shared-file-list
-# if root: /var/local/app/package-name/shared-files-list
+# /var/spm/packagename
+# list of files in $install_path/app/package-name/shared-file-list
 project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
 spm remove jina-$project_path_hash 2>/dev/null
 
