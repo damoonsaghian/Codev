@@ -1,9 +1,5 @@
 #!/usr/bin/env -S pkexec /bin/bash
 
-mode="$1"
-meta_package=spm-"$PKEXEC_UID"--"$2"
-packages="$3"
-
 # simple package manager
 # an SPM package is simply a source code directory, containing a file named "install.sh"
 # spm add <package-url> ...
@@ -11,17 +7,25 @@ packages="$3"
 # there must be an empty line between URL lines
 # after each URL line, there can be a public key, which will be used to check the signature of the downloaded files
 
-add_external() {
-	if [ "$protocol" = gnunet ]; then
-		spm add gnunet
-	elif [ "$protocol" = git ]; then
+mode="$1"
+meta_package=spm-"$PKEXEC_UID"--"$2"
+packages="$3"
+
+download_external() {
+	url="$1"
+	protocol=
+	
+	if [ "$protocol" = git ] && ! command -v git 1>/dev/null; then
 		spm add git
 	end
-	# download it to "$HOME/.cache/packages/url_hash/"
-	
+}
+
+add_external() {
 	# if $PKEXEC_UID = 0 add the url to /var/local/spm/url_list
 	# download to /var/local/spm/url_hash/
 	# run install.sh as spm user
+	
+	# otherwise download it to "$HOME/.cache/packages/url_hash/"
 }
 
 update_externals() {
@@ -33,11 +37,14 @@ update_externals() {
 	# if next line is not empty, it's a public key; use it to check the signature (in ".data/sig")
 	# run install.sh in each one
 	
+	# in each update, check if the number of hard links to files in .cache/spm/app is 2, clean that package
+	# number_of_links=$(stat -c %h filename)
 }
 
 # uninstall
-# /usr/local/share/spm/package-url-hash
-# list of files in ~/.local/spm/packagename (if root: /var/local/)
+# /var/local/app/packagename
+# list of files in ~/.local/app/package-name/shared-file-list
+# if root: /var/local/app/package-name/shared-files-list
 project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
 spm remove jina-$project_path_hash 2>/dev/null
 
