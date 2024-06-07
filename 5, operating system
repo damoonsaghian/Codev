@@ -26,9 +26,9 @@ the main menu contains two views:
 	, set timezone
 	, change passwords
 	, manage installed packages
-in the main menu:
-, enter "space" at the beginning of search entry, to switch between views
-, press any punctuation character, to clear the search entry
+to switch between views in the main menu:
+, enter "space" at the beginning of search entry
+, or press any punctuation character
 press "super+backspace" or "alt+escape" to close a window
 
 implementing atomic upgrade doesn't worth the effort, because to have a really fail'safe system,
