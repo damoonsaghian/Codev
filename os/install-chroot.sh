@@ -194,5 +194,5 @@ su -c sh /mnt/install.sh
 ln /mnt/.cache/spm/bin/codev /usr/local/bin/
 mkdir -p /usr/local/app/codev
 cp /mnt/.cache/spm/app/codev/* /usr/local/app/codev/
-# store the gnunet url of Codev, for SMP to automaticallu update Codev
+# store the gnunet url of Codev, for SMP to automatically update Codev
 # echo '' > /var/local/spm/url-list
