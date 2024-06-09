@@ -7,73 +7,48 @@
 # SPM packages do not need dependency tracking
 # managing dependencies is the job of language level package managers
 
-# spm add gnunet://...
-# downloads/updates in 
-# , runs install.sh script
-# , adds the package-url to $spm_path/url-list
-# , create a symlink from 0 to $bin_path/$app_name
-
-# entries are separates with an empty line, and they contain:
-# , app's name, which must be unique
-# , app's URL
-# , an optional public key (if present, will be used to check the signature of the downloaded files)
-
-mode="$1"
 meta_package=spm-"$PKEXEC_UID"--"$2"
-packages="$3"
 
 if [ "$PKEXEC_UID" = 0 ]; then
 	spm_path=/var/spm
 	bin_path=/usr/local/bin
 else
-	spm_path="/home/$(id -n $PKEXEC_UID)/.local/state/spm"
-	bin_path="/home/$(id -n $PKEXEC_UID)/.local/bin"
+	spm_path="/home/$(id -n "$PKEXEC_UID")/.local/state/spm"
+	bin_path="/home/$(id -n "$PKEXEC_UID")/.local/bin"
 fi
 
-download_external() {
+download() {
 	url="$1"
 	protocol=
 	
 	if [ "$protocol" = git ] && ! command -v git 1>/dev/null; then
 		spm add git
 	end
-}
-
-add_external() {
-	# add the url to $install_path/apps/url-list
 	
-	if [ "$protocol" = git ] && ! command -v git 1>/dev/null; then
-		spm add git
-	end
-	
-	# download to /var/spm/url_hash/ (run gnunet/git as spm)
-	# run install.sh as spm user
-	# pkexec --user spm sh /var/spm/url-hash/install.sh
-	
-	# $install_path/app/package-name/url
-}
-
-update_externals() {
-	# read url lines in $install_path/apps/url-list
-	
-	# download it to "/var/spm/url_hash/"
-	
-	# if next line is not empty, it's a public key; use it to check the signature (in ".data/sig")
-	
-	# run install.sh in each one
-	
-	# check in each update, if the number of hard links to files in .cache/spm/app is 2, clean that package
-	# number_of_links=$(stat -c %h filename)
+	# run gnunet/git as spm
+	# pkexec --user spm ...
 }
 
 # uninstall
-# /var/spm/packagename
 project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
 spm remove jina-$project_path_hash 2>/dev/null
 
 if [ "$1" = add ]; then
-	# grab "--deb=" args, and if there isn't any:
-	# echo "no packages are provided for this system"
+	# if $3 starts with gnunet:// or git://:
+	# , downloads to (or updates) /var/spm/url_hash/
+	# , if a public key is given as $4; use it to check the signature (in ".data/sig")
+	# , runs install.sh script (as spm user)
+	#	pkexec --user spm sh $spm_path/url-hash/install.sh
+	# , adds the package-url to $spm_path/url-list
+	# , create a symlink from 0 to $bin_path/$app_name
+	# exit
+	#
+	# entries in url-list are separated with an empty line, and they contain:
+	# , app's name, which must be unique
+	# , app's URL
+	# , an optional public key (if present, will be used to check the signature of the downloaded files)
+	
+	packages="$3"
 	
 	[ -z "$packages" ] && packages="$meta_package"
 	
@@ -114,11 +89,19 @@ if [ "$1" = add ]; then
 	apt-get update
 	apt-get install /tmp/ospkg-deb/"$meta_package"_"$version"_all.deb
 elif [ "$1" == remove ]; then
+	# first check if there is any spm package with this name, if not:
 	SUDO_FORCE_REMOVE=yes apt-get purge -- "$meta_package"
 elif [ "$1" == sync ]; then
 	apt-get update
 	exit
 elif [ "$1" == update ]; then
+	# read url lines in $spm_path/url-list
+	# download
+	# if third line exists, it's a public key; use it to check the signature (in ".data/sig")
+	# run install.sh in each one
+	# check in each update, if the number of hard links to files in .cache/spm/app is 2, clean that package
+	# number_of_links=$(stat -c %h filename)
+	
 	apt-get update
 	apt-get dist-upgrade
 	upm_apps
