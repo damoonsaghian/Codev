@@ -7,6 +7,10 @@
 # SPM packages do not need dependency tracking
 # managing dependencies is the job of language level package managers
 
+# if $2 is an absolute path (start with "/"), meta_package=spm--path-hash
+# /var/spm/hash-path-map-file
+# after each update and remove, check all, if the path does not exist, remove package
+
 meta_package=spm-"$PKEXEC_UID"--"$2"
 
 if [ "$PKEXEC_UID" = 0 ]; then
@@ -39,6 +43,9 @@ if [ "$1" = add ]; then
 	# , if a public key is given as $4; use it to check the signature (in ".data/sig")
 	# , runs install.sh script (as spm user)
 	#	pkexec --user spm sh $spm_path/url-hash/install.sh
+	#	read lines of the output, which start with "required package: "
+	#	remove "required package: " from the line, replace spaces with comma, merge lines
+	#	spm add $app_name $packages_list_comma_separated
 	# , adds the package-url to $spm_path/url-list
 	# , create a symlink from 0 to $bin_path/$app_name
 	# exit
@@ -77,19 +84,23 @@ if [ "$1" = add ]; then
 	fi
 	
 	# create the meta package
-	mkdir -p /tmp/ospkg-deb/"$meta_package"/DEBIAN
-	cat <<-__EOF2__ > /tmp/ospkg-deb/"$meta_package"/DEBIAN/control
+	mkdir -p "/tmp/spm/$meta_package/DEBIAN"
+	cat <<-__EOF2__ > "/tmp/spm/$meta_package/DEBIAN/control"
 	Package: $meta_package
 	Version: $version
 	Architecture: all
 	Depends: $packages
 	__EOF2__
-	dpkg --build /tmp/ospkg-deb/"$meta_package" /tmp/ospkg-deb/ &>/dev/null
+	dpkg --build /tmp/spm/"$meta_package" /tmp/spm/ &>/dev/null
 	
 	apt-get update
-	apt-get install /tmp/ospkg-deb/"$meta_package"_"$version"_all.deb
+	apt-get install /tmp/spm/"$meta_package"_"$version"_all.deb
 elif [ "$1" == remove ]; then
-	# first check if there is any spm package with this name, if not:
+	# first check if there is any spm package with this name, if yes:
+	# , remove bin symlink, app folder, and app url from url-list
+	# , spm remove $app_name
+	# try to remove app as the owner of the path
+	# if not:
 	SUDO_FORCE_REMOVE=yes apt-get purge -- "$meta_package"
 elif [ "$1" == sync ]; then
 	apt-get update
