@@ -7,18 +7,27 @@
 # SPM packages do not need dependency tracking
 # managing dependencies is the job of language level package managers
 
-# this just adds the package-url to $HOME/.local/share/spm/url-list and runs install.sh script
-# there must be an empty line between URL lines
-# after each URL line, there can be a public key, which will be used to check the signature of the downloaded files
+# spm add gnunet://...
+# downloads/updates in 
+# , runs install.sh script
+# , adds the package-url to $spm_path/url-list
+# , create a symlink from 0 to $bin_path/$app_name
+
+# entries are separates with an empty line, and they contain:
+# , app's name, which must be unique
+# , app's URL
+# , an optional public key (if present, will be used to check the signature of the downloaded files)
 
 mode="$1"
 meta_package=spm-"$PKEXEC_UID"--"$2"
 packages="$3"
 
 if [ "$PKEXEC_UID" = 0 ]; then
-	install_path=/usr/local/
+	spm_path=/var/spm
+	bin_path=/usr/local/bin
 else
-	install_path="/home/$(id -n $PKEXEC_UID)/.local/"
+	spm_path="/home/$(id -n $PKEXEC_UID)/.local/state/spm"
+	bin_path="/home/$(id -n $PKEXEC_UID)/.local/bin"
 fi
 
 download_external() {
@@ -41,8 +50,6 @@ add_external() {
 	# run install.sh as spm user
 	# pkexec --user spm sh /var/spm/url-hash/install.sh
 	
-	# "$install_path"/{app,bin,share}
-	
 	# $install_path/app/package-name/url
 }
 
@@ -61,7 +68,6 @@ update_externals() {
 
 # uninstall
 # /var/spm/packagename
-# list of files in $install_path/app/package-name/shared-file-list
 project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
 spm remove jina-$project_path_hash 2>/dev/null
 
@@ -109,13 +115,14 @@ if [ "$1" = add ]; then
 	apt-get install /tmp/ospkg-deb/"$meta_package"_"$version"_all.deb
 elif [ "$1" == remove ]; then
 	SUDO_FORCE_REMOVE=yes apt-get purge -- "$meta_package"
-elif [ "$1" == update ]; then
+elif [ "$1" == sync ]; then
 	apt-get update
-elif [ "$1" == upgrade ]; then
+	exit
+elif [ "$1" == update ]; then
 	apt-get update
 	apt-get dist-upgrade
 	upm_apps
-elif [ "$1" == auto-upgrade ]; then
+elif [ "$1" == autoupdate ]; then
 	# https://www.freedesktop.org/wiki/Software/systemd/inhibit/
 	
 	metered_connection() {
