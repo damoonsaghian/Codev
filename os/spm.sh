@@ -4,14 +4,14 @@
 # manages two kinds of packages
 # , debian packages
 # , SPM packages, which are simply source code directories, containing a file named "install.sh"
+# the install script puts all the needed files in .cache/spm under source code directory
+# the only thing spm does is that:
+# , it downloads the source directory from the given url
+# , it creates a symbolic link in the bin directory (/usr/local/bin or ~/.local/bin)
+#	the name of the symbolic link is the name given to the spm command
+# , it adds the given name and url, to the url-list file, so it can later do updates
 # SPM packages do not need dependency tracking
 # managing dependencies is the job of language level package managers
-
-# if $2 is an absolute path (start with "/"), meta_package=spm--path-hash
-# /var/spm/hash-path-map-file
-# after each update and remove, check all, if the path does not exist, remove package
-
-meta_package=spm-"$PKEXEC_UID"--"$2"
 
 if [ "$PKEXEC_UID" = 0 ]; then
 	spm_path=/var/spm
@@ -33,10 +33,6 @@ download() {
 	# pkexec --user spm ...
 }
 
-# uninstall
-project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
-spm remove jina-$project_path_hash 2>/dev/null
-
 if [ "$1" = add ]; then
 	# if $3 starts with gnunet:// or git://:
 	# , downloads to (or updates) /var/spm/url_hash/
@@ -54,6 +50,13 @@ if [ "$1" = add ]; then
 	# , app's name, which must be unique
 	# , app's URL
 	# , an optional public key (if present, will be used to check the signature of the downloaded files)
+	
+	# if $2 is an absolute path (start with "/"), meta_package=spm--path-hash
+	# /var/spm/hash-path-map-file
+	# after each update and remove, check all, if the path does not exist, remove package
+	project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
+	
+	meta_package=spm-"$PKEXEC_UID"--"$2"
 	
 	packages="$3"
 	
@@ -100,6 +103,13 @@ elif [ "$1" == remove ]; then
 	# , remove bin symlink, app folder, and app url from url-list
 	# , spm remove $app_name
 	# try to remove app as the owner of the path
+	
+	# if $2 is an absolute path (start with "/"), meta_package=spm--path-hash
+	# /var/spm/hash-path-map-file
+	# after each update and remove, check all, if the path does not exist, remove package
+	
+	meta_package=spm-"$PKEXEC_UID"--"$2"
+	
 	# if not:
 	SUDO_FORCE_REMOVE=yes apt-get purge -- "$meta_package"
 elif [ "$1" == sync ]; then
