@@ -16,8 +16,8 @@ if [ "$PKEXEC_UID" = 0 ]; then
 	spm_path=/var/spm
 	bin_path=/usr/local/bin
 else
-	spm_path="/home/$(id -n "$PKEXEC_UID")/.local/state/spm"
-	bin_path="/home/$(id -n "$PKEXEC_UID")/.local/bin"
+	spm_path="/home/$(id -un "$PKEXEC_UID")/.local/state/spm"
+	bin_path="/home/$(id -un "$PKEXEC_UID")/.local/bin"
 fi
 
 download() {
@@ -26,7 +26,7 @@ download() {
 	
 	if [ "$protocol" = gnunet ]; then
 		# run gnunet as spm
-		# pkexec --user spm gnunet
+		pkexec --user spm gnunet
 	elif [ "$protocol" = git ]; then
 		command -v git 1>/dev/null || apt-get -qq install git
 		# run git as spm

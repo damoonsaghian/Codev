@@ -44,8 +44,3 @@ RandomizedDelaySec=5min
 WantedBy=timers.target
 ' > /usr/local/lib/systemd/user/spm-autoupdate.timer
 systemctl --global enable spm-autoupdate.timer
-
-mkdir -p /usr/local/lib/systemd/system
-cp /usr/local/lib/systemd/user/spm-autoupdate.service /usr/local/lib/systemd/system/spm-autoupdate.service
-cp /usr/local/lib/systemd/user/spm-autoupdate.timer /usr/local/lib/systemd/system/spm-autoupdate.timer
-systemctl enable spm-autoupdate.timer
