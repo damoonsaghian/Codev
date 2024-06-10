@@ -271,7 +271,7 @@ manage_packages() {
 	[ "$mode" = add ] && {
 		printf 'search for: '
 		read -r search_entry
-		ospkg-deb update
+		ospkg-deb sync
 		package_name="$(apt-cache search "$search_entry" | fzy | { read -r first _rest; echo "$first"; })"
 		apt-cache show "$package_name"
 		echo "install \"$package_name\"?"

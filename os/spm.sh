@@ -6,9 +6,8 @@
 # , SPM packages, which are simply source code directories, containing a file named "install.sh"
 # the install script puts all the needed files in .cache/spm under source code directory
 # the only thing spm does is that:
-# , it downloads the source directory from the given url
-# , it creates a symbolic link in the bin directory (/usr/local/bin or ~/.local/bin)
-#	the name of the symbolic link is the name given to the spm command
+# , it downloads the source directory from the given url (gnunet/git)
+# , it creates a symbolic link with the given name, in the bin directory (/usr/local/bin or ~/.local/bin)
 # , it adds the given name and url, to the url-list file, so it can later do updates
 # SPM packages do not need dependency tracking
 # managing dependencies is the job of language level package managers
@@ -23,14 +22,19 @@ fi
 
 download() {
 	url="$1"
-	protocol=
+	protocol="$(echo "$url" | cut -d '://' -f1)"
 	
-	if [ "$protocol" = git ] && ! command -v git 1>/dev/null; then
-		spm add git
-	end
-	
-	# run gnunet/git as spm
-	# pkexec --user spm ...
+	if [ "$protocol" = gnunet ]; then
+		# run gnunet as spm
+		# pkexec --user spm gnunet
+	elif [ "$protocol" = git ]; then
+		command -v git 1>/dev/null || apt-get -qq install git
+		# run git as spm
+		# pkexec --user spm git
+	else
+		echo 'URL protocol must be "gnunet://" or "git://"'
+		exit 1
+	fi
 }
 
 if [ "$1" = add ]; then
@@ -54,7 +58,7 @@ if [ "$1" = add ]; then
 	# if $2 is an absolute path (start with "/"), meta_package=spm--path-hash
 	# /var/spm/hash-path-map-file
 	# after each update and remove, check all, if the path does not exist, remove package
-	project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
+	# project_path_hash="$(echo -n "$project_dir" | md5sum | cut -d ' ' -f1)"
 	
 	meta_package=spm-"$PKEXEC_UID"--"$2"
 	
@@ -108,9 +112,8 @@ elif [ "$1" == remove ]; then
 	# /var/spm/hash-path-map-file
 	# after each update and remove, check all, if the path does not exist, remove package
 	
+	# else:
 	meta_package=spm-"$PKEXEC_UID"--"$2"
-	
-	# if not:
 	SUDO_FORCE_REMOVE=yes apt-get purge -- "$meta_package"
 elif [ "$1" == sync ]; then
 	apt-get update
