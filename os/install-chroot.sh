@@ -180,7 +180,7 @@ echo -n '<?xml version="1.0"?>
 ' > /etc/fonts/local.conf
 
 apt-get -qq install sway swayidle xwayland python3-gi gir1.2-gtk-4.0 gnome-console
-cp /mnt/os/sway.conf /mnt/os/swapps.py /usr/local/share/
+cp /mnt/os/{sway.conf,swapps.py} /usr/local/share/
 # this way, Sway's config can't be changed by a normal user
 # this means that, swayidle can't be disabled by a normal user (see sway.conf)
 echo -n '# run sway (if this script is not called by root or a display manager, and this is the first tty)
@@ -190,9 +190,8 @@ if [ ! "$(id -u)" = 0 ] && [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
 fi
 ' > /etc/profile.d/zz-sway.sh
 
-su -c sh /mnt/install.sh
-ln /mnt/.cache/spm/bin/codev /usr/local/bin/
-mkdir -p /usr/local/app/codev
-cp /mnt/.cache/spm/app/codev/* /usr/local/app/codev/
-# store the gnunet url of Codev, for SMP to automatically update Codev
-# echo '' > /var/local/spm/url-list
+cp -r /mnt /var/spm/codev
+sh /var/spm/codev/install.sh
+ln /var/spm/codev/.cache/spm/0 /usr/local/bin/codev
+# store the gnunet url of Codev, so SMP can automatically update it
+# echo '' > /var/spm/url-list

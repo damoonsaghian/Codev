@@ -39,10 +39,10 @@ download() {
 
 if [ "$1" = add ]; then
 	# if $3 starts with gnunet:// or git://:
-	# , downloads to (or updates) /var/spm/url_hash/
+	# , downloads to (or updates) $spm_path/app_name/
 	# , if a public key is given as $4; use it to check the signature (in ".data/sig")
 	# , runs install.sh script (as spm user)
-	#	pkexec --user spm sh $spm_path/url-hash/install.sh
+	#	pkexec --user spm sh $spm_path/app_name/install.sh
 	#	read lines of the output, which start with "required package: "
 	#	remove "required package: " from the line, replace spaces with comma, merge lines
 	#	spm add $app_name $packages_list_comma_separated
