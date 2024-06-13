@@ -1,46 +1,49 @@
 import subprocess
 
 import gi
-gi.require_version("Gdk", "4.0")
-gi.require_version("Gtk", "4.0")
+gi.require_version('Gdk', '4.0')
+gi.require_version('Gtk', '4.0')
 from gi.repository import Gio, Gdk, Gtk
 
-class SearchView(Gtk.Widget):
-	def __init__(self, ):
-		super(SearchView, self).__init__()
+class AppsView(Gtk.Widget):
+	def __init__(self, **kwargs):
+		self = Gtk.Box(**kwargs)
 		
-		root_box = Gtk.Box(Gtk.Orientation.VERTICAL, 0)
-		self.set_child(root_box)
+		self.orientation = Gtk.Orientation.VERTICAL
+		self.spacing = 5
+		self.margin_top = 5
+		self.margin_bottom = 5
+		self.margin_start = 5
+		self.margin_end = 5
 		
-		self.search_entry =
+		self.search_entry = Gtk.SearchEntry()
 		
-		items_list = Gio.ListStore(Gtk.Application)
-		list_filter = Gtk.StringFilter()
+		apps_list = Gio.ListStore(Gtk.Application)
 		
 		self.items_list_filtered = Gtk.FilterListModel(items_list, list_filter)
 		
 		self.items_flowbox = Gtk.FlowBox(
-			orientation = gtk.Orientation.HORIZONTAL,
-			column_spacing = 5,
-			row_spacing = 5,
-			margin_top = 5, margin_bottom = 5, margin_start = 5, margin_end = 5,
-			selection_mode = gtk.SelectionMode.NONE,
-			focusable = false
+			orientation=gtk.Orientation.HORIZONTAL,
+			column_spacing=5,
+			row_spacing=5,
+			margin_top=5, margin_bottom=5, margin_start=5, margin_end=5,
+			selection_mode=gtk.SelectionMode.NONE,
+			focusable=false
 		)
 		self.items_flowbox.bind_model(items_list_filtered, self.create_widget)
 		
 		caption = Gtk.Label(label='\tpress any punctuation letter to clear the search entry')
 		caption.set_css_class(["dim-label", "caption"])
 		
-		root_box.append(self.search_entry)
-		root_box.append(caption)
-		root_box.append(Gtk.ScrolledWindow(child=self.items_flowbox))
+		self.append(self.search_entry)
+		self.append(caption)
+		self.append(Gtk.ScrolledWindow(child=self.items_flowbox))
 	
 	def create_widget(app):
 		label = Gtk.Label(
-			label = app.get_name(),
-			justify = Gtk.Justification.CENTER,
-			width_chars = 20
+			label=app.get_name(),
+			justify=Gtk.Justification.CENTER,
+			width_chars=20
 		)
 		
 		icon = Gtk.Image.new_from_gicon(app.get_icon())
@@ -49,12 +52,9 @@ class SearchView(Gtk.Widget):
 		event_controller.connect(
 			'key_pressed',
 			lambda _, keyval: keyval == Gdk.BUTTON_PRIMARY and self.raise_or_run_app(app)
-		end
-		
-		widget = gtk.Box(
-			orientation = gtk.Orientation.VERTICAL,
-			spacing = 5
 		)
+		
+		widget = gtk.Box(orientation=gtk.Orientation.VERTICAL, spacing=5)
 		widget.append(label)
 		widget.append(icon)
 		widget.add_controller(event_controller)
@@ -69,8 +69,19 @@ class SearchView(Gtk.Widget):
 		# swaymsg "[con_id=codev] focus" || python3 /usr/local/share/codev
 		# swaymsg "[app_id=codev] move workspace $app; workspace $app"; app.exec
 
+class SelectionView:
+	def __init__():
+
+class SystemView(Gtk.Box):
+	def __init__(self, items):
+		# items: {"item's name": function}
+		super().__init__(orientation=Gtk.Orientation.VERTICAL)
+		self.append()
+		
+		# two spaces: go back to the previous view
+
 def create_app_launcher_view(root_view):
-	apps_list = gio.ListStore(Gtk.Application)
+	
 	filter = gtk.StringFilter()
 	apps_list_filtered = Gtk.FilterListModel(apps_list, filter)
 	
@@ -96,7 +107,7 @@ def create_app_launcher_view(root_view):
 	search_entry = Gtk.SearchEntry(placeholder_text='press "space" to switch views')
 	
 	search_entry.search_changed = function(search_entry)
-		filter:set_search(string:gsub(search_entry.text, " ", ".* "))
+		# find and select the first item whose name matches: string:gsub(search_entry.text, " ", ".* ")
 		
 		# to switch between views in the main menu:
 		# , enter "space" at the beginning of search entry
@@ -322,40 +333,40 @@ def create_session_manager_view():
 	filter = Gtk.StringFilter()
 	session_manager_list_filtered = Gtk.FilterListModel(session_manager_list, filter)
 	
-	session_manager_list.insert{
-		name = 'lock',
-		icon_name = 'system-lock-screen-symbolic',
-		command = '/usr/local/bin/lock'
-	}
-	session_manager_list.insert{
-		name = 'suspend',
-		icon_name = 'media-playback-pause-symbolic',
-		command = 'systemctl suspend'
-	}
-	session_manager_list.insert{
-		name = 'exit',
-		icon_name = 'system-log-out-symbolic',
-		command = 'swaymsg exit'
-	}
-	session_manager_list.insert{
-		name = 'reboot',
-		icon_name = 'system-reboot-symbolic',
-		command = 'systemctl reboot'
-	}
-	session_manager_list.insert{
-		name = 'poweroff',
-		icon_name = 'system-shutdown-symbolic',
-		command = 'systemctl poweroff'
-	}
+	session_manager_list.insert(
+		name='lock',
+		icon_name='system-lock-screen-symbolic',
+		command='/usr/local/bin/lock'
+	)
+	session_manager_list.insert(
+		name='suspend',
+		icon_name='media-playback-pause-symbolic',
+		command='systemctl suspend'
+	)
+	session_manager_list.insert(
+		name='exit',
+		icon_name='system-log-out-symbolic',
+		command='swaymsg exit'
+	)
+	session_manager_list.insert(
+		name='reboot',
+		icon_name='system-reboot-symbolic',
+		command='systemctl reboot'
+	)
+	session_manager_list.insert(
+		name='poweroff',
+		icon_name='system-shutdown-symbolic',
+		command='systemctl poweroff'
+	)
 	
-	session_manager_flowbox = Gtk.FlowBox{
-		orientation = gtk.Orientation.HORIZONTAL,
-		column_spacing = 5,
-		row_spacing = 5,
-		margin_top = 5, margin_bottom = 5, margin_start = 5, margin_end = 5,
-		selection_mode = gtk.SelectionMode.NONE,
-		focusable = false
-	}
+	session_manager_flowbox = Gtk.FlowBox(
+		orientation=gtk.Orientation.HORIZONTAL,
+		column_spacing=5,
+		row_spacing=5,
+		margin_top=5, margin_bottom=5, margin_start=5, margin_end=5,
+		selection_mode=gtk.SelectionMode.NONE,
+		focusable=false
+	)
 	session_manager_flowbox.bind_model(session_manager_list_filtered, function(sm_item)
 		label = Gtk.Label{
 			label = sm_item.name,
@@ -364,11 +375,12 @@ def create_session_manager_view():
 		}
 		
 		icon = Gtk.Image.new_from_gicon(sm_item.icon_name)
-				
-		event_controller = Gtk.EventControllerKey()
-		event_controller.on_key_pressed = function(_, keyval)
-			if keyval == gdk.BUTTON_PRIMARY then os.execute(sm_item.command) end
-		end
+		
+		def on_key_pressed	(_, keyval):
+			if keyval == Gdk.BUTTON_PRIMARY:
+				os.execute(sm_item.command)
+		key_event_controller = Gtk.EventControllerKey()
+		key_event_controller.connect('key_pressed', on_key_pressed)
 		
 		widget = Gtk.Box{
 			orientation = gtk.Orientation.VERTICAL,
@@ -395,26 +407,30 @@ def create_session_manager_view():
 	session_manager_view.append(Gtk.ScrolledWindow(child=session_manager_flowbox))
 	return session_manager_view
 
-app = Gtk.Application(application_id='swayapps')
-
-def on_startup(app):
-	root_view = Gtk.Notebook()
-	root_view.append_page(create_app_launcher_view(root_view), Gtk.Label("apps"))
-	root_view.append_page(create_session_manager_view(), gtk.Label("system"))
+class MyApp(Gtk.Application):
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.application_id = 'swapps'
+		
+	def do_startup(self):
+		self.root_view = Gtk.Notebook()
+		self.root_view.append_page(create_app_launcher_view(root_view), Gtk.Label("apps"))
+		self.root_view.append_page(create_session_manager_view(), Gtk.Label("system"))
 	
-	win = Gtk.ApplicationWindow(application=app)
-	win.set_child(root_view)
-	win.present()
-	
-	# when window is focused, go to app view
-	
-	# when window is unfocused:
-	# swaymsg "[con_id=__focused__] focus" || python3 /usr/local/share/codev || swaymsg "[app_id=swapps] focus"
-	subprocess.run(['swaymsg', '[con_id=__focused__] focus']) or
-		subprocess.run(['python3', '/usr/local/share/codev']) or
+	def do_activate(self):
+		if len(self.get_windows()) = 0:
+			self.win = Gtk.ApplicationWindow(application=app)
+			self.win.set_child(self.root_view)
+			
+			# when window is focused, go to app view
+			
+			# when window is unfocused:
+			# swaymsg "[con_id=__focused__] focus" || python3 /usr/local/share/codev || swaymsg "[app_id=swapps] focus"
+			subprocess.run(['swaymsg', '[con_id=__focused__] focus']) or
+				subprocess.run(['python3', '/usr/local/share/codev']) or
+				subprocess.run(['swaymsg', '[app_id=swapps] focus'])
+		
+		self.win.present()
 		subprocess.run(['swaymsg', '[app_id=swapps] focus'])
 
-app = Gtk.Application(application_id='swapps')
-app.connect('startup', on_startup)
-app.connect('activate', lambda: subprocess.run(['swaymsg', '[app_id=swapps] focus']))
-app.run(None)
+MyApp().run(None)
