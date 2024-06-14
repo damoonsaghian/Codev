@@ -5,10 +5,9 @@ gi.require_version('Gdk', '4.0')
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gio, Gdk, Gtk
 
-class AppsView(Gtk.Widget):
+class AppsView(Gtk.Box):
 	def __init__(self, **kwargs):
-		self = Gtk.Box(**kwargs)
-		
+		super().__init__(**kargs)
 		self.orientation = Gtk.Orientation.VERTICAL
 		self.spacing = 5
 		self.margin_top = 5
@@ -16,11 +15,11 @@ class AppsView(Gtk.Widget):
 		self.margin_start = 5
 		self.margin_end = 5
 		
-		self.search_entry = Gtk.SearchEntry()
+		search_entry = Gtk.SearchEntry()
+		search_entry.connect('search_changed', on_search_entry_changed)
+		search_entry.connect('activate', lambda: raise_or_run_app(apps_list.get_selected()))
 		
-		apps_list = Gio.ListStore(Gtk.Application)
-		
-		self.items_list_filtered = Gtk.FilterListModel(items_list, list_filter)
+		self.items_list = Gio.ListStore(Gtk.Application)
 		
 		self.items_flowbox = Gtk.FlowBox(
 			orientation=gtk.Orientation.HORIZONTAL,
@@ -30,28 +29,30 @@ class AppsView(Gtk.Widget):
 			selection_mode=gtk.SelectionMode.NONE,
 			focusable=false
 		)
-		self.items_flowbox.bind_model(items_list_filtered, self.create_widget)
+		self.items_flowbox.bind_model(self.items_list, self.create_widget)
 		
-		caption = Gtk.Label(label='\tpress any punctuation letter to clear the search entry')
-		caption.set_css_class(["dim-label", "caption"])
-		
-		self.append(self.search_entry)
-		self.append(caption)
+		self.append(search_entry)
 		self.append(Gtk.ScrolledWindow(child=self.items_flowbox))
+		
+		self.update_apps_list()
+		Gio.AppInfoMonitor.get().connect('changed', self.update_apps_list)
 	
-	def create_widget(app):
+	def on_search_entry_changed():
+		# find and select the first item whose name matches: string:gsub(search_entry.text, " ", ".* ")
+	
+	def create_widget(app_item):
 		label = Gtk.Label(
-			label=app.get_name(),
+			label=app_item.get_name(),
 			justify=Gtk.Justification.CENTER,
 			width_chars=20
 		)
 		
-		icon = Gtk.Image.new_from_gicon(app.get_icon())
+		icon = Gtk.Image.new_from_gicon(app_item.get_icon())
 				
 		event_controller = Gtk.EventControllerKey()
 		event_controller.connect(
 			'key_pressed',
-			lambda _, keyval: keyval == Gdk.BUTTON_PRIMARY and self.raise_or_run_app(app)
+			lambda _, keyval: keyval == Gdk.BUTTON_PRIMARY and self.raise_or_run_app(app_item)
 		)
 		
 		widget = gtk.Box(orientation=gtk.Orientation.VERTICAL, spacing=5)
@@ -60,30 +61,14 @@ class AppsView(Gtk.Widget):
 		widget.add_controller(event_controller)
 		return widget
 	
-	def raise_or_run_app(app):
-		os.execute('swaymsg workspace ' .. string.format('%q', app:get_name()))
+	def raise_or_run_app(app_item):
+		os.execute('swaymsg workspace ' .. string.format('%q', app_item:get_name()))
 		error_code = os.execute('swaymsg "[con_id=__focused__] focus"')
 		if error_code != 0:
-			os.execute('swaymsg exec ' .. string.format('%q', app:get_commandline()))
+			os.execute('swaymsg exec ' .. string.format('%q', app_item:get_commandline()))
 		os.execute("swaymsg move scratchpad")
 		# swaymsg "[con_id=codev] focus" || python3 /usr/local/share/codev
 		# swaymsg "[app_id=codev] move workspace $app; workspace $app"; app.exec
-
-class SelectionView:
-	def __init__():
-
-class SystemView(Gtk.Box):
-	def __init__(self, items):
-		# items: {"item's name": function}
-		super().__init__(orientation=Gtk.Orientation.VERTICAL)
-		self.append()
-		
-		# two spaces: go back to the previous view
-
-def create_app_launcher_view(root_view):
-	
-	filter = gtk.StringFilter()
-	apps_list_filtered = Gtk.FilterListModel(apps_list, filter)
 	
 	def compare_apps(app1, app2):
 		app1_name = app1.get_name()
@@ -100,27 +85,94 @@ def create_app_launcher_view(root_view):
 		for _, app in ipairs(gio.AppInfo.get_all()):
 			app_name = app.get_name()
 			if app.should_show():
-				apps_list.insert_sorted(app, compare_apps)
-	update_apps_list()
-	Gio.AppInfoMonitor.get().connect('changed', update_apps_list)
+				apps_list.insert_sorted(app, self.compare_apps)
+
+class SystemManagerView(Gtk.Stack):
+	def __init__(self, **kargs):
+		super().__init__(**kargs)
+		self.orientation = Gtk.Orientation.VERTICAL
+		
+		# two spaces: go back to the previous view
+
+def create_session_manager_view():
+	session_manager_list = Gio.ListStore(glib.HashTable)
+	filter = Gtk.StringFilter()
+	session_manager_list_filtered = Gtk.FilterListModel(session_manager_list, filter)
 	
-	search_entry = Gtk.SearchEntry(placeholder_text='press "space" to switch views')
+	session_manager_list.insert(
+		name='lock',
+		icon_name='system-lock-screen-symbolic',
+		command='/usr/local/bin/lock'
+	)
+	session_manager_list.insert(
+		name='suspend',
+		icon_name='media-playback-pause-symbolic',
+		command='systemctl suspend'
+	)
+	session_manager_list.insert(
+		name='exit',
+		icon_name='system-log-out-symbolic',
+		command='swaymsg exit'
+	)
+	session_manager_list.insert(
+		name='reboot',
+		icon_name='system-reboot-symbolic',
+		command='systemctl reboot'
+	)
+	session_manager_list.insert(
+		name='poweroff',
+		icon_name='system-shutdown-symbolic',
+		command='systemctl poweroff'
+	)
+	
+	session_manager_flowbox = Gtk.FlowBox(
+		orientation=gtk.Orientation.HORIZONTAL,
+		column_spacing=5,
+		row_spacing=5,
+		margin_top=5, margin_bottom=5, margin_start=5, margin_end=5,
+		selection_mode=gtk.SelectionMode.NONE,
+		focusable=false
+	)
+	session_manager_flowbox.bind_model(session_manager_list_filtered, function(sm_item)
+		label = Gtk.Label{
+			label = sm_item.name,
+			justify = gtk.Justification.CENTER,
+			width_chars = 20
+		}
+		
+		icon = Gtk.Image.new_from_gicon(sm_item.icon_name)
+		
+		def on_key_pressed	(_, keyval):
+			if keyval == Gdk.BUTTON_PRIMARY:
+				os.execute(sm_item.command)
+		key_event_controller = Gtk.EventControllerKey()
+		key_event_controller.connect('key_pressed', on_key_pressed)
+		
+		widget = Gtk.Box{
+			orientation = gtk.Orientation.VERTICAL,
+			spacing = 5
+		}
+		widget.append(label)
+		widget.append(icon)
+		widget.add_controller(event_controller)
+		return widget
+	end)
+	
+	search_entry = Gtk.SearchEntry()
 	
 	search_entry.search_changed = function(search_entry)
-		# find and select the first item whose name matches: string:gsub(search_entry.text, " ", ".* ")
-		
-		# to switch between views in the main menu:
-		# , enter "space" at the beginning of search entry
-		# , or press any punctuation character
-		# root_view.set_current_page(1)
-		# root_view.set_current_page(2)
+		filter:set_search(string:gsub(search_entry.text, " ", ".* "))
 	end
 	
 	search_entry.on_activate = function()
-		raise_or_run_app(apps_list_filtered:get_item(0))
+		os.execute(session_manager_list_filtered:get_item(0).command)
 	end
+	
+	session_manager_view = Gtk.Box(Gtk.Orientation.VERTICAL, 0)
+	session_manager_view.append(search_entry)
+	session_manager_view.append(Gtk.ScrolledWindow(child=session_manager_flowbox))
+	return session_manager_view
 
-# system manager
 '''
 #!/bin/sh
 set -e
@@ -328,85 +380,6 @@ case "$selected_option" in
 esac
 '''
 
-def create_session_manager_view():
-	session_manager_list = Gio.ListStore(glib.HashTable)
-	filter = Gtk.StringFilter()
-	session_manager_list_filtered = Gtk.FilterListModel(session_manager_list, filter)
-	
-	session_manager_list.insert(
-		name='lock',
-		icon_name='system-lock-screen-symbolic',
-		command='/usr/local/bin/lock'
-	)
-	session_manager_list.insert(
-		name='suspend',
-		icon_name='media-playback-pause-symbolic',
-		command='systemctl suspend'
-	)
-	session_manager_list.insert(
-		name='exit',
-		icon_name='system-log-out-symbolic',
-		command='swaymsg exit'
-	)
-	session_manager_list.insert(
-		name='reboot',
-		icon_name='system-reboot-symbolic',
-		command='systemctl reboot'
-	)
-	session_manager_list.insert(
-		name='poweroff',
-		icon_name='system-shutdown-symbolic',
-		command='systemctl poweroff'
-	)
-	
-	session_manager_flowbox = Gtk.FlowBox(
-		orientation=gtk.Orientation.HORIZONTAL,
-		column_spacing=5,
-		row_spacing=5,
-		margin_top=5, margin_bottom=5, margin_start=5, margin_end=5,
-		selection_mode=gtk.SelectionMode.NONE,
-		focusable=false
-	)
-	session_manager_flowbox.bind_model(session_manager_list_filtered, function(sm_item)
-		label = Gtk.Label{
-			label = sm_item.name,
-			justify = gtk.Justification.CENTER,
-			width_chars = 20
-		}
-		
-		icon = Gtk.Image.new_from_gicon(sm_item.icon_name)
-		
-		def on_key_pressed	(_, keyval):
-			if keyval == Gdk.BUTTON_PRIMARY:
-				os.execute(sm_item.command)
-		key_event_controller = Gtk.EventControllerKey()
-		key_event_controller.connect('key_pressed', on_key_pressed)
-		
-		widget = Gtk.Box{
-			orientation = gtk.Orientation.VERTICAL,
-			spacing = 5
-		}
-		widget.append(label)
-		widget.append(icon)
-		widget.add_controller(event_controller)
-		return widget
-	end)
-	
-	search_entry = Gtk.SearchEntry()
-	
-	search_entry.search_changed = function(search_entry)
-		filter:set_search(string:gsub(search_entry.text, " ", ".* "))
-	end
-	
-	search_entry.on_activate = function()
-		os.execute(session_manager_list_filtered:get_item(0).command)
-	end
-	
-	session_manager_view = Gtk.Box(Gtk.Orientation.VERTICAL, 0)
-	session_manager_view.append(search_entry)
-	session_manager_view.append(Gtk.ScrolledWindow(child=session_manager_flowbox))
-	return session_manager_view
-
 class MyApp(Gtk.Application):
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
@@ -414,8 +387,12 @@ class MyApp(Gtk.Application):
 		
 	def do_startup(self):
 		self.root_view = Gtk.Notebook()
-		self.root_view.append_page(create_app_launcher_view(root_view), Gtk.Label("apps"))
-		self.root_view.append_page(create_session_manager_view(), Gtk.Label("system"))
+		self.root_view.append_page(AppsView(), Gtk.Label('apps'))
+		self.root_view.append_page(SystemManagerView(), Gtk.Label('system'))
+		
+		# press any punctuation character to switch between views
+		# root_view.set_current_page(1)
+		# root_view.set_current_page(2)
 	
 	def do_activate(self):
 		if len(self.get_windows()) = 0:
