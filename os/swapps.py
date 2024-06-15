@@ -5,21 +5,27 @@ gi.require_version('Gdk', '4.0')
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gio, Gdk, Gtk
 
-class AppsView(Gtk.Box):
-	def __init__(self, **kwargs):
-		super().__init__(**kargs)
-		self.orientation = Gtk.Orientation.VERTICAL
-		self.spacing = 5
-		self.margin_top = 5
-		self.margin_bottom = 5
-		self.margin_start = 5
-		self.margin_end = 5
+class AppLauncher(Gtk.Box):
+	def __init__(self):
+		super().__init__(
+			orientation=Gtk.Orientation.VERTICAL,
+			spacing=5,
+			margin_top=5,
+			margin_bottom=5,
+			margin_start=5,
+			margin_end=5,
+		)
 		
 		search_entry = Gtk.SearchEntry()
-		search_entry.connect('search_changed', on_search_entry_changed)
-		search_entry.connect('activate', lambda: raise_or_run_app(apps_list.get_selected()))
+		search_entry.connect('search_changed', self.on_search_entry_changed)
+		search_entry.connect('activate', self.raise_or_run)
+		# clear search entry, when refocused
+		self.append(search_entry)
 		
-		self.items_list = Gio.ListStore(Gtk.Application)
+		self.apps_list = Gio.ListStore(Gio.AppInfo)
+		
+		self.update_apps_list()
+		Gio.AppInfoMonitor.get().connect('changed', self.update_apps_list)
 		
 		self.items_flowbox = Gtk.FlowBox(
 			orientation=gtk.Orientation.HORIZONTAL,
@@ -31,16 +37,12 @@ class AppsView(Gtk.Box):
 		)
 		self.items_flowbox.bind_model(self.items_list, self.create_widget)
 		
-		self.append(search_entry)
 		self.append(Gtk.ScrolledWindow(child=self.items_flowbox))
-		
-		self.update_apps_list()
-		Gio.AppInfoMonitor.get().connect('changed', self.update_apps_list)
 	
 	def on_search_entry_changed():
 		# find and select the first item whose name matches: string:gsub(search_entry.text, " ", ".* ")
 	
-	def create_widget(app_item):
+	def create_widget(app_item: Gio.AppInfo):
 		label = Gtk.Label(
 			label=app_item.get_name(),
 			justify=Gtk.Justification.CENTER,
@@ -61,7 +63,8 @@ class AppsView(Gtk.Box):
 		widget.add_controller(event_controller)
 		return widget
 	
-	def raise_or_run_app(app_item):
+	def raise_or_run():
+		app_item = self.apps_list.get_selected()
 		os.execute('swaymsg workspace ' .. string.format('%q', app_item:get_name()))
 		error_code = os.execute('swaymsg "[con_id=__focused__] focus"')
 		if error_code != 0:
@@ -87,12 +90,33 @@ class AppsView(Gtk.Box):
 			if app.should_show():
 				apps_list.insert_sorted(app, self.compare_apps)
 
-class SystemManagerView(Gtk.Stack):
-	def __init__(self, **kargs):
-		super().__init__(**kargs)
-		self.orientation = Gtk.Orientation.VERTICAL
+class SystemManager(Gtk.Stack):
+	def __init__(self):
+		super().__init__(orientation=Gtk.Orientation.VERTICAL)
 		
-		# two spaces: go back to the previous view
+		search_entry = Gtk.SearchEntry()
+		search_entry.connect('search_changed', self.on_search_entry_changed)
+		search_entry.connect('activate', self.on_activate)
+		# when refocused: on_refocus
+		self.append(search_entry)
+		
+		# space at the beginning, or two spaces: go back to the previous view
+		
+		# when an item is activated, and there is a returned value, create new page from this returned value
+		
+		def on_refocus():
+			# clear search entry
+			# remove all pages except the first one
+
+class SysManItem():
+	def __init__(menu: str | Func) -> {str: str | Func}:
+		self.menu = menu
+	def activate():
+		if type(self.menu) == Func :
+			menu = self.menu()
+		else:
+			menu = self.menu
+		return menu
 
 def create_session_manager_view():
 	session_manager_list = Gio.ListStore(glib.HashTable)
@@ -381,10 +405,6 @@ esac
 '''
 
 class MyApp(Gtk.Application):
-	def __init__(self, **kwargs):
-		super().__init__(**kwargs)
-		self.application_id = 'swapps'
-		
 	def do_startup(self):
 		self.root_view = Gtk.Notebook()
 		self.root_view.append_page(AppsView(), Gtk.Label('apps'))
@@ -410,4 +430,4 @@ class MyApp(Gtk.Application):
 		self.win.present()
 		subprocess.run(['swaymsg', '[app_id=swapps] focus'])
 
-MyApp().run(None)
+MyApp(application_id='swapps').run(None)
