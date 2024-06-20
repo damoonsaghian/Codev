@@ -26,7 +26,6 @@ the main menu contains two views (to switch between them, press any punctuation 
 	, set timezone
 	, change passwords
 	, manage installed packages
-in the system manager, press two successive spaces to go back
 press "super+backspace" or "alt+escape" to close a window
 
 implementing atomic upgrade doesn't worth the effort, because to have a really fail'safe system,
