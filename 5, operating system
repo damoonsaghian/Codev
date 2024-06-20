@@ -18,7 +18,7 @@ Codev is the main application, and fills the screen
 when "super" (mod+mod) or "alt+tab" is pressed:
 , if there are floating windows, they will be hidden, and we're back to Codev
 , otherwise the main menu will be opened (in a floating window)
-the main menu contains two views:
+the main menu contains two views (to switch between them, press any punctuation character):
 , the first view shows the list of installed GUI applications
 , the second view is the system manager:
 	, manage session: lock, suspend, exit, reboot, poweroff
@@ -26,9 +26,7 @@ the main menu contains two views:
 	, set timezone
 	, change passwords
 	, manage installed packages
-to switch between views in the main menu:
-when "space" is entered as the first character, views will be switched
-entering any punctuation character will clear the search entry
+in the system manager, press two successive spaces to go back
 press "super+backspace" or "alt+escape" to close a window
 
 implementing atomic upgrade doesn't worth the effort, because to have a really fail'safe system,
