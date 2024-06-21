@@ -179,9 +179,9 @@ echo -n '<?xml version="1.0"?>
 </fontconfig>
 ' > /etc/fonts/local.conf
 
-apt-get -qq install sway swayidle xwayland python3-gi gir1.2-gtk-4.0 gnome-console
-cp /mnt/os/{sway.conf,swapps.py} /usr/local/share/
-# this way, Sway's config can't be changed by a normal user
+apt-get -qq install sway swayidle xwayland lua5.3 lua-lgi gir1.2-gtk-4.0 gnome-console
+cp /mnt/os/{sway.conf,swapps.lua} /usr/local/share/
+# the following is to prevent normal users from changing Sway's config
 # this means that, swayidle can't be disabled by a normal user (see sway.conf)
 echo -n '# run sway (if this script is not called by root or a display manager, and this is the first tty)
 if [ ! "$(id -u)" = 0 ] && [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
