@@ -5,44 +5,49 @@ gi.require_version('Gdk', '4.0')
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gio, Gdk, Gtk
 
-class AppLauncher(Gtk.Box):
+class AppLauncher:
 	def __init__(self):
-		super().__init__(
+		self.widget = Gtk.Box(
 			orientation=Gtk.Orientation.VERTICAL,
 			spacing=5,
 			margin_top=5,
 			margin_bottom=5,
 			margin_start=5,
-			margin_end=5,
+			margin_end=5
 		)
 		
 		search_entry = Gtk.SearchEntry()
-		search_entry.connect('search_changed', self.on_search_entry_changed)
-		search_entry.connect('activate', self.raise_or_run)
-		# clear search entry, when refocused
-		self.append(search_entry)
+		search_entry.connect('search_changed', self.on_search_changed)
+		search_entry.connect('activate', self.on_activate)
+		search_entry.connect('notify:has-focus', lambda _: search_entry.delete_text(0, -1))
+		self.widget.append(search_entry)
 		
 		self.apps_list = Gio.ListStore(Gio.AppInfo)
 		
 		self.update_apps_list()
 		Gio.AppInfoMonitor.get().connect('changed', self.update_apps_list)
 		
-		self.apps_flowbox = Gtk.FlowBox(
-			orientation=Gtk.Orientation.HORIZONTAL,
-			column_spacing=5,
-			row_spacing=5,
-			margin_top=5, margin_bottom=5, margin_start=5, margin_end=5,
-			selection_mode=Gtk.SelectionMode.NONE,
-			focusable=false
+		apps_flowbox = Gtk.FlowBox(
+			orientation = Gtk.Orientation.HORIZONTAL,
+			column_spacing = 5,
+			row_spacing = 5,
+			margin_top = 5, margin_bottom = 5, margin_start = 5, margin_end = 5,
+			activate_on_single_click = True,
+			focusable = False
 		)
-		self.apps_flowbox.bind_model(self.apps_list, self.create_widget)
+		apps_flowbox.bind_model(self.apps_list, self.create_widget)
 		
-		self.append(Gtk.ScrolledWindow(child=self.apps_flowbox))
+		self.widget.append(Gtk.ScrolledWindow(child=apps_flowbox))
 	
-	def on_search_entry_changed():
+	def on_search_changed():
 		# find and select the first item whose name matches: string:gsub(search_entry.text, " ", ".* ")
+		i = 0
+		while item :AppInfo|None = self.apps_list.get_item(i):
+			item.get_app_name()
+			i+=1
+		self.apps_flowbox.select_child()
 	
-	def raise_or_run():
+	def on_activate():
 		app_item = self.apps_list.get_selected()
 		subprocess.run(['swaymsg', 'workspace', app_item.get_name()])
 		subprocess.run(['swaymsg', "[con_id=__focused__]", 'focus']) or
@@ -89,9 +94,9 @@ class AppLauncher(Gtk.Box):
 		widget.add_controller(event_controller)
 		return widget
 
-class SystemManager(Gtk.Stack):
+class SystemManager():
 	def __init__(self):
-		super().__init__(orientation=Gtk.Orientation.VERTICAL)
+		self.widget = Gtk.Stack(orientation=Gtk.Orientation.VERTICAL)
 		
 		# create a SysManPage, and connect to its "clear", "close", and "new_menu" signal
 		# session manager, connections, timezone, passwords, packages
@@ -406,8 +411,8 @@ class MyApp(Gtk.Application):
 		window = self.get_windows()[0]
 		if not window:
 			root_view = Gtk.Notebook()
-			root_view.append_page(AppsView(), Gtk.Label('apps'))
-			root_view.append_page(SystemManagerView(), Gtk.Label('system'))
+			root_view.append_page(AppLauncher().widget, Gtk.Label('apps'))
+			root_view.append_page(SystemManager().widget, Gtk.Label('system'))
 			
 			# press any punctuation character to switch between views
 			# root_view.set_current_page(1)
