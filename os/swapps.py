@@ -3,7 +3,7 @@ import re
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gio, Gtk
+from gi.repository import GLib, Gio, Gtk
 
 class AppLauncher:
 	def __init__(self):
@@ -40,7 +40,8 @@ class AppLauncher:
 		self.apps_flowbox.bind_model(self.apps_list, self.create_widget)
 		
 		flowbox_child = self.apps_flowbox.get_child_at_index(0)
-		if flowbox_child: self.apps_flowbox.select_child(flowbox_child)
+		if flowbox_child:
+			self.apps_flowbox.select_child(flowbox_child)
 		
 		self.apps_flowbox.connect('activate', self.on_item_click)
 		
@@ -50,7 +51,8 @@ class AppLauncher:
 		if len(search_entry) == 0:
 			self.selected_item = self.apps_list.get_item(0)
 			flowbox_child = self.apps_flowbox.get_child_at_index(0)
-			if flowbox_child: self.apps_flowbox.select_child(flowbox_child)
+			if flowbox_child:
+				self.apps_flowbox.select_child(flowbox_child)
 			return
 		
 		search_pattern = search_entry.text.replace(" ", ".*")
@@ -63,7 +65,8 @@ class AppLauncher:
 			if re.compile(search_pattern).match(item.get_name()):
 				self.selected_item = item
 				flowbox_child = self.apps_flowbox.get_child_at_index(i)
-				if flowbox_child: self.apps_flowbox.select_child(flowbox_child)
+				if flowbox_child:
+					self.apps_flowbox.select_child(flowbox_child)
 				break
 			i+=1
 	
@@ -106,18 +109,18 @@ class AppLauncher:
 		
 		icon = Gtk.Image.new_from_gicon(app_item.get_icon())
 		
-		widget = gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 5)
+		widget = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 5)
 		widget.append(label)
 		widget.append(icon)
 		return widget
 	
 	def on_item_click(self, apps_flowbox :Gtk.FlowBox):
 		selected_child :Gtk.FlowBoxChild = apps_flowbox.get_selected_children()[0]
-		index = flowbox_child.get_index()
+		index = selected_child.get_index()
 		self.selected_item = self.apps_list.get_item(index)
 		self.on_activate()
 
-class SystemManager():
+class SysMan:
 	def __init__(self):
 		self.widget = Gtk.Box(
 			orientation = Gtk.Orientation.VERTICAL,
@@ -129,110 +132,154 @@ class SystemManager():
 		)
 		
 		search_entry = Gtk.SearchEntry()
-		search_entry.connect('search-changed', self.on_search_entry_changed)
+		search_entry.connect('search_changed', self.on_search_changed)
 		search_entry.connect('activate', self.on_activate)
+		search_entry.connect('notify:has-focus', self.clear)
+		self.widget.append(search_entry)
 		
-		self.append(search_entry)
+		self.items_list = Gio.ListStore(GLib.HashTable)
 		
-		# two spaces: self.clear()
-		# refocused: self.clear()
+		self.selected_item = self.items_list.get_item(0)
 		
-		# create a ListBox
-		# session manager, connections, timezone, passwords, packages
+		self.items_listbox = Gtk.ListBox(
+			margin_top = 5, margin_bottom = 5, margin_start = 100, margin_end = 100,
+			activate_on_single_click = True,
+			focusable = False
+		)
+		self.items_listbox.bind_model(self.items_list, self.create_widget)
 		
+		listbox_row = self.apps_flowbox.get_row_at_index(0)
+		if listbox_row:
+			self.items_listbox.select_row(listbox_row)
+		
+		self.items_listbox.connect('activate', self.on_item_click)
+		
+		self.widget.append(Gtk.ScrolledWindow(child = self.items_listbox))
+	
+	def on_search_changed(self, search_entry):
+		if len(search_entry) == 0:
+			self.selected_item = self.items_list.get_item(0)
+			flowbox_child = self.items_listbox.get_child_at_index(0)
+			if flowbox_child: self.items_listbox.select_child(flowbox_child)
+			return
+		
+		search_pattern = search_entry.text.replace(" ", ".*")
+		i = 0
+		
+		while True:
+			item :Gio.AppInfo|None = self.apps_list.get_item(i)
+			if not item:
+				break
+			if re.compile(search_pattern).match(item.get_name()):
+				self.selected_item = item
+				flowbox_child = self.apps_flowbox.get_child_at_index(i)
+				if flowbox_child: self.apps_flowbox.select_child(flowbox_child)
+				break
+			i+=1
+	
+	def on_activate(self):
+		self.selected_item
 		# when an item is activated:
 		# if it has a command, run it, clear, subprocess.run(['swaymsg', '[app_id=swapps] move scratchpad'])
 		# otherwise create a new list, and replace the current list with it
 	
-	def clear(self):
+	def clear(self, search_entry):
 		# remove the current list, create and append the initial list, clear search entry
-
-def create_session_manager_view():
-	session_manager_list = Gio.ListStore(Glib.HashTable)
-	filter = Gtk.StringFilter()
-	session_manager_list_filtered = Gtk.FilterListModel(session_manager_list, filter)
+		
+		search_entry.delete_text(0, -1)
 	
-	session_manager_list.insert(
-		name='lock',
-		icon_name='system-lock-screen-symbolic',
-		command=['/usr/local/bin/lock']
-	)
-	session_manager_list.insert(
+	def create_widget(self, item):
+		label = Gtk.Label(
+			label = item.name,
+			justify = Gtk.Justification.CENTER,
+			width_chars = 20
+		)
+		
+		icon = Gtk.Image.new_from_gicon(item['icon_name'])
+		
+		widget = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 5)
+		widget.append(icon)
+		widget.append(label)
+		return widget
+	
+	def on_item_click(self, apps_flowbox :Gtk.FlowBox):
+		selected_child :Gtk.FlowBoxChild = itemss_listbox.get_selected_children()[0]
+		index = selected_child.get_index()
+		self.selected_item = self.items_list.get_item(index)
+		self.on_activate()
+
+# session manager, connections, timezone, passwords, packages
+
+session_manager = [
+	{
+		'name': 'lock',
+		'icon_name': 'system-lock-screen-symbolic',
+		'command': ['/usr/local/bin/lock']
+	},
+	{
 		name='suspend',
 		icon_name='media-playback-pause-symbolic',
 		command=['systemctl', 'suspend']
-	)
-	session_manager_list.insert(
+	},
+	{
 		name='exit',
 		icon_name='system-log-out-symbolic',
 		command=['swaymsg', 'exit']
-	)
-	session_manager_list.insert(
+	},
+	{
 		name='reboot',
 		icon_name='system-reboot-symbolic',
 		command=['systemctl', 'reboot']
-	)
-	session_manager_list.insert(
+	},
+	{
 		name='poweroff',
 		icon_name='system-shutdown-symbolic',
 		command=['systemctl', 'poweroff']
-	)
-	
-	session_manager_flowbox = Gtk.FlowBox(
-		orientation=gtk.Orientation.HORIZONTAL,
-		column_spacing=5,
-		row_spacing=5,
-		margin_top=5, margin_bottom=5, margin_start=5, margin_end=5,
-		selection_mode=gtk.SelectionMode.NONE,
-		focusable=false
-	)
-	
-	session_manager_flowbox.bind_model(session_manager_list_filtered, function(sm_item)
-		label = Gtk.Label{
-			label = sm_item.name,
-			justify = gtk.Justification.CENTER,
-			width_chars = 20
-		}
-		
-		icon = Gtk.Image.new_from_gicon(sm_item.icon_name)
-		
-		def on_key_pressed	(_, keyval):
-			if keyval == Gdk.BUTTON_PRIMARY:
-				subprocess.run(sm_item.command)
-		key_event_controller = Gtk.EventControllerKey()
-		key_event_controller.connect('key_pressed', on_key_pressed)
-		
-		widget = Gtk.Box{
-			orientation = gtk.Orientation.VERTICAL,
-			spacing = 5
-		}
-		widget.append(label)
-		widget.append(icon)
-		widget.add_controller(event_controller)
-		return widget
-	end)
-	
-	search_entry = Gtk.SearchEntry()
-	
-	search_entry.search_changed = function(search_entry)
-		filter:set_search(string:gsub(search_entry.text, " ", ".* "))
-	end
-	
-	search_entry.on_activate = function()
-		subprocess.run(session_manager_list_filtered:get_item(0).command)
-	end
-	
-	session_manager_view = Gtk.Box(Gtk.Orientation.VERTICAL, 0)
-	session_manager_view.append(search_entry)
-	session_manager_view.append(Gtk.ScrolledWindow(child=session_manager_flowbox))
-	return session_manager_view
+	}
+]
 
+connection_manager = [
+	dict(
+		name = 'wifi',
+		icon_name = '',
+		command = ''
+	),
+	dict(
+		name = 'cellular',
+		icon_name = '',
+		command = ''
+	)
+	dict(
+		name = 'bluetooth',
+		icon_name = '',
+		command = ''
+	)
+	dict(
+		name = 'radio',
+		icon_name = '',
+		command = ''
+	)
+	dict(
+		name = 'router',
+		icon_name = '',
+		command = ''
+	)
+]
+
+wifi = [
+	dict(
+		name = 'connect',
+		icon_name = '',
+		command = ''
+	),
+	dict(
+		name = 'remove',
+		icon_name = '',
+		command = ''
+	)
+]
 """
 manage_wifi() {
-	local mode="$(printf "connect\nremove" | fzy)" device= ssid= answer=
-	# filtered fzy
-	local ffzy=""
-	
 	if [ "$mode" = connect ]; then
 		echo 'select a device:'
 		device="$(iwctl device list |
@@ -357,11 +404,7 @@ manage_router() {
 manage_connections() {
 	local selected_option="$(printf "wifi\ncellular\nbluetooth\nradio\nrouter" | fzy)"
 	case "$selected_option" in
-		wifi) manage_wifi ;;
-		cellular) manage_cell ;;
-		bluetooth) manage_bluetooth ;;
-		radio) manage_radio_devices ;;
-		router) manage_router ;;
+		
 	esac
 }
 
@@ -437,7 +480,7 @@ class MyApp(Gtk.Application):
 		if not window:
 			root_view = Gtk.Notebook()
 			root_view.append_page(AppLauncher().widget, Gtk.Label('apps'))
-			root_view.append_page(SystemManager().widget, Gtk.Label('system'))
+			root_view.append_page(SysMan().widget, Gtk.Label('system'))
 			
 			# press any punctuation character to switch between views
 			# root_view.set_current_page(1)
