@@ -1,19 +1,19 @@
 import subprocess
+import re
 
 import gi
-gi.require_version('Gdk', '4.0')
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gio, Gdk, Gtk
+from gi.repository import Gio, Gtk
 
 class AppLauncher:
 	def __init__(self):
 		self.widget = Gtk.Box(
-			orientation=Gtk.Orientation.VERTICAL,
-			spacing=5,
-			margin_top=5,
-			margin_bottom=5,
-			margin_start=5,
-			margin_end=5
+			orientation = Gtk.Orientation.VERTICAL,
+			spacing = 5,
+			margin_top = 5,
+			margin_bottom = 5,
+			margin_start = 5,
+			margin_end = 5
 		)
 		
 		search_entry = Gtk.SearchEntry()
@@ -27,7 +27,9 @@ class AppLauncher:
 		self.update_apps_list()
 		Gio.AppInfoMonitor.get().connect('changed', self.update_apps_list)
 		
-		apps_flowbox = Gtk.FlowBox(
+		self.selected_item = self.apps_list.get_item(0)
+		
+		self.apps_flowbox = Gtk.FlowBox(
 			orientation = Gtk.Orientation.HORIZONTAL,
 			column_spacing = 5,
 			row_spacing = 5,
@@ -35,28 +37,51 @@ class AppLauncher:
 			activate_on_single_click = True,
 			focusable = False
 		)
-		apps_flowbox.bind_model(self.apps_list, self.create_widget)
+		self.apps_flowbox.bind_model(self.apps_list, self.create_widget)
 		
-		self.widget.append(Gtk.ScrolledWindow(child=apps_flowbox))
+		flowbox_child = self.apps_flowbox.get_child_at_index(0)
+		if flowbox_child: self.apps_flowbox.select_child(flowbox_child)
+		
+		self.apps_flowbox.connect('activate', self.on_item_click)
+		
+		self.widget.append(Gtk.ScrolledWindow(child=self.apps_flowbox))
 	
-	def on_search_changed():
-		# find and select the first item whose name matches: string:gsub(search_entry.text, " ", ".* ")
+	def on_search_changed(self, search_entry):
+		if len(search_entry) == 0:
+			self.selected_item = self.apps_list.get_item(0)
+			flowbox_child = self.apps_flowbox.get_child_at_index(0)
+			if flowbox_child: self.apps_flowbox.select_child(flowbox_child)
+			return
+		
+		search_pattern = search_entry.text.replace(" ", ".*")
 		i = 0
-		while item :AppInfo|None = self.apps_list.get_item(i):
-			item.get_app_name()
+		
+		while true:
+			item :Gio.AppInfo|None = self.apps_list.get_item(i)
+			if not item:
+				break
+			if re.compile(search_pattern).match(item.get_name()):
+				self.selected_item = item
+				flowbox_child = self.apps_flowbox.get_child_at_index(i)
+				if flowbox_child: self.apps_flowbox.select_child(flowbox_child)
+				break
 			i+=1
-		self.apps_flowbox.select_child()
 	
-	def on_activate():
-		app_item = self.apps_list.get_selected()
-		subprocess.run(['swaymsg', 'workspace', app_item.get_name()])
-		subprocess.run(['swaymsg', "[con_id=__focused__]", 'focus']) or
-			subprocess.run(['swaymsg', 'exec', app_item.get_commandline()])
-		subprocess.run(["swaymsg move", "scratchpad"])
-		# swaymsg "[con_id=codev] focus" || codev
-		# swaymsg "[app_id=codev] move workspace $app; workspace $app"; app.exec
+	def on_activate(self):
+		app_item = self.selected_item
+		
+		app_name = app_item.get_name()
+		subprocess.run([
+			'swaymsg',
+			f'[app_id=codev] move workspace {app_name}; workspace {app_name}' 
+		])
+		
+		if not subprocess.run(['swaymsg', '[floating] focus']):
+			subprocess.run(['swaymsg', 'exec ' + app_item.get_executable()])
+		
+		subprocess.run(['swaymsg', '[app_id=swapps] move scratchpad'])
 	
-	def compare_apps(app1, app2):
+	def compare_apps(self, app1 :Gio.AppInfo, app2 :Gio.AppInfo):
 		app1_name = app1.get_name()
 		app2_name = app2.get_name()
 		if app2_name > app1_name:
@@ -68,59 +93,59 @@ class AppLauncher:
 	
 	def update_apps_list(self):
 		self.apps_list.remove_all()
-		for app in gio.AppInfo.get_all():
-			app_name = app.get_name()
+		for app in Gio.AppInfo.get_all():
 			if app.should_show():
 				self.apps_list.insert_sorted(app, self.compare_apps)
-	
+		
 	def create_widget(self, app_item :Gio.AppInfo):
 		label = Gtk.Label(
-			label=app_item.get_name(),
-			justify=Gtk.Justification.CENTER,
-			width_chars=20
+			label = app_item.get_name(),
+			justify = Gtk.Justification.CENTER,
+			width_chars = 20
 		)
 		
 		icon = Gtk.Image.new_from_gicon(app_item.get_icon())
-				
-		event_controller = Gtk.EventControllerKey()
-		event_controller.connect(
-			'key_pressed',
-			lambda _, keyval: keyval == Gdk.BUTTON_PRIMARY and self.raise_or_run_app()
-		)
 		
-		widget = gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+		widget = gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 5)
 		widget.append(label)
 		widget.append(icon)
-		widget.add_controller(event_controller)
 		return widget
+	
+	def on_item_click(self, apps_flowbox :Gtk.FlowBox):
+		selected_child :Gtk.FlowBoxChild = apps_flowbox.get_selected_children()[0]
+		index = flowbox_child.get_index()
+		self.selected_item = self.apps_list.get_item(index)
+		self.on_activate()
 
 class SystemManager():
 	def __init__(self):
-		self.widget = Gtk.Stack(orientation=Gtk.Orientation.VERTICAL)
+		self.widget = Gtk.Box(
+			orientation = Gtk.Orientation.VERTICAL,
+			spacing = 5,
+			margin_top = 5,
+			margin_bottom = 5,
+			margin_start = 5,
+			margin_end = 5
+		)
 		
-		# create a SysManPage, and connect to its "clear", "close", and "new_menu" signal
-		# session manager, connections, timezone, passwords, packages
-	
-		# clear signal: remove all pages except the first one, clear search entry
-
-class SysManPage(Gtk.Box):
-	@signal clear()
-	@signal close()
-	@signal new_menu()
-	
-	def __init__(self):
 		search_entry = Gtk.SearchEntry()
 		search_entry.connect('search-changed', self.on_search_entry_changed)
 		search_entry.connect('activate', self.on_activate)
 		
 		self.append(search_entry)
 		
-		# space at the beginning, or two spaces: emit clear signal
-		# refocused: emit clear signal
+		# two spaces: self.clear()
+		# refocused: self.clear()
+		
+		# create a ListBox
+		# session manager, connections, timezone, passwords, packages
 		
 		# when an item is activated:
-		# if it has a command, run it and emit a close signal
-		# otherwise emit a new_menu signal, containing the menu
+		# if it has a command, run it, clear, subprocess.run(['swaymsg', '[app_id=swapps] move scratchpad'])
+		# otherwise create a new list, and replace the current list with it
+	
+	def clear(self):
+		# remove the current list, create and append the initial list, clear search entry
 
 def create_session_manager_view():
 	session_manager_list = Gio.ListStore(Glib.HashTable)
