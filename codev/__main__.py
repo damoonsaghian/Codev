@@ -1,17 +1,5 @@
 # for implementing a prototype of Codev, it seems that the best tool at hand is PyGObject
 # Python provides a simple consistent scripting API for almost anything
-# https://docs.python.org/3/tutorial/
-# https://docs.python.org/3/reference/index.html#reference-index
-# https://docs.python.org/3/library/index.html	
-# https://pygobject.gnome.org/guide/api/signals.html
-# https://github.com/yucefsourani/python-gtk4-examples/tree/main/listbox_searchbar
-# https://github.com/yucefsourani/python-gtk4-examples/tree/main/stack_flowbox_css_provider
-# https://github.com/GNOME/pygobject/blob/master/examples/demo/demos/flowbox.py
-# https://github.com/GNOME/pygobject/tree/master/examples/demo/demos/TreeView
-# https://github.com/GNOME/pygobject/blob/master/examples/demo/demos/IconView/iconviewbasics.py
-# https://github.com/GNOME/pygobject/blob/master/examples/demo/demos/IconView/iconviewedit.py
-# https://github.com/GNOME/pygobject/blob/master/examples/demo/demos/Entry/search_entry.py
-# https://lazka.github.io/pgi-docs/
 
 import subprocess
 
