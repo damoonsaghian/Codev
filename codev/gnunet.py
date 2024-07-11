@@ -37,6 +37,8 @@
 # three way merge:
 # https://github.com/samsquire/text-diff
 
+# https://diffoscope.org/
+
 class Gnunet
 	def publish():
 		# create ref links of the project files, in ".cache/gnunet/publish"
