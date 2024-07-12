@@ -38,6 +38,7 @@
 # https://github.com/samsquire/text-diff
 
 # https://diffoscope.org/
+# https://man.archlinux.org/man/core/diffutils/diff3.1.en
 
 class Gnunet
 	def publish():
