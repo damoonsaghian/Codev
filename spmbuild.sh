@@ -1,11 +1,9 @@
 project_dir="$(dirname "$0")"
 
-spm build gtk gtksourceview webkitgtk poppler gstreamer
-# hardlink these libs into $project_dir/.cache/spm/
-
-spm install python-gobject \
-	gst-plugin-pipewire gst-plugins-good gst-plugins-ugly gst-libav \
+spm add python-gobject gtk gtksourceview webkitgtk poppler \
+	gstreamer gst-plugin-pipewire gst-plugins-good gst-plugins-ugly gst-libav \
 	gvfs gnunet
+# hardlink the required files into $project_dir/.cache/spm/
 
 # plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
 # libav is needed till
