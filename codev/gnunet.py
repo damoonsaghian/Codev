@@ -40,6 +40,10 @@
 # https://diffoscope.org/
 # https://man.archlinux.org/man/core/diffutils/diff3.1.en
 
+# gnunet url:
+# username/projects/project-name
+# username/packages/project-name
+
 class Gnunet
 	def publish():
 		# create ref links of the project files, in ".cache/gnunet/publish"
