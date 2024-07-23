@@ -13,6 +13,8 @@
 # indentation guides:
 # change the background color of leading tabs; interchange between 2 colors
 
+# sticky scrolling
+
 # store and restore undo history
 # https://stackoverflow.com/questions/76096/undo-with-gtk-textview
 
