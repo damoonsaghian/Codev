@@ -1,6 +1,6 @@
+we can use GNUnet file sharing, for collaborative development
 "https://www.gnunet.org/en/"
 
-= collaborative development using GNUnet file sharing
 flaws of version control systems:
 , they double the storage (working directory, local repository)
 , their design makes it difficult to modify the history
@@ -19,8 +19,8 @@ a pull request can be removed by sending a message to the main developer, and un
 changelog can be used to record credits, and at the same time, track backdoors
 
 = trustless secure transaction systems
-decentralized internet is already elegantly implemented by GNUnet, but no one is talking about it
-compare it with the hype around decentralized transaction systems, aka blockchians or distributed ledgers,
+decentralized internet is already implemented by GNUnet, but no one is talking about it
+compare it with the hype around decentralized transaction systems, aka blockchains or distributed ledgers,
 	which are inefficient and unscalable
 
 in decentralized transaction systems, we have a P2P network where all nodes store the same ledger,
@@ -57,7 +57,7 @@ trying to decentralize it by force, based on an ideology, leads to hideous creat
 
 we need special nodes (let's call them IO nodes):
 , to import assets from external world
-, to prevent double spending, whithout the need for a complicated consensus mechanism,
+, to prevent double spending, without the need for a complicated consensus mechanism,
 	hurting efficiency and scalability
 
 tokens contain two fields:
@@ -65,7 +65,7 @@ tokens contain two fields:
 , value+hash (for money tokens), or an identifier encoding the physical aspects of an asset
 
 token history file: a file with the token as its name, containing the history of the token
-each line has three parts seperated by space:
+each line has three parts separated by space:
 , timestamp
 , a public key made by the owner (at that time),
 , signature made by the private pair of the key in the previous line
@@ -79,7 +79,7 @@ for each token, a file will be published, with the token as the file name
 	the file contains the signature of the latest owner
 	the signature is made by the owner's public key, not the key in the history file
 so IO nodes can't make fake tokens, or double spend a token, without being detected
-violations made by IO nodes (double spendings, refusing valid transactions), will be reported,
+violations made by IO nodes (double spending, refusing valid transactions), will be reported,
 	to remove them from next release of GNUnet
 IO nodes do not have any power, they are just there to prevent double spending
 you own your tokens signed off by IO nodes and all the previous owners
@@ -114,7 +114,20 @@ they must be evaluated according to the kind of job and a lot of other factors (
 nonetheless, because of IO nodes, some kind of surveillance can be implemented,
 	to prevent criminal activities, without violating privacy of users
 
-voting:
+= voting
+society is made of groups with different specialties, each group can choose their leaders
+election can in fact be a simple, cheap, dynamic, and completely reliable process
+the only thing we need to completely trust the result of an election,
+	is to release the final result in a table
+every one can see if her vote is entered correctly or not
+since the total number of voters is known, there is no place for cheating
+votes are submitted based on anonymous code which only its owner knows of its correspondence with his name
+
 real persons submit a public key in their companies, and then can use their private keys to sign their votes
 the complete list of votes will be published by the company, so anyone can check her own vote
-and since the total number of voters is known, there is no place for cheating
+
+this method is so simple and cheap that can be easily done in short periods (every month or every 3 months)
+actually people can vote any time they want, the result table will be updated continuously
+	but the election will be made in discrete periods
+now compare this simple method with what we call democracy nowadays
+this clearly shows us how the ones in power, play with people, and treat them like fools
