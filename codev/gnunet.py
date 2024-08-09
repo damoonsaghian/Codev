@@ -1,9 +1,3 @@
-# https://www.gnunet.org/en/use.html
-# https://docs.gnunet.org/
-# https://wiki.archlinux.org/title/GNUnet
-# https://manpages.debian.org/unstable/gnunet/
-# https://manpages.debian.org/unstable/gnunet/gnunet.conf.5.en.html
-
 # keys:
 # , primary key pair (used for first encounter)
 # , mutual key triplets (a private/public key pair plus the public key of a trusted account)
@@ -23,9 +17,6 @@
 # Libgcrypt and libcrypto (OpenSSL) do not support NTRU Prime; wolfCrypt does
 # https://openquantumsafe.org/
 
-# https://manpages.debian.org/unstable/gnunet/gnunet-directory.1.en.html
-# https://manpages.debian.org/unstable/gnunet/gnunet-fs.1.en.html
-
 # GNUnet: audio conversasion is already implemented
 # figure out how to send/receive streams to/from gnunet
 # https://git.gnunet.org/gnunet.git/tree/src/conversation
@@ -39,10 +30,6 @@
 
 # https://diffoscope.org/
 # https://man.archlinux.org/man/core/diffutils/diff3.1.en
-
-# gnunet url:
-# username/projects/project-name
-# username/packages/project-name
 
 class Gnunet
 	def publish():

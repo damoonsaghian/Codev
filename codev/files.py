@@ -12,8 +12,7 @@ from gi.repository import GLib, Gio, Gdk, Gtk
 
 # https://github.com/donadigo/elementary-ide
 
-# archives:
-# bsdtar -xf <file-path>
+# archives: use gvfs to unarchive/archive
 
 # .iso file: ask if user wants to extract it, if not, ask for a device to write it into, then:
 # ; sudo dd if=isofile of=devicename

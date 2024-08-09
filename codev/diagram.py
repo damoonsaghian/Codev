@@ -21,3 +21,6 @@ from gi.repository import GLib, Gio, Gdk, Gtk
 
 # make graphical elements from Gsk cairo and opengl nodes, inside transform nodes
 # https://docs.gtk.org/gtk4/class.Snapshot.html
+
+# gtk4 map widget: libshumate
+# https://github.com/navit-gps/navit

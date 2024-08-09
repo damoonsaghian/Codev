@@ -7,8 +7,6 @@ from gi.repository import GLib, Gio, Gdk, Gtk
 
 # if there is a saved session file for the project, restore it
 
-# backup: two'way diff
-
 class Project(Gtk.Overlay):
 	def __init__(dir_path):
 		self.dir_path = dir_path

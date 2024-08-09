@@ -4,21 +4,24 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import GLib, Gio, Gdk, Gtk
 
 # in the left panel show the storage devices, and the group directories inside them
+# /dev/disk/by-uuid
+
+# use gvfs for remote devices: mtp afc nfs smb avahi ...
 
 # ask the user if she wants to format the device, if:
-# , it's not formated
+# , it's not formatted
 # , it's a non'system device whose format is not vfat/exfat
 # , it's a system device whose format is not btrfs
 
 # to format it, first get the volume identifier
-# use "sd" module to format non'system devices with vfat or exfat (if wants files bigger than 4GB)
+# use "sd" program to format non'system devices with vfat or exfat (if wants files bigger than 4GB)
 # for system devices:
 # ; sudo sh -c "mkfs.btrfs -f <dev-path>; mount <dev-path> /mnt; chmod 777 /mnt; umount /mnt"
 
-# projects on VFAT/exFAT formated devices will be opened as read'only
-# when you try to edit them, you will be asked to copy them into a BTRFS formated device
+# projects on VFAT/exFAT formated devices, or remote devices, will be opened as read'only
+# when you try to edit them, you will be asked to copy them into a local device
 
-# use "sd" module to mount the device (if it's not)
+# use "sd" program to mount the device (if it's not)
 
 # new messages and upcoming schedules
 # show indicators on overview
