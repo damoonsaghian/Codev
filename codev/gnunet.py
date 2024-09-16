@@ -1,29 +1,14 @@
-# keys:
-# , primary key pair (used for first encounter)
-# , mutual key triplets (a private/public key pair plus the public key of a trusted account)
-# backup (encrypted) keys
+# https://docs.gnunet.org/
+# https://grothoff.org/christian/habil.pdf
+# https://www.gnunet.org/en/use.html
+# https://clehaxze.tw/gemlog/2022/08-10-gnunet-file-sharing-tutorial-and-an-alternative-to-ipfs.gmi
+# https://wiki.archlinux.org/title/GNUnet
+# https://manpages.debian.org/unstable/gnunet/
+# https://git.gnunet.org/gnunet.git/tree/
 
 # gnunet-identity stores private keys unencrypted
-# gnome-keyring
-# https://gnome.pages.gitlab.gnome.org/libsecret/
-
-# opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key (eg NitroKey)
-# since private key does not leave the smartcard, it can't be backed up
-# so we must be able to have multiple keys per identity, and to add keys to an identity,
-# 	and to inform mutual pairs of this addition
-# gnunet-identity does not have multiple keys per identity
-# "https://www.kernel.org/doc/html/latest/process/maintainer-pgp-guide.html"
-
-# Libgcrypt and libcrypto (OpenSSL) do not support NTRU Prime; wolfCrypt does
-# https://openquantumsafe.org/
-
-# GNUnet: audio conversasion is already implemented
-# figure out how to send/receive streams to/from gnunet
-# https://git.gnunet.org/gnunet.git/tree/src/conversation
-# https://git.gnunet.org/gnunet.git/tree/src/conversation/gnunet_gst.c
-# https://manpages.debian.org/unstable/gnunet/gnunet-conversation.1.en.html
-# https://jami.net/
-# https://packages.debian.org/bookworm/jami-daemon
+# ~/.local/share/gnunet/identity/egos/
+# to solve this problem, we have to use GNUnet's C API
 
 # three way merge:
 # https://github.com/samsquire/text-diff
@@ -31,15 +16,18 @@
 # https://diffoscope.org/
 # https://man.archlinux.org/man/core/diffutils/diff3.1.en
 
+# GNUnet: audio conversasion is already implemented
+# figure out how to send/receive streams to/from gnunet
+# https://git.gnunet.org/gnunet.git/tree/src/contrib/service/conversation
+# https://jami.net/
+# https://packages.debian.org/bookworm/jami-daemon
+
 class Gnunet
 	def publish():
 		# create ref links of the project files, in ".cache/gnunet/publish"
 		# this way GNUnet can publish the files using the indexed method
-		# note that projects reside in non-removable BTRFS'formated disks
+		# note that projects reside in non'removable BTRFS'formated disks
 		
-		# ".cache" directory will not be published
-		# also do not follow mount points
-	
 	def unpublish():
 	
 	def download():
@@ -48,41 +36,29 @@ class Gnunet
 	
 	def pull_request():
 
-	def create_website(remote_host :String, user :String):
+	def publish_website(remote_host :String, user :String):
 		# we still need a website so the unfortunate users of conventional internet can see and find us
-		# 
-		# on a linux server use gnunet to download projects, and host a website
-		# apt-get --yes install openssh-client
-		# https://man.archlinux.org/listing/openssh
-		# https://man.archlinux.org/man/core/openssh/ssh.1.en
-		# https://man.archlinux.org/man/core/openssh/ssh-add.1.en
-		# https://man.archlinux.org/man/core/openssh/ssh-keygen.1.en
-		# https://wiki.archlinux.org/title/SSH_keys#ssh-agent
+		
 		# https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.html
 		# https://github.com/hashbang/shell-server/blob/master/ansible/tasks/packages/main.yml
 		# create a user in one of "hashbang.sh" servers
 		# https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.sh
+		
 		# currently, the ~/Public folder isn't exposed over HTTP by default
 		# use the `SimpleHTTPServer.service` systemd unit file (in `~/.config/systemd/user`, modify it to set port)
+		# download ~/.config/systemd/user/SimpleHTTPServer@.service
+		# rename to SimpleHTTPServer@1025.service and upload to ~/.config/systemd/user/
 		# https://github.com/hashbang/dotfiles/blob/master/hashbang/.config/systemd/user/SimpleHTTPServer%40.service
-		# 
-		# ssh user@host "command"
-		# 
-		# why use openssh instead of libssh:
-		# libssh must be compiled with openssl (not gcrypt) to support smartcards
-		# although gcrypt itself supports pkcs11
-		# https://github.com/simonsj/libssh/blob/master/doc/pkcs11.dox
-		# also we need ssh-agent to open multiple keys with the same password
-		# openssh + opensc/opencryptoki/coolkey/softhsm: smartcard device to protect the private key
-		# and at last, libssh does not support NTRU Prime yet
-		# https://www.openssh.com/txt/release-9.0
-		# 
+		# https://github.com/hashbang/shell-server/blob/master/ansible/tasks/hashbang/templates/etc/skel/Mail/new/msg.welcome.j2
+		
+		# no need for an ssh client (like lsh), just use curl sftp upload
+		
 		# create an html web'page "~/Public/project_name/index.html", showing the files in the project
 		# https://nanoc.app/about/
 		# https://github.com/nanoc/nanoc
 		# https://docs.antora.org/
 		# when converting to html, convert tabs to html tables, to have elastic tabstops
-		#
+		
 		# alternaties to hashbang.sh:
 		# http://m-net.arbornet.org/index.php
 		# https://freeshell.de/

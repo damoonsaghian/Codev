@@ -1,5 +1,6 @@
 # for implementing a prototype of Codev, it seems that the best tool at hand is PyGObject
 # Python provides a simple consistent scripting API for almost anything
+# https://github.com/satwikkansal/wtfpython
 
 import subprocess
 
