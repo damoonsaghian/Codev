@@ -22,10 +22,6 @@
 # for the latter, ref'copy the files into the ".data" directory,
 # 	ask for a name, and insert the path into the text buffer
 
-# to insert a screenshot or screencast:
-# move the file saved in "~/.cache/screen.png" or "~/.cache/screen.mp4" to ".data"
-# ask for a name, and insert the path into the text buffer
-
 # https://github.com/sonnyp/Workbench
 # https://github.com/sriske2/umte/blob/master/umte.py
 # https://github.com/Axel-Erfurt/TextEdit/blob/main/TextEdit.py
@@ -47,7 +43,7 @@
 # http://meldmerge.org/
 # https://git-scm.com/docs/git-diff
 
-# UPM app URL (gnunet/git): upm add <app-url>
+# SPM URL (gnunet): spm install <url>
 
 import gi
 gi.require_version('Gdk', '4.0')
