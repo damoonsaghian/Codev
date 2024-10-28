@@ -10,15 +10,13 @@
 # ~/.local/share/gnunet/identity/egos/
 # to solve this problem, we have to use GNUnet's C API
 
-# three way merge:
-# https://github.com/samsquire/text-diff
-
 # https://diffoscope.org/
-# https://man.archlinux.org/man/core/diffutils/diff3.1.en
+# https://www.gnu.org/software/diffutils/manual/html_node/index.html
 
 # GNUnet: audio conversasion is already implemented
 # figure out how to send/receive streams to/from gnunet
 # https://git.gnunet.org/gnunet.git/tree/src/contrib/service/conversation
+# use pipewiresrc in pipwire gst plugin to capture video/audio from camera/mic
 # https://jami.net/
 # https://packages.debian.org/bookworm/jami-daemon
 
