@@ -11,7 +11,7 @@ when we download a project, a pristine copy is kept untouched in ".cache/gnunet/
 after a while when we want to pull and merge changes made in the main branch,
 	first a three'way diff based on the main branch, pristine, and the working directory will be shown,
 	then the user will be asked to accept different parts of the diff
-to send a pull request to the main branch, first publish the pristine and the working directory,
+to send a pull request to the main branch, first publish the pristine and the working directory (except .cache),
 	then send the two addresses to the main developer
 	the main developer will make a diff based on these two, plus her own working directory
 a pull request can be removed by sending a message to the main developer, and unpublishing the two links

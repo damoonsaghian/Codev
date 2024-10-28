@@ -1,14 +1,13 @@
 project_dir="$(dirname "$0")"
 
-spm add python-gobject gtk gtksourceview webkitgtk poppler \
-	gstreamer gst-plugin-pipewire gst-plugins-good gst-plugins-ugly gst-libav \
-	gvfs gnunet
+$PKG python-gobject
+$PKG gtk
+$PKG gtksourceview
+$PKG gtkwebkit
+$PKG gstreamer
+$PKG gvfs
+$PKG gnunet
 # hardlink the required files into $project_dir/.cache/spm/
-
-# plugins-good contains support for mp4/matroska/webm containers, plus mp3 and vpx
-# libav is needed till
-# , h264(openh264), h265(libde265), and aac(fdk-aac) go into plugins-ugly
-# , and av1(aom-libs) goes into plugins-good
 
 mkdir -p "$project_dir/.cache/spm"
 
