@@ -6,7 +6,6 @@ $PKG gtksourceview
 $PKG gtkwebkit
 $PKG gstreamer
 $PKG gvfs
-$PKG gnunet
 $PKG lsh
 # hardlink the required files into $project_dir/.cache/spm/
 
