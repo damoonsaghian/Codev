@@ -1,13 +1,12 @@
 project_dir="$(dirname "$0")"
 
-spm_build python-gobject
-spm_build gtk
-spm_build gtksourceview
-spm_build gtkwebkit
-spm_build gstreamer
-spm_build gvfs
-spm_build lsh
-# hardlink the required files into $project_dir/.cache/spm/
+spm_include $gnunet_namespace python-gobject
+spm_include $gnunet_namespace gtk
+spm_include $gnunet_namespace gtksourceview
+spm_include $gnunet_namespace gtkwebkit
+spm_include $gnunet_namespace gstreamer
+spm_include $gnunet_namespace gvfs
+spm_include $gnunet_namespace lsh
 
 mkdir -p "$project_dir/.cache/spm"
 
