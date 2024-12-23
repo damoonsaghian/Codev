@@ -1,6 +1,7 @@
 # for implementing a prototype of Codev, it seems that the best tool at hand is PyGObject
 # Python provides a simple consistent scripting API for almost anything
 # https://github.com/satwikkansal/wtfpython
+# https://docs.gtk.org/gtk4/migrating-4to5.html
 
 import subprocess
 
