@@ -16,8 +16,6 @@ to send a pull request to the main branch, first publish the pristine and the wo
 	the main developer will make a diff based on these two, plus her own working directory
 a pull request can be removed by sending a message to the main developer, and unpublishing the two links
 
-changelog can be used to record credits, and at the same time, track backdoors
-
 = trustless secure transaction systems
 decentralized internet is already implemented by GNUnet, but no one is talking about it
 compare it with the hype around decentralized transaction systems, aka blockchains or distributed ledgers,
@@ -106,7 +104,7 @@ if any IO node receives the signed off tokens, but does not send them back to th
 	they can be reported using the transaction request/answer which has their signature
 
 the more i think, the more i'm convinced that identities capable to have tokens, must be related to real persons
-otherwise, criminals can force people (by kidnapping, violance ...) to send their money/assets to anonymous accounts
+otherwise, criminals can force people (by kidnapping, violence ...) to send their money/assets to anonymous accounts
 one can always have different identities hidden from others, but identifiable by IO nodes
 
 taxes, i think, are out of the scope of transaction systems
