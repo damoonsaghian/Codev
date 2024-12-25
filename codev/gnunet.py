@@ -8,7 +8,12 @@
 
 # gnunet-identity stores private keys unencrypted
 # ~/.local/share/gnunet/identity/egos/
-# to solve this problem, we have to use GNUnet's C API
+# to solution is to use GNUnet's C API
+
+# a gnunet peer (instance) for each project group
+# ".codev" file in a project group directory:
+# , associated ego for publishing
+# , level of anonymity
 
 # https://diffoscope.org/
 # https://www.gnu.org/software/diffutils/manual/html_node/index.html
