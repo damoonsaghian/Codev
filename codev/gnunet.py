@@ -15,6 +15,8 @@
 # , associated ego for publishing
 # , level of anonymity
 
+# backup: projects, gnunet keys, lsh keys
+
 # https://diffoscope.org/
 # https://www.gnu.org/software/diffutils/manual/html_node/index.html
 
