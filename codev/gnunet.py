@@ -6,10 +6,6 @@
 # https://manpages.debian.org/unstable/gnunet/
 # https://git.gnunet.org/gnunet.git/tree/
 
-# gnunet-identity stores private keys unencrypted
-# ~/.local/share/gnunet/identity/egos/
-# to solution is to use GNUnet's C API
-
 # a gnunet peer (instance) for each project group
 # ".codev" file in a project group directory:
 # , associated ego for publishing
