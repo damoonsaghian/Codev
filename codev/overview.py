@@ -23,6 +23,11 @@ from gi.repository import GLib, Gio, Gdk, Gtk
 
 # use "sd" program to mount the device (if it's not)
 
+# when the name of of a project dir ends with .e, it's an encrypted project
+# to open (or switch to) an encrypted project, one must enter a password
+# the decrypted project will be namespace mounted on itself
+# https://wiki.archlinux.org/title/ECryptfs
+
 # new messages and upcoming schedules
 # show indicators on overview
 # send notifications to be shown in the tray area of the statusbar
