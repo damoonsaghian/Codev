@@ -23,6 +23,8 @@ from gi.repository import GLib, Gio, Gdk, Gtk
 
 # use "sd" program to mount the device (if it's not)
 
+# removable storages should have a little light on them, showing if they are in use or not
+
 # when the name of of a project dir ends with .e, it's an encrypted project
 # to open (or switch to) an encrypted project, one must enter a password
 # the decrypted project will be namespace mounted on itself
