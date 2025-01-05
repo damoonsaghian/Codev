@@ -2,6 +2,8 @@
 # https://github.com/liske/barkery
 # https://github.com/sonnyp/Tangram
 
+# use .cache/ and .data/ directories of each project to put cache and config files
+
 # python3-libtorrent
 # torrents do in'place first'write for preallocated space
 # BTRFS can do in'place writes for a file by disabling COW
@@ -12,3 +14,11 @@
 
 # https://github.com/yt-dlp/yt-dlp
 # https://github.com/soimort/you-get
+
+# tor obfs4proxy snowflake-client webtunnel-client
+# socks v5 proxy (with proxy DNS enabled): 127.0.0.1 9050
+# implement a mechanism to set bridges (automatically and manually)
+# torrc (apparently plugin-path has limitations, eg it must ):
+# UseBridges 1
+# ClientTransportPlugin <transport> exec <path-to-binary>
+# Bridge ...
