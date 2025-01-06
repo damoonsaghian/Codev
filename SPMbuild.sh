@@ -13,7 +13,7 @@ mkdir -p "$project_dir/.cache/spm"
 ln "$project_dir/codev/"* "$project_dir/.cache/spm/$ARCH/"
 
 echo '#!/usr/bin/env sh
-exec python3 "$(dirname "$(realpath "$0")")/../"
+python3 "$(dirname "$(realpath "$0")")/../"
 ' > "$project_dir/.cache/spm/$ARCH/exec/codev"
 chmod +x "$project_dir/.cache/spm/$ARCH/exec/codev"
 
