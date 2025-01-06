@@ -1,36 +1,25 @@
 project_dir="$(dirname "$0")"
 
-spm_include $gnunet_namespace python-gobject
-spm_include $gnunet_namespace gtk
-spm_include $gnunet_namespace gtksourceview
-spm_include $gnunet_namespace gtkwebkit
-spm_include $gnunet_namespace gstreamer
-spm_include $gnunet_namespace gvfs
-spm_include $gnunet_namespace lsh
+spm_import $gnunet_namespace python-gobject
+spm_import $gnunet_namespace gtk
+spm_import $gnunet_namespace gtksourceview
+spm_import $gnunet_namespace gtkwebkit
+spm_import $gnunet_namespace gstreamer
+spm_import $gnunet_namespace gvfs
+spm_import $gnunet_namespace lsh
 
 mkdir -p "$project_dir/.cache/spm"
 
-ln "$project_dir"/codev/* "$project_dir"/.cache/spm/
+ln "$project_dir/codev/"* "$project_dir/.cache/spm/$ARCH/"
 
-echo '#!/bin/sh
-this_dir="$(dirname "$(realpath "$0")")"
-export LD_LIBRARY_PATH=.
-PATH="$this_dir"
-exec python3 "$this_dir"
-' > "$project_dir"/.cache/spm/0
-chmod +x "$project_dir"/.cache/spm/0
+echo '#!/usr/bin/env sh
+exec python3 "$(dirname "$(realpath "$0")")/../"
+' > "$project_dir/.cache/spm/$ARCH/exec/codev"
+chmod +x "$project_dir/.cache/spm/$ARCH/exec/codev"
 
-mkdir -p "$HOME/.local/share/applications"
-cat <<-__EOF__ > "$project_dir"/.cache/spm/codev.desktop
-[Desktop Entry]
-Type=Application
-Name=Codev
-Icon=codev
-Exec=codev
-StartupNotify=true
-__EOF__
+spm_xport inst/app codev
 
-cat <<-__EOF__ > "$project_dir"/.cache/spm/icons/hicolor/scalable/apps/codev.svg
+cat <<-__EOF__ > "$project_dir/.cache/spm/$ARCH/app/codev.svg"
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="64" height="64">
 	<rect style="fill:#dddddd" width="56" height="48" x="4" y="8"/>
