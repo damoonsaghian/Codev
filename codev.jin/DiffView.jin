@@ -1,0 +1,10 @@
+;; for files and directories
+
+;; https://diffoscope.org/
+;; https://www.gnu.org/software/diffutils/manual/html_node/index.html
+;; https://stackoverflow.com/questions/16902001/manually-merge-two-files-using-diff
+;; https://stackoverflow.com/questions/776854/how-do-i-compare-two-source-trees-in-linux
+;; https://git-scm.com/docs/git-diff
+
+;; https://gitlab.gnome.org/GNOME/meld
+;; https://github.com/MightyCreak/diffuse

@@ -1,0 +1,81 @@
+;; https://stackoverflow.com/questions/23433819/creating-a-simple-file-browser-using-python-and-gtktreeview
+;; http://zetcode.com/gui/pygtk/advancedwidgets/
+;; https://github.com/tchx84/Portfolio
+;; https://github.com/MeanEYE/Sunflower
+
+;; list view: title
+;; https://docs.gtk.org/gtk4/class.ListBox.html
+;; grid view
+
+;; if a directory is given: show its content
+;; if a list of strings is given: show list view with them as root
+	for directories show their content under them
+	for devices, when they are selected, mount them and show their content underneath
+
+;; new file in empty directory:
+	, text
+	, draw
+	, picture from scanner
+		https://wiki.archlinux.org/title/SANE
+		https://github.com/alexpevzner/sane-airscan
+	, picture from camera
+	, video from camera
+	, audio from mic
+;; the last four are also available for inserting into text
+
+;; action run when an item is activated
+
+;; archives: use gvfs to unarchive/archive
+
+;; in the left panel show the storage devices, and the projects group directories inside them
+;; /dev/disk/by-uuid
+
+;; use gvfs for non'local devices: mtp afc nfs smb avahi ...
+
+;; ask the user if she wants to format the device, if:
+;; , it's not formatted
+;; , it's a non'system device whose format is not vfat/exfat
+;; , it's a system device whose format is not btrfs
+
+;; device actions: mount, unmount, format
+
+;; to format it, first get the volume identifier
+;; use "sd" program to format non'system devices with vfat or exfat (if wants files bigger than 4GB)
+;; for system devices:
+;; ; sudo sh -c "mkfs.btrfs -f <dev-path>; mount <dev-path> /mnt; chmod 777 /mnt; umount /mnt"
+
+;; projects on VFAT/exFAT formated devices, or remote devices, will be opened as read'only
+;; when you try to edit them, you will be asked to copy them into a local device
+
+;; use "sd" program to mount the device (if it's not)
+
+;; removable storages should have a little light on them, showing if they are in use or not
+
+;; removable devices
+;; when plugged ask if want to be used as backup
+;; projects, GNUnet configs (keys, peers, credits ...), ssh keys
+;; create ref links of the project files, in ".cache/gnunet/publish"
+
+;; if not on BTRFS and so ref link is not possible, make read'only hard'links instead
+;; Codev opens them in read'only mode, and when it wants to save the edited file,
+	it saves to ".cache/save/<filename>", then move it to destination (keeping the source's permissions)
+
+;; when the name of of a project dir ends with .e, it's an encrypted project
+;; to open (or switch to) an encrypted project, one must enter a password
+;; the decrypted project will be namespace mounted on itself
+;; https://wiki.archlinux.org/title/ECryptfs
+
+Files :=
+	list'box: gui.ListBox
+
+;ns Files
+	new = { root'dirs :List[String] |
+	}
+	
+	move'up = {}
+
+	move'down = {}
+
+	goto'file = {}
+
+	find'file = {}
