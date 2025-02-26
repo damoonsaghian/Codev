@@ -43,3 +43,23 @@ actions:
 , completion
 
 right click or ctrl+enter: show a list of available commands and their key bindings
+
+= collaborative development
+flaws of version control systems:
+, they double the storage (working directory, local repository)
+, their design makes it difficult to modify the history
+	so in practice, the whole history must be kept indefinitely, even if not needed
+
+when we download a project, a pristine copy is kept untouched in ".cache/codev/pristine",
+	and ref links will be created in the working directory, and then we can work on our own branch
+after a while when we want to pull and merge changes made in the main branch,
+	first a three'way diff will be shown, based on the main branch, pristine, and the working directory,
+	then the user will be asked to accept all or some parts of the diff
+to send a pull request to the main branch, first publish the pristine and the working directory (except .cache),
+	then send the two addresses to the main developer
+	the main developer will make a diff based on these two, plus her own working directory
+
+we can use GNUnet to share files in a P2P (a opposed to client'server) network
+"https://www.gnunet.org/en/"
+"https://docs.gnunet.org/latest/"
+"the GNUnet system" by Christian Grothoff ("https://grothoff.org/christian/habil.pdf")

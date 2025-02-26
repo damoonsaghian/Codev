@@ -1,21 +1,20 @@
-project_dir="$(dirname "$0")"
-
-spm_import $gnunet_namespace python-gobject
+spm_import $gnunet_namespace jina
+spm_import $gnunet_namespace gnunet
+spm_import $gnunet_namespace ssh
+spm_import $gnunet_namespace gvfs
+spm_import $gnunet_namespace gstreamer
 spm_import $gnunet_namespace gtk
 spm_import $gnunet_namespace gtksourceview
 spm_import $gnunet_namespace gtkwebkit
-spm_import $gnunet_namespace gstreamer
-spm_import $gnunet_namespace gvfs
-spm_import $gnunet_namespace lsh
 
-mkdir -p "$project_dir/.cache/spm"
+mkdir -p "$pkg_dir/.cache/spm"
 
-ln "$project_dir/codev/"* "$project_dir/.cache/spm/$ARCH/"
+jina "$pkg_dir"
 
 echo '#!/usr/bin/env sh
-python3 "$(dirname "$(realpath "$0")")/../"
-' > "$project_dir/.cache/spm/$ARCH/exec/codev"
-chmod +x "$project_dir/.cache/spm/$ARCH/exec/codev"
+"$(dirname "$(realpath "$0")")/../codev"
+' > "$pkg_dir/.cache/spm/$ARCH/exec/codev"
+chmod +x "$pkg_dir/.cache/spm/$ARCH/exec/codev"
 
 spm_xport inst/app codev
 
