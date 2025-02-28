@@ -1,3 +1,5 @@
+;; start in lock mode
+
 main = { args :List[String] |
 	app = gui.App.new app'id: "codev"
 	
