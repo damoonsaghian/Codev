@@ -54,7 +54,7 @@
 ;; removable devices
 ;; when plugged ask if want to be used as backup
 ;; projects, GNUnet configs (keys, peers, credits ...), ssh keys
-;; create ref links of the project files, in ".cache/gnunet/publish"
+;; for backup use: gn-download --no-network
 
 ;; if not on BTRFS and so ref link is not possible, make read'only hard'links instead
 ;; Codev opens them in read'only mode, and when it wants to save the edited file,
@@ -62,7 +62,9 @@
 
 ;; when the name of of a project dir ends with .e, it's an encrypted project
 ;; to open (or switch to) an encrypted project, one must enter a password
-;; the decrypted project will be namespace mounted on itself
+
+;; after mounting a removable storage device, if it contains encrypted projects,
+	decrypt it and mount it on itself
 ;; https://wiki.archlinux.org/title/ECryptfs
 
 Files :=

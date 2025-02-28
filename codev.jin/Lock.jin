@@ -12,6 +12,7 @@
 ;; if an empty password is entered, or "escape" is pressed, show codev view
 
 ;; during boot, the user will be automatically logged in, and the lock screen will be activated
-;; when password is entered for the first time:
-;; , use that to decrypt ~/*/*.e directories, and namespace mount them on themselves
-;; , run gnunet user services
+	when password is entered for the first time:
+	, use that to decrypt ~/*/*.e directories, and namespace mount them on themselves
+		https://wiki.archlinux.org/title/ECryptfs
+	, run gnunet user services
