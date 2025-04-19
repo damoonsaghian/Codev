@@ -27,6 +27,9 @@ to insert punctuations (in insert mode), press "pun"
 	unless the "pun" key is still pressed, in which case, it will return to normal mode after releasing "pun"
 to insert numbers, press and hold "num"
 
+pressing and releasing "Fn", sends "F1" key press and release
+holding "Fn" and pressing a number eg 2, sends "F2" key
+
 to insert capital letters, press comma then press the letter
 to insert an all capital word, press two commas
 	the following letters will be inserted in capitalized form, until space is pressed
