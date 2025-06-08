@@ -1,22 +1,16 @@
-spm_import $gnunet_namespace jina
-spm_import $gnunet_namespace gnunet
-spm_import $gnunet_namespace ssh
-spm_import $gnunet_namespace gvfs
-spm_import $gnunet_namespace gstreamer
-spm_import $gnunet_namespace gtk
-spm_import $gnunet_namespace gtksourceview
-spm_import $gnunet_namespace gtkwebkit
+pkg=codev
 
-mkdir -p "$pkg_dir/.cache/spm"
+spm_build jina
+spm_import jin-std
+spm_import jin-gui
+spm_import jin-codec
+spm_import gnunet
+spm_import ssh
+spm_import sd
 
-jina "$pkg_dir"
+"$PKGjina"/exec/jina "$pkg_dir"
 
-echo '#!/usr/bin/env sh
-"$(dirname "$(realpath "$0")")/../codev"
-' > "$pkg_dir/.cache/spm/$ARCH/exec/codev"
-chmod +x "$pkg_dir/.cache/spm/$ARCH/exec/codev"
-
-spm_xport inst/app codev
+spm_xcript inst/app codev
 
 cat <<-__EOF__ > "$project_dir/.cache/spm/$ARCH/app/codev.svg"
 <?xml version="1.0" encoding="UTF-8"?>
