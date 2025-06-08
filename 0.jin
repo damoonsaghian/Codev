@@ -1,0 +1,32 @@
+;; start in lock mode
+
+main = { args :List[String] |
+	app = gui.App.new app'id: "codev"
+	
+	app.on'activate { app :gui.App |
+		app.get'windows()_0 >> {
+			#null |
+				project'views = gui.Stack.new()
+				
+				overview = Overview(project'views)
+				
+				root'view = gui.Overlay()
+				root'view.add(project'views)
+				root'view.add'overlay(overview)
+				;; keybinding to show the overview
+				
+				window = gui.ApplicationWindow.new(
+					application: app,
+					maximized: #true,
+					titlebar: #null
+				)
+				window.set'child(root'view)
+				
+				;; set keybinding to show the overview
+			
+			win :gui.Window | win.present()
+		}
+	}
+	
+	app.run()
+}
