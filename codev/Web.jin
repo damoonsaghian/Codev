@@ -1,0 +1,4 @@
+;; use .cache/ and .data/ directories of each project to put cache and config files
+
+;; ".codev" file in a project group directory:
+;; proxy settings

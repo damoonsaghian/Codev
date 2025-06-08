@@ -1,0 +1,3 @@
+;; when "codev lock" is run
+;; read only access to public projects
+;; external storage devices will be writable
