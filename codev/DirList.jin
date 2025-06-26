@@ -16,43 +16,33 @@
 
 ;; action run when an item is activated
 
-;; archives: use gvfs to unarchive/archive
+;; archives: use libarchive to unarchive/archive
 
 ;; in the left panel show the storage devices, and the projects group directories inside them
 ;; list of storage devices is obtained using "sd"
 
 ;; ask the user if she wants to format the device, if:
 ;; , it's not formatted
-;; , it's a non'system device whose format is not vfat/exfat
-;; , it's a system device whose format is not btrfs
+;; , it's a removable storage device whose format is not vfat/exfat/btrfs
+;; , it's an internal storage device whose format is not btrfs
 
 ;; device actions: mount, unmount, format
-;; use "sd" program to mount the device (if it's not)
+;; use "sd" program to mount the device (if it's not mounted)
 ;; removable storages should have a little light on them, showing if they are in use or not
 
-;; use "sd" to format non'system devices with vfat or exfat (if wants files bigger than 4GB)
-;; for system devices:
-;; ; sudo sh -c "mkfs.btrfs -f <dev-path>; mount <dev-path> /mnt; chmod 777 /mnt; umount /mnt"
-
 ;; removable devices
-;; when plugged ask if want to be used as backup
+;; when plugged ask if want to be used as backup (formatted with BTRFS)
 ;; projects, GNUnet configs (keys, peers, credits ...), ssh keys
-;; for backup use: gn-download --no-network
+;; sd backup
 
 ;; projects on VFAT/exFAT formated devices, or remote devices, will be opened as read'only
 ;; when you try to edit them, you will be asked to copy them into a local device
 
-;; on filesystems like ext4 that ref link is not possible, make read'only hard'links instead
-;; Codev opens them in read'only mode, and when it wants to save the edited file,
-	it saves to ".cache/save/<filename>", then move it to destination (keeping the source's permissions)
-
-;; when the name of of a project dir ends with .e, it's an encrypted project
+;; securefs project directories
 ;; to open (or switch to) an encrypted project, one must enter a password
-
-;; after mounting a removable storage device, if it contains encrypted projects,
-	decrypt it and namespace mount it on itself
-;; https://wiki.archlinux.org/title/ECryptfs
-;; decrypt "~/*/*.e" directories
+;; Codev uses that password to: sd decrypt <dir-path>
+;; creating an encrypted project
+;; sd encrypt <dir-path>
 
 DirList :=
 	widget: gui.DirList
