@@ -9,3 +9,5 @@
 ;; rotate scale crop filters
 ;; ideal save format: JPEG XL
 ;; popular save format: JPEG/PNG
+
+;; https://invent.kde.org/libraries/kquickimageeditor
