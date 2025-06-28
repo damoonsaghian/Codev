@@ -7,6 +7,7 @@ spm_import jin-codec
 spm_import gnunet
 spm_import ssh
 spm_import sd
+spm_import libarchive
 
 "$PKGjina"/exec/jina "$pkg_dir"
 
