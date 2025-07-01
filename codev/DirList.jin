@@ -30,9 +30,8 @@
 ;; use "sd" program to mount the device (if it's not mounted)
 ;; removable storages should have a little light on them, showing if they are in use or not
 
-;; removable devices
-;; when plugged ask if want to be used as backup (formatted with BTRFS)
-;; projects, GNUnet configs (keys, peers, credits ...), ssh keys
+;; when a removable device is plugged, ask if want to be used as backup (formatted with BTRFS)
+;; backup contains projects, GNUnet configs (keys, peers, credits ...), ssh keys
 ;; sd backup
 
 ;; projects on VFAT/exFAT formated devices, or remote devices, will be opened as read'only
