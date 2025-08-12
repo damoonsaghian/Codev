@@ -33,6 +33,12 @@
 	
 	publish'website = { remote'host :String, user :String |
 		;; we still need a website so the unfortunate users of conventional internet can see and find us
+
+		;; https://gitea.com/user/sign_up
+			https://docs.gitea.com/development/api-usage
+			https://docs.gitea.com/api/#tag/repository/operation/GetAnnotatedTag
+			https://docs.gitea.com/api/#tag/repository/operation/repoUpdateFile
+		;; https://codeberg.org/
 		
 		;; hasbang can be used as free web host that allows to signup using http post
 		;; https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.html
