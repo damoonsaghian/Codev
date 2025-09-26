@@ -1,15 +1,14 @@
 pkg=codev
 
-spm_build jina
-spm_import jin-std
-spm_import jin-gui
-spm_import jin-codec
+spm_import qt
+spm_import quickshell # needed for Process qml type, and for coshell
 spm_import gnunet
-spm_import ssh
-spm_import sd
-spm_import libarchive
+spm_import curl
+spm_import mauikit-filebrowsing
+spm_import archive
+spm_import fs
 
-"$PKGjina"/exec/jina "$pkg_dir"
+# doas rules for sd.sh
 
 spm_xcript inst/app codev
 

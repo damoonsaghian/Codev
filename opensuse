@@ -1,0 +1,86 @@
+install a minimal openSUSE system that runs Codev inside Codev Shell
+
+printf '#!/usr/bin/env sh
+# implement add, remove, upgrade, install to, using zypper
+' > /usr/local/bin/packages
+
+zypper install patterns-base-base zypper sudo NetworkManager-bluetooth aria2
+
+zypper addrepo https://download.opensuse.org/repositories/home:mantarimay:sway/standard/home:mantarimay:sway.repo
+zypper refresh
+zypper install quickshell
+
+https://build.opensuse.org/package/show/home%3Ahopeandtruth6517%3Atest/mauikit
+zypper addrepo https://download.opensuse.org/repositories/home:hopeandtruth6517:test/openSUSE_Tumbleweed/home:hopeandtruth6517:test.repo
+zypper refresh
+zypper install mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-terminal mauikit-documents
+
+zypper install qt6-multimedia-imports qt6-webengine-imports qt6-pdf-imports qt6-virtualkeyboard-imports \
+	qt6-location qt6-remoteobjects-imports qt6-sensors-imports qt6-texttospeech \
+	qt6-charts-imports qt6-graphs-imports qt6-datavisualization-imports qt6-quick3d-imports qt6-quick3dphysics-imports \
+	qt6-3d-imports qt6-quicktimeline-imports qt6-lottie-imports \
+	kf6-kimageformats libQt6Svg6 kquickimageeditor6-imports
+
+zypper install gnunet
+
+# PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
+# do not load ~/.bashrc and ~/bash_profile and ~/.profile
+
+# add groups: input and video
+# udev must populate /dev/input with files that let users in group input to read them
+# udev must populate /dev/dri with files that let users in group video to write into them
+
+printf '[Service]
+ExecStart=
+ExecStart=-/sbin/agetty -l /usr/local/bin/login --skip-login %I $TERM
+' > /etc/systemd/system/getty@tty1.service.d/login.conf
+
+printf '#!/usr/bin/env sh
+runuser --user="$(id -nu 1000)" --supp-group="$(id -ng 1000),input,video" --login -c /usr/local/bin/shell
+' > /usr/local/bin/login
+chmod +x /usr/local/bin/login
+
+printf '#!/usr/bin/env sh
+dbus-run-session quickshell || {
+	# ask user for lockscreen password and check it:
+	sudo -u 1000 true && bash --norc
+	# to prevent BadUSB, lock when a new input device is connected
+}
+' > /usr/local/bin/shell
+chmod +x /usr/local/bin/shell
+
+printf '#!/apps/env sh
+set -e
+if [ "$1" = set ]; then
+	tz="$2"
+	[ -f /usr/share/zoneinfo/"$tz" ] &&
+		ln -s /usr/share/zoneinfo/"$tz" /etc/localtime
+elif [ "$1" = continents ]; then
+	ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5
+elif [ "$1" = cities ]; then
+	ls -1 /usr/share/zoneinfo/"$2"/* | cut -d / -f6
+elif [ "$1" = check ]; then
+	# get timezone from location
+	# https://www.freedesktop.org/software/geoclue/docs/gdbus-org.freedesktop.GeoClue2.Location.html
+	# https://github.com/evansiroky/timezone-boundary-builder (releases -> timezone-with-oceans-now.geojson.zip)
+	# https://github.com/BertoldVdb/ZoneDetect
+	# tz set "$continent/$city"
+else
+	echo "usage:"
+	echo "	tz set <continent/city>"
+	echo "	tz continents"
+	echo "	tz cities <continent>"
+	echo "	tz check"
+fi
+' > /usr/local/bin/tz
+chmod +x /usr/local/bin/tz
+# sudo rule
+
+echo '#!/bin/sh
+tz check
+' > /etc/NetworkManager/dispatcher.d/09-dispatch-script
+chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
+# https://wiki.archlinux.org/title/NetworkManager#Network_services_with_NetworkManager_dispatcher
+
+# implement spm by wrapping zypper commands
+# install remove update new

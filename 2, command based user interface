@@ -27,14 +27,14 @@ to insert punctuations (in insert mode), press "pun"
 	unless the "pun" key is still pressed, in which case, it will return to normal mode after releasing "pun"
 to insert numbers, press and hold "num"
 
-pressing and releasing "Fn", sends "F1" key press and release
-holding "Fn" and pressing a number eg 2, sends "F2" key
+pressing and releasing "Fn", sends "Super+L" key press (usually bound to session locking)
+holding "Fn" and pressing a number eg 1, sends "F1" key
 
 to insert capital letters, press comma then press the letter
 to insert an all capital word, press two commas
 	the following letters will be inserted in capitalized form, until space is pressed
 this is how it is implemented:
-when comma key is press, keyboard enters the cap mode in which:
+when comma key is pressed, keyboard enters the cap mode in which:
 , pressing a letter key, sends a "backspace" key, and then the capitalized form of that letter,
 	and then the cap mode will be canceled
 , pressing comma again, sends a "backspace" key, and activates caps mode,
