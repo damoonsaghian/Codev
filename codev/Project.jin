@@ -36,9 +36,23 @@
 
 		;; https://gitea.com/user/sign_up
 			https://docs.gitea.com/development/api-usage
-			https://docs.gitea.com/api/#tag/repository/operation/GetAnnotatedTag
-			https://docs.gitea.com/api/#tag/repository/operation/repoUpdateFile
+			https://docs.gitea.com/api/#tag/repository/operation/GetTree
+			https://docs.gitea.com/api/#tag/repository/operation/repoGetContents
 		;; https://codeberg.org/
+		
+		curl https://.../index | curl --create-dirs -K-
+		index file format:
+		url = ""
+		output = ""
+		
+		;; use ssh-keygen to sign/verify files
+		;; use gnunet-identity to obtain the Ed25519 key
+		;; openssh public key format: ed25519 ... user@hostname
+		;; openssh private key format: -----BEGIN OPENSSH PRIVATE KEY-----
+		;; base64-encoded data, that may also be encrypted with a passphrase
+		;; -----END OPENSSH PRIVATE KEY-----
+		;; https://hstechdocs.helpsystems.com/manuals/globalscape/eft82/mergedprojects/admin/ssh_key_formats.htm
+		;; https://en.wikipedia.org/wiki/PKCS_8
 		
 		;; hasbang can be used as free web host that allows to signup using http post
 		;; https://github.com/hashbang/hashbang.sh/blob/master/src/hashbang.html
