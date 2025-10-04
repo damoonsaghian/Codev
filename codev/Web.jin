@@ -1,6 +1,0 @@
-// if qtwebkit is available use that otherwise use qtwebengine
-
-;; use .cache/ and .data/ directories of each project to put cache and config files
-
-;; ".codev" file in a project group directory:
-;; proxy settings
