@@ -24,17 +24,12 @@ set -e
 # 	https://wiki.archlinux.org/title/NetworkManager#Sharing_internet_connection_over_Wi-Fi
 # nmcli connection add wifi-p2p
 
-# make a new system:
-# , install to removable storage device
-# , run PXE server (network booting)
-# https://en.wikipedia.org/wiki/Network_booting
-
 # backup is done on a LUKS encrypted BTRFS formated device using btrfs send/receive
 # https://wiki.tnonline.net/w/Btrfs/Send
-
+#
 # when a backup device is connected run backup automatically
 # show the procedure in status bar
-
+#
 # backup procedure:
 # decrypt and mount the storage device
 # sync the home dir
@@ -245,6 +240,8 @@ manage_passwords() {
 
 echo 'packages:'
 mode="$(menu "upgrade\nremove\ninstall SPM Linux")"
+
+# sudo spm
 
 # if the content of "$spm_dir/status" is "error", turn "packages" and the "update" item under it, red
 

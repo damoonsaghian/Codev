@@ -31,7 +31,7 @@ password prompt closes (showing codev in lock mode) when Escape is pressed,
 start in locked mode
 to prevent BadUSB, lock when a new input device is connected
 
-unlock by cheking user password using "sudo -u 1000 true &&"
+unlock by cheking user password using "doas -u 1000 true &&"
 */
 
 // keybinding to show the launcher

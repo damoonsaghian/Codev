@@ -6,7 +6,7 @@
 // this ends when the command terminates (ie when EOF is send to stdout of the command)
 
 // in "system" if the entered text contains spaces run it in a terminal emulator view
-// if the command is "sudo ..." run: "/usr/bin/sudo ..." in a terminal emulator view
+// if the command is "sudo ..." or "doas ..." run "/usr/bin/sudo ..." or "/usr/bin/doas ..." in a terminal emulator view
 
 // an item for screenshot and screencast
 // put in clipboard
