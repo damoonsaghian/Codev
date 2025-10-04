@@ -22,3 +22,6 @@ gnunet_url=
 # , project name
 # , namespaces (public keys of egos that can be used for publishing)
 # if a namespace is revoked, try the next one
+# the alternative namespaces can only be revealed if one has the revoke message
+# the revoke message will be pre calculated (can take days or weeks)
+# https://docs.gnunet.org/v0.20.x/developers/revocation/revocation.html
