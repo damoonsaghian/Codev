@@ -1,0 +1,38 @@
+CodevShell is a Wayland shell based on QuickShell, with a simple interface
+there will be an application launcher which can be toggled by pressing "super" (mod+mod) or "alt+tab"
+the first item in application launcher is "system", which opens the system menu:
+, session (lock, suspend, exit, reboot, poweroff)
+, connections
+, timezone
+, passwords
+, packages (install, remove, update, make a new system)
+, backup
+if the text entered in the system menu, contains a space, it'll be run in a terminal emulator view
+terminal view can be closed (thus the running process killed) by pressing "escape",
+	or when the command is finished, simply by pressing "space"
+but if you just hide the view by pressing "super" or "atl+tab",
+	it will go to the notification area on taskbar
+press "super+space" or "alt+space" to cycle through notifications
+to close focused window, press "super+backspace" or "alt+escape"
+
+you can easily create a backup of the home directory
+backups will be done using "BTRFS send", so they will be incremental, and thus fast
+the backup device will be encrypted
+each time the device is connected, the backup procedure will be run automatically
+even in case of bit rot, this procedure repairs it automatically
+
+to run a program as root:
+; sudo <command>
+using "sudo" (actually an alias for "doas") in Codev shell does not suffer from these flaws:
+https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/
+https://security.stackexchange.com/questions/119410/why-should-one-use-sudo
+because:
+, when a user enters "sudo" in command line, it will run /usr/bin/sudo without any manipulation
+, reaching to terminal in Codev shell can't be manipulated by normal user
+	app launcher -> system -> sudo <command>
+, Codev shell only allows keyboard input from real keyboard, or from the built'in on'screen keyboard
+, there is no way for normal user to replace Codev shell (if it's started using a display manager)
+all these imply:
+, a malicious program can't steal root password (eg by faking root password entry)
+, to run a command as root, physical access is necessary,
+	because there is no other way to enter root password for sudo

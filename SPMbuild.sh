@@ -1,26 +1,23 @@
 pkg=codev
 
 spm_import qt
-spm_import quickshell # needed for Process qml type, and for coshell
-spm_import gnunet
+spm_import quickshell # needed for Process qml type
+spm_import codev-util
 spm_import curl
 spm_import mauikit-filebrowsing
 spm_import archive
-spm_import fs
-
-# doas rules for sd.sh
 
 spm_xcript inst/app codev
 
-cat <<-__EOF__ > "$project_dir/.cache/spm/$ARCH/app/codev.svg"
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="64" height="64">
-	<rect style="fill:#dddddd" width="56" height="48" x="4" y="8"/>
-	<rect style="fill:#aaaaaa" width="16" height="48" x="4" y="8"/>
-	<path style="fill:none;stroke:#aaaaaa;stroke-width:2;stroke-linecap" d="M 24,16 H 56"/>
-	<path style="fill:none;stroke:#aaaaaa;stroke-width:2;stroke-linecap" d="M 24,24 H 56"/>
-	<path style="fill:none;stroke:#aaaaaa;stroke-width:2;stroke-linecap" d="M 24,32 H 56"/>
-	<path style="fill:none;stroke:#aaaaaa;stroke-width:2;stroke-linecap" d="M 24,40 H 56"/>
-	<path style="fill:none;stroke:#aaaaaa;stroke-width:2;stroke-linecap" d="M 24,48 H 56"/>
-</svg>
-__EOF__
+ln "$pkg_dir/.data/codev.svg" "$pkg_dir/.cache/spm/$ARCH/app/codev.svg"
+
+pkg=codev-shell
+
+spm_import qt
+spm_import quickshell
+
+pkg=codev-util
+
+spm_import gnunet
+
+# doas rules for sd.sh
