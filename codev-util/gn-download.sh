@@ -13,6 +13,10 @@ download_dir="$3"
 # this method ensures that a simple file rename will not impose a download
 # note that this method will also replace corrupted files (eg due to bitrot)
 
+# multiple namespaces to tolerate lost namespaces
+# more than 50% (excluding revoked ones) must agree
+# thus requires at least three namespaces
+
 # find the latest version
 gnunet-search gnunet://fs/sks/$gnunet_namespace/"$publish_name"
 # if above command succeeds (network is connected) but returns empty result: echo "not found"; exit
