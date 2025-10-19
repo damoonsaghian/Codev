@@ -1,21 +1,12 @@
-# install a minimal Alpine Linux system that runs Codev inside Codev Shell
-# copy the contents of the Alpine Linux installer iso file, to a removable storage device formated with FAT32
-# copy the content of this project too
-# now boot to the removable device
-# note that only UEFI systems are supported; they are the only ones providing secure boot
-
-# https://whynothugo.nl/journal/2023/02/18/in-praise-of-alpine-and-apk/
-# https://drewdevault.com/2021/05/06/Praise-for-Alpine-Linux.html
+# install a minimal Alpine Linux system that runs Codev inside CodevShell
 # https://wiki.alpinelinux.org/wiki/Alpine_Linux:Overview
-# https://wiki.alpinelinux.org/wiki/Comparison_with_other_distros
-# https://wiki.alpinelinux.org/wiki/Installation
 # https://gitlab.alpinelinux.org/alpine
 # https://gitlab.alpinelinux.org/alpine/alpine-conf
+# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/alpine-baselayout
 # https://docs.alpinelinux.org/
 # https://wiki.alpinelinux.org/wiki/Daily_driver_guide
 # https://wiki.alpinelinux.org/wiki/Tutorials_and_Howtos
 # https://wiki.alpinelinux.org/wiki/TTY_Autologin
-# apk-autoupdate
 # https://wiki.alpinelinux.org/wiki/Developer_Documentation
 
 if [ $(id -u) != 0 ]; then
@@ -23,32 +14,44 @@ if [ $(id -u) != 0 ]; then
 	exit 1
 fi
 
-echo; echo "available storage devices:"
-printf "\tname\tsize\tmodel\n"
-printf "\t----\t----\t-----\n"
-ls -1 --color=never /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
-	device_size="$(cat /sys/block/"$device_name"/size)"
-	device_size="$((device_size / 1000000))GB"
-	device_model="$(cat /sys/block/"$device_name"/device/model)"
-	printf "\t$device_name\t$device_size\t$device_model\n"
-done
-printf "enter the name of the device to install SPM Linux on: "
-read -r target_device
-test -e /sys/block/"$target_device" || {
-	echo "there is no storage device named \"$target_device\""
-	exit 1
-}
-
-root_partition="$(df / | tail -n 1 | cut -d " " -f 1 | cut -d / -f 3)"
-root_device_num="$(cat /sys/class/block/"$root_partition"/dev | cut -d ":" -f 1):0"
-root_device="$(basename "$(readlink /dev/block/"$root_device_num")")"
-if [ "$target_device" = "$root_device" ]; then
-	echo "can't install on \"$target_device\", since it contains the running system"
-	exit 1
+target_device="$1"
+if [ -z "$target_device" ]; then
+	echo; echo "available storage devices:"
+	printf "\tname\tsize\tmodel\n"
+	printf "\t----\t----\t-----\n"
+	ls -1 --color=never /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
+		device_size="$(cat /sys/block/"$device_name"/size)"
+		device_size="$((device_size / 1000000))GB"
+		device_model="$(cat /sys/block/"$device_name"/device/model)"
+		printf "\t$device_name\t$device_size\t$device_model\n"
+	done
+	printf "enter the name of the device to install SPM Linux on: "
+	read -r target_device
+	test -e /sys/block/"$target_device" || {
+		echo "there is no storage device named \"$target_device\""
+		exit 1
+	}
+	
+	root_partition="$(df / | tail -n 1 | cut -d " " -f 1 | cut -d / -f 3)"
+	root_device_num="$(cat /sys/class/block/"$root_partition"/dev | cut -d ":" -f 1):0"
+	root_device="$(basename "$(readlink /dev/block/"$root_device_num")")"
+	if [ "$target_device" = "$root_device" ]; then
+		echo "can't install on \"$target_device\", since it contains the running system"
+		exit 1
+	fi
 fi
 
-# if target device is removable, or does not support UEFI and TPM2:
-# if the target device has a uefi vfat, a BTRFS partition, and a swap partition,
+if ["$(basename "$0")" = spm ]; then
+	# this script is run through "spm new" command
+	# so we should install Alpine Linux on a removable storage device
+	
+	# in EFI partition with vfat format:
+	# if the file date is not older than 1 month, exit
+	# unified kernel image, signed by current systems key
+	# it only includes programs needed to install Alpine on a system, plus the content of this project
+fi
+
+# if the target device has a uefi vfat, and a BTRFS partition,
 # ask the user whether to to use the current partitions instead of wiping them off
 target_partitions="$(echo /sys/block/"$target_device"/"$target_device"* |
 	sed -n "s/\/sys\/block\/$target_device\///pg")"
@@ -65,7 +68,7 @@ if [ "$target_partition1_is_efi" != true ] ||
 	[ "$target_partition2_fstype" != btrfs ] ||
 	{
 		echo "it seems that the target device is already partitioned properly"
-		printf "do you want to keep them? (Y/n) "
+		printf "do you want to keep the partitions? (Y/n) "
 		read -r answer
 		[ "$answer" = n ]
 	}
@@ -75,21 +78,21 @@ then
 	[ "$answer" = y ] || exit
 	
 	# create partitions
-	(
+	{
 	echo g # create a GPT partition table
 	echo n # new partition
 	echo 1 # make it partition number 1
 	echo # default, start at beginning of disk 
 	echo +512M # 512 MB boot parttion
 	echo t # change partition type
-	echo EFI System
+	echo uefi
 	echo n # new partition
 	echo 2 # make it partion number 2
 	echo # default, start immediately after preceding partition
 	echo # default, extend partition to end of disk
 	echo w # write the partition table
 	echo q # quit
-	) | fdisk "/dev/$target_device" > /dev/null
+	} | fdisk -w always "/dev/$target_device" > /dev/null
 	
 	target_partitions="$(echo /sys/block/"$target_device"/"$target_device"* |
 		sed -n "s/\/sys\/block\/$target_device\///pg")"
@@ -101,12 +104,6 @@ then
 	mkfs.btrfs -f --quiet "$target_partition2"
 fi
 
-# if the selected storage device is removable:
-# , only create one partition
-# , format it with fat32
-# , skip encryption
-
-# if target device is not removable, and supports UEFI and TPM2:
 # create full disk encryption using TPM2
 # https://news.opensuse.org/2025/07/18/fde-rogue-devices/
 # https://microos.opensuse.org/blog/2023-12-20-sdboot-fde/
@@ -115,13 +112,11 @@ fi
 # https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system#LUKS_on_a_partition_with_TPM2_and_Secure_Boot
 # https://documentation.ubuntu.com/security/docs/security-features/storage/encryption-full-disk/
 #
-# an incomplete upgrade can change bootloader or kernel without changing TPM,
-# 	and thus forcing TPM to ask for password, on the next boot
-# but how can we know there was no malicious tampering, and thus anter the password without concern
-# secure boot can help here, so
+# secure boot:
 # , enable secure boot, using custom keys (using efivar)
+# , lock UEFI
 # , when kernel is updated sign kernel and initrd
-#
+# https://security.stackexchange.com/a/281279
 # use efivar to:
 # , enable DMA protection (IOMMU) in UEFI, to make USB4 secure
 # , set UEFI password
@@ -130,19 +125,37 @@ fi
 
 setup-interfaces
 
-apk add linux alpine-base util-linux chrony acpid eudev dbus bluez networkmanager pipewire bash doas gnunet \
-	cryptsetup tpm2-tools efivar
+apk add linux-stable alpine-base musl-locales agetty setpriv chrony acpid eudev dbus doas-sudo-shim bash bash-completion \
+	bluez networkmanager NetworkManager-bluetooth wireless-regdb pipewire bash doas gnunet \
+	cryptsetup tpm2-tools efivar \
+	aria2 pipewire quickshell gnunet
 
-# micro'codes
+# self signed unified kernel image
+# https://wiki.archlinux.org/title/Unified_kernel_image
+# https://wiki.archlinux.org/title/Unified_Extensible_Firmware_Interface/Secure_Boot#Using_your_own_keys
+# https://gitlab.alpinelinux.org/alpine/mkinitfs
+# https://wiki.archlinux.org/title/Microcode
+
+# to prevent BadUSB, cerate evdev rule that when a new input device is connected:
+# touch /tmp/lock-bash
+# chown 1000 /tmp/lock-bash
+
+apk add quickshell || {
+	# build and install quickshell
+}
 
 # codev-shell
 # codev
 # .data/codev.svg
 # doas rules for sd.sh
+# codev executable has setgid 10 that lets it to read (password protected) private keys
 
-apk add base doas NetworkManager-bluetooth aria2 pipewire quickshell gnunet
+# update hook for codev-shell codev and quickshell (if "apk add quickshell" fails)
 
-apk add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-terminal mauikit-documents
+# flatpak: don't allow home dir access
+
+apk add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-terminal mauikit-documents \
+	breeze breeze-icons
 
 apk add qt6-multimedia-imports qt6-webengine-imports qt6-pdf-imports qt6-virtualkeyboard-imports \
 	qt6-location qt6-remoteobjects-imports qt6-sensors-imports qt6-texttospeech \
@@ -150,18 +163,48 @@ apk add qt6-multimedia-imports qt6-webengine-imports qt6-pdf-imports qt6-virtual
 	qt6-3d-imports qt6-quicktimeline-imports qt6-lottie-imports \
 	kf6-kimageformats libQt6Svg6 kquickimageeditor6-imports
 
-# PS1="\e[7m \u@\h \e[0m \e[7m \w \e[0m\n> "
-# do not load ~/.bashrc and ~/bash_profile and ~/.profile
-
 printf '[Service]
 ExecStart=
 ExecStart=-/sbin/agetty -l /usr/local/bin/login --skip-login %I $TERM
 ' > /etc/systemd/system/getty@tty1.service.d/login.conf
 
+chown 1000:1000 /home
+chmod 700 /home
+
+# eudev: when creating /dev/dri devices, set "render" as their group (instead of "video")
+# https://gitlab.alpinelinux.org/alpine/aports/-/issues/15409
+
+touch /home/.config/rc-services
+chown 1000:1000 /home/.config/rc-services
+echo "dbus\npipewire\nwireplumber" >> /home/.config/rc-services
+
 printf '#!/usr/bin/env sh
-runuser --user="$(id -nu 1000)" --supp-group="$(id -ng 1000),input,video,render" --login -c /usr/local/bin/shell
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+export LANG="en_US.UTF-8"
+export MUSL_LOCPATH="/usr/share/i18n/locales/musl"
+export HOME="/home"
+export XDG_RUNTIME_DIR="/run/user/1000"
+export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+export WAYLAND_DISPLAY="wayland-0"
+rm -rf /run/user/1000
+mkdir -p /run/user/1000
+chown 1000:1000 /run/user/1000
+chmod 700 /run/user/1000
+cat /home/.config/rc-services | while read service; do
+	setpriv --reuid=1000 --regid=1000 --groups=video,audio,netdev rc-service --user "$service" restart
+done
+setpriv --reuid=1000 --regid=1000 --groups=input,render,video,audio,netdev --inh-caps=-all codev-shell
 ' > /usr/local/bin/login
 chmod +x /usr/local/bin/login
+
+printf '
+' > /usr/local/share/zsh/.zprofile
+
+printf 'autoload -Uz compinit promptinit
+compinit
+promptinit
+prompt walters
+' > /usr/local/share/zsh/.zshrc
 
 printf '#!/usr/bin/env sh
 dbus-run-session quickshell || {
@@ -217,6 +260,7 @@ printf '#!/usr/bin/env sh
 
 # cp this script to /usr/local/bin/spm-new
 
+# apk-autoupdate
 # autoupdate service
 # service timer: 5min after boot, every 24h
 printf '#!/usr/bin/env sh
@@ -261,6 +305,9 @@ printf '<?xml version="1.0"?>
 	</alias>
 </fontconfig>
 ' > /etc/fonts/local.conf
+
+# set root password
+# chroot /mnt passwd
 
 echo; echo -n "installation completed successfully"
 echo "press any key to reboot to the installed system"
