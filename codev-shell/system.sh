@@ -24,22 +24,24 @@ set -e
 # 	https://wiki.archlinux.org/title/NetworkManager#Sharing_internet_connection_over_Wi-Fi
 # nmcli connection add wifi-p2p
 
-# backup is done on a LUKS encrypted BTRFS formated device using btrfs send/receive
+# home dir backup is done on a LUKS encrypted BTRFS formated device using btrfs send/receive
 # https://wiki.tnonline.net/w/Btrfs/Send
 #
 # when a backup device is connected run backup automatically
 # show the procedure in status bar
 #
 # backup procedure:
-# decrypt and mount the storage device
-# sync the home dir
+# spm new <device-name>
+# decrypt and mount the second partition, then sync it with home dir
 # notes:
 # if there is not enough space, try to backup the most number of projects possible
 # each time a new backup is created, the number stored in .data/backups will be increased
 # this number will be decreased when removing a project from backup
 # when creating a new backup, the projects with least number of backups will take priority
 # do not follow mounts
-# in case of bit rot, use backup to repair
+# in case of bit rot, try to repair
+#
+# maybe in the future, provide home dir backup to a remote device through gnunet
 
 if [ -z "$1" ];then
 	menu() {
@@ -61,10 +63,10 @@ manage_session() {
 	case "$selected_entry" in
 	lock) ;;
 	exit) ;;
-	reboot) sudo dinit-reboot ;;
-	poweroff) sudo dinit-poweroff ;;
+	reboot) doas dinit-reboot ;;
+	poweroff) doas dinit-poweroff ;;
 	suspend) # first lock then
-		sudo zzz ;;
+		doas zzz ;;
 	esac
 }
 
@@ -92,7 +94,7 @@ manage_wifi() {
 		answer="$(menu "no\nyes")"
 		[ "$answer" = yes ] || exit
 		
-		sudo iwctl known-networks "$ssid" forget
+		doas iwctl known-networks "$ssid" forget
 	fi
 }
 
@@ -226,22 +228,10 @@ set_timezone() {
 	tz set "$continent/$city"
 }
 
-manage_passwords() {
-	local answer="$(menu "user password\nsudo password")"
-	
-	[ "$answer" = "user password" ] && while ! passwd --quiet; do
-		echo "an error occured; please try again"
-	done
-	
-	[ "$answer" = "sudo password" ] && while ! sudo passwd --quiet; do
-		echo "an error occured; please try again"
-	done
-}
-
 echo 'packages:'
 mode="$(menu "upgrade\nremove\ninstall SPM Linux")"
 
-# sudo spm
+# doas spm
 
 # if the content of "$spm_dir/status" is "error", turn "packages" and the "update" item under it, red
 

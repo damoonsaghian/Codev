@@ -31,7 +31,36 @@ password prompt closes (showing codev in lock mode) when Escape is pressed,
 start in locked mode
 to prevent BadUSB, lock when a new input device is connected
 
-unlock by cheking user password using "doas -u 1000 true &&"
+first time ask to set a password
+store it in /var/password (only readable by the owner)
+
+https://git.suckless.org/ubase/file/passwd.c.html
+https://git.busybox.net/busybox/tree/loginutils/cryptpw.c
+https://github.com/rfc1036/whois/blob/next/mkpasswd.c
+login: runuser --user="$(id -nu 1000)" --supp-group="$(id -ng 1000),input,video" --login -c /usr/local/bin/shell
+printf "set root password: "
+while true; do
+	read -rs root_password
+	printf "enter password again: "
+	read -rs root_password_again
+	[ "$root_password" = "$root_password_again" ] && break
+	echo "the entered passwords were not the same; try again"
+	printf "set root password: "
+done
+root_password_hashed="$($root_password)"
+mkdir -p "$spm_linux_dir"/var/lib/util-linux/passwd
+echo "$root_password_hashed" > "$spm_linux_dir"/var/lib/util-linux/passwd
+printf "set lock'screen password: "
+while true; do
+	read -rs lock_password
+	printf "enter password again: "
+	read -rs lock_password_again
+	[ "$lock_password" = "$lock_password_again" ] && break
+	echo "the entered passwords were not the same; try again"
+	printf "set lock'screen password: "
+done
+lock_password_hashed=
+echo "$lock_password_hashed" >> "$spm_linux_dir"/var/lib/util-linux/passwd
 */
 
 // keybinding to show the launcher

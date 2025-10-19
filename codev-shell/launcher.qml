@@ -1,12 +1,11 @@
-// run apps with (to clear supplementary groups: video and input):
-// setpriv --clear-groups ...
+// run apps an commands (except system commands) with:
+// doas -u 1000 ...
 
 // the first item is "system" that executes "system ext-menu", read its stdout,
 // shows it in a list for the user to choose, feeds the answer to stdin of the executed command
 // this ends when the command terminates (ie when EOF is send to stdout of the command)
 
 // in "system" if the entered text contains spaces run it in a terminal emulator view
-// if the command is "sudo ..." or "doas ..." run "/usr/bin/sudo ..." or "/usr/bin/doas ..." in a terminal emulator view
 
 // an item for screenshot and screencast
 // put in clipboard
@@ -104,6 +103,17 @@ when an item in the flowbox is clicked, run the app
 /*
 terminal emulator box
 https://api.kde.org/mauikit/mauikit-terminal/html/index.html
+
+term box has a maximum hight which is the reported height, but the visible height adjusts to text
+
+prompt term:
+show PWD above prompt term box
+when /tmp/codevshell-term-env changes, update it
+CODEVSHELL_PROMPT=true
+
+when /tmp/codevshell-command changes, open a term box under the prompt
+CODEVSHELL_COMMAND=$command
+don't close on exit
 
 scroll up: Page_Up
 scroll down: Page_Down
