@@ -1,5 +1,6 @@
-CodevShell is a Wayland shell based on QuickShell, with a simple interface
-there will be an application launcher which can be toggled by pressing "super" (mod+mod) or "alt+tab"
+CodevShell is a Wayland shell, based on QuickShell
+
+there is an application launcher which can be toggled by pressing "super" (mod+mod) or "alt+tab"
 the first item in application launcher is "system", which opens the system menu:
 , session (lock, suspend, exit, reboot, poweroff)
 , connections
@@ -7,32 +8,49 @@ the first item in application launcher is "system", which opens the system menu:
 , passwords
 , packages (install, remove, update, make a new system)
 , backup
-if the text entered in the system menu, contains a space, it'll be run in a terminal emulator view
-terminal view can be closed (thus the running process killed) by pressing "escape",
-	or when the command is finished, simply by pressing "space"
-but if you just hide the view by pressing "super" or "atl+tab",
-	it will go to the notification area on taskbar
-press "super+space" or "alt+space" to cycle through notifications
-to close focused window, press "super+backspace" or "alt+escape"
+to close the focused window, press "super+backspace" or "alt+escape"
 
-you can easily create a backup of the home directory
-backups will be done using "BTRFS send", so they will be incremental, and thus fast
-the backup device will be encrypted
+press "alt+space" to show the terminal emulator; to close it press "ctrl+tab"
+the entered command will be run in a new terminal view, inside a list at the right
+when terminal view finishes its job, if there is any output, its be transfered to the history list under the prompt
+to navigate between terminal views, use "ctrl+pageup" and "ctrl+pagedown" keys
+to navigate in history list, use "up" and "down" arrow keys
+	to re'run a command in history, just press enter on it
+to close a terminal view (that will also kill any running process) press "super+backspace" or "alt+escape"
+
+you can easily create a backup on a removable storage device
+backups will be done using "BTRFS send", so they will be incremental and fast
+the backup device has two partition:
+, a bootable UEFI partition that can recover your entire workflow on a new system
+, an encrypted partition containing a backup of your home directory
 each time the device is connected, the backup procedure will be run automatically
-even in case of bit rot, this procedure repairs it automatically
+even in case of bit rot for data in home directory, this procedure repairs it automatically
+
+SPM Linux (a work in progress) provides a user interface based on CodevShell and Codev
+we can also use Alpine Linux as the underling system to run CodevShell and Codev
+to do that follow these instructions (the commands must be run as root)
+on a removable storage device create a UEFI partition, and format it with FAT32
+; fdisk -l # find the device name, and write it in place of "sdx" in the following commands
+; printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/sdx
+; mkfs.vfat -F 32 /dev/sdx1
+; mount /dev/sdx1 /mnt
+extract the contents of the Alpine Linux installer image file, to /mnt
+also copy the content of this project to /mnt/codev
+now boot to the removable device
+note that only UEFI systems are supported; they are the only ones supporting secure boot
 
 to run a program as root:
 ; sudo <command>
-using "sudo" (actually an alias for "doas") in Codev shell does not suffer from these flaws:
+using "sudo" in CodevShell does not suffer from these flaws:
 https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/
 https://security.stackexchange.com/questions/119410/why-should-one-use-sudo
 because:
-, when a user enters "sudo" in command line, it will run /usr/bin/sudo without any manipulation
-, reaching to terminal in Codev shell can't be manipulated by normal user
+, when a user enters "sudo" in command line, it will run /usr/bin/sudo
+, reaching to terminal in CodevShell can't be manipulated by normal user
 	app launcher -> system -> sudo <command>
-, Codev shell only allows keyboard input from real keyboard, or from the built'in on'screen keyboard
-, there is no way for normal user to replace Codev shell (if it's started using a display manager)
+, CodevShell only allows keyboard input from real keyboard, or from the built'in on'screen keyboard
+, there is no way for normal user to replace CodevShell
+, sudo works only when called from CodevShell
 all these imply:
-, a malicious program can't steal root password (eg by faking root password entry)
-, to run a command as root, physical access is necessary,
-	because there is no other way to enter root password for sudo
+, a malicious program can't steal root password (eg by faking password entry)
+, to run a command as root, physical access is necessary, because there is no other way to enter root password
