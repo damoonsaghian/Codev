@@ -26,31 +26,18 @@ the backup device has two partition:
 each time the device is connected, the backup procedure will be run automatically
 even in case of bit rot for data in home directory, this procedure repairs it automatically
 
-SPM Linux (a work in progress) provides a user interface based on CodevShell and Codev
-we can also use Alpine Linux as the underling system to run CodevShell and Codev
-to do that follow these instructions (the commands must be run as root)
-on a removable storage device create a UEFI partition, and format it with FAT32
-; fdisk -l # find the device name, and write it in place of "sdx" in the following commands
-; printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/sdx
-; mkfs.vfat -F 32 /dev/sdx1
-; mount /dev/sdx1 /mnt
-extract the contents of the Alpine Linux installer image file, to /mnt
-also copy the content of this project to /mnt/codev
-now boot to the removable device
-note that only UEFI systems are supported; they are the only ones supporting secure boot
-
-to run a program as root:
-; sudo <command>
-using "sudo" in CodevShell does not suffer from these flaws:
-https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/
-https://security.stackexchange.com/questions/119410/why-should-one-use-sudo
-because:
-, when a user enters "sudo" in command line, it will run /usr/bin/sudo
-, reaching to terminal in CodevShell can't be manipulated by normal user
-	app launcher -> system -> sudo <command>
-, CodevShell only allows keyboard input from real keyboard, or from the built'in on'screen keyboard
-, there is no way for normal user to replace CodevShell
-, sudo works only when called from CodevShell
-all these imply:
-, a malicious program can't steal root password (eg by faking password entry)
-, to run a command as root, physical access is necessary, because there is no other way to enter root password
+SPM Linux (still a work in progress) provides a user interface based on CodevShell and Codev
+in addition we can use Alpine Linux as the underling system to run CodevShell and Codev
+to do that we just need to be in a Posix system, and do these:
+, on a removable storage device, create a UEFI partition, format it with FAT32
+	run these as root:
+	; fdisk -l # find the device name, and write it in place of "sdx" in the following commands
+	; printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/sdx
+	; mkfs.vfat -F 32 /dev/sdx1
+, mount the removable media
+, download Alpine Linux installation media from: https://alpinelinux.org/downloads/
+	and extract its content into the directory where the removable media was mounted
+, run: sh alpine/mkovl.sh
+	this will create ".cache/localhost.apkovl.tar.gz" file
+	copy that into the directory where the removable media was mounted
+, boot into the installation media, and follow the instructions

@@ -6,7 +6,7 @@ spm_import gnunet
 
 pkg=codev-shell
 
-spm_import zsh
+spm_import bash
 spm_import qt
 spm_import quickshell
 spm_import codev
