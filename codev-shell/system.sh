@@ -41,6 +41,11 @@ set -e
 # do not follow mounts
 # in case of bit rot, try to repair
 #
+# store the public key that is loaded into the uefi, in an encrypted zip file
+# when you want to restore your backup on a new system,
+# you can extract the file and put it in the efi firmware of the new system
+# this way you would be sure that the unencrypted part of backup device (kernel and initramfs) is untampered
+#
 # maybe in the future, provide home dir backup to a remote device through gnunet
 
 if [ -z "$1" ];then
@@ -102,8 +107,8 @@ manage_cell() {
 	echo "not yet implemented"
 }
 
-# the natural usage domain for Bluetooth is personal devices like headsets
-# it perfectly makes sense to pair them per user
+# use nmcli for bluetooth connection or:
+# https://wiki.alpinelinux.org/wiki/Bluetooth#Pairing_with_bluetoothctl
 manage_bluetooth() {
 	local mode= device=
 	

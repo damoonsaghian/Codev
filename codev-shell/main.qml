@@ -63,6 +63,17 @@ lock_password_hashed=
 echo "$lock_password_hashed" >> "$spm_linux_dir"/var/lib/util-linux/passwd
 */
 
+/*
+plugged in: lock after 10 min idle, turn off display after 15 min idle
+battery: decrease brightness after 5 min idle, lock after 10 min idle, turn off display after 11 min idle
+low battery: decrease brightness after 2 min idle, lock and turn off display after 4 min idle,
+	suspend after 5 min idle
+https://wiki.archlinux.org/title/Backlight
+https://github.com/FedeDP/Clight/wiki/Modules#wayland-support
+https://quickshell.org/docs/v0.1.0/types/Quickshell.Widgets/WrapperItem/
+https://doc.qt.io/qt-6/qml-qtquick-effects-multieffect.html
+*/
+
 // keybinding to show the launcher
 // release Super_L or Super_R
 // Alt+space

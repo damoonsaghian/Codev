@@ -12,9 +12,6 @@ _precmd() {
 	# this is for timeout for long running processes
 	[ -n "$START" ] && [ "$((SECONDS-START-TMOUT))" -ge 0 ] && exit
 	START="$SECONDS"
-	
-	# to prevent BadUSB, evdev creates /tmp/lock-bash when a new input device is connected
-	[ -f /tmp/lock-bash ] && rm /tmp/lock-bash && exit
 }
 PROMPT_COMMAND=_precmd
 
