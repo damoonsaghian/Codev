@@ -1,24 +1,43 @@
+set -e
+
 script_dir="$(dirname "$(realpath "$0")")"
 
 ovl_dir="$script_dir"/../.cache/ovl
 rm -r "$ovl_dir"
 mkdir -p "$ovl_dir"
 
+# this is necessary when using an overlay
 mkdir -p "$ovl_dir"/etc
-touch "$ovl_dir"/etc/.default_boot_services
+$ touch "$ovl_dir"/etc/.default_boot_services
 
-mkdir -p "$ovl_dir"/etc/runlevels/default
-ln -sf /etc/init.d/local "$ovl_dir"/etc/runlevels/default
+mkdir -p "$ovl_dir"/codev
+cp -r "$script_dir"/../alpine "$ovl_dir"/codev/
+cp -r "$script_dir"/../codev "$ovl_dir"/codev/
+cp -r "$script_dir"/../codev-shell "$ovl_dir"/codev/
+cp -r "$script_dir"/../codev-util "$ovl_dir"/codev/
 
-printf '#!/usr/bin/env sh
-# run only once
-rm -f /etc/local.d/auto-setup-alpine.start
-rm -f /etc/runlevels/default/local
-sh /codev/alpine/new.sh
-' > "$ovl_dir"/etc/local.d/auto-setup-alpine.start
+mkdir -p "$ovl_dir"/root
+printf 'sh /codev/alpine/new.sh
+' > "$ovl_dir"/root/.profile
 
-cp -r "$script_dir/.. "$ovl_dir"/codev
+print '#!/usr/bin/env sh
+exec login -f root
+' > "$ovl_dir"/usr/local/bin/autologin
+chmod +x "$ovl_dir"/usr/local/bin/autologin
 
-tar --owner=0 --group=0 -czf localhost.apkovl.tar.gz -C ovl "$script_dir"/../.cache/
+printf '::sysinit:/sbin/openrc sysinit
+::sysinit:/sbin/openrc boot
+::wait:/sbin/openrc default
+tty1::respawn:/sbin/getty -n -l /usr/local/bin/autologin 38400 tty1
+tty2::respawn:/sbin/getty 38400 tty2
+tty3::respawn:/sbin/getty 38400 tty3
+tty4::respawn:/sbin/getty 38400 tty4
+tty5::respawn:/sbin/getty 38400 tty5
+tty6::respawn:/sbin/getty 38400 tty6
+::ctrlaltdel:/sbin/reboot
+::shutdown:/sbin/openrc shutdown
+' > "$ovl_dir"/etc/inittab
+
+tar --owner=0 --group=0 -czf "$script_dir"/../.cache/localhost.apkovl.tar.gz "$ovl_dir"
 
 rm -r "$ovl_dir"

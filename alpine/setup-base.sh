@@ -2,7 +2,7 @@ apk_new add alpine-base musl-locales setpriv util-linux-misc \
 	chrony acpid zzz eudev eudev-netifnames dbus doas-sudo-shim bash bash-completion \
 	networkmanager-cli wireless-regdb mobile-broadband-provider-info bluez \
 	pipewire wireplumber pipewire-pulse pipewire-spa-bluez rtkit \
-	bash doas cryptsetup tpm2-tools efivar
+	bash doas btrfs-progs cryptsetup tpm2-tools efivar
 
 # util-linux-misc is needed for exch
 

@@ -35,8 +35,6 @@ if ["$(basename "$0")" = spm ]; then
 	# it only includes programs needed to install Alpine on a system, plus the content of this project
 fi
 
-# if the target device has a uefi vfat, and a BTRFS partition,
-# ask the user whether to to use the current partitions instead of wiping them off
 target_partitions="$(echo /sys/block/"$target_device"/"$target_device"* |
 	sed -n "s/\/sys\/block\/$target_device\///pg")"
 target_partition1="$(echo "$target_partitions" | cut -d " " -f1)"
@@ -47,6 +45,9 @@ fdisk -l /dev/"$target_device" | sed -n "/$target_partition1.*EFI System/p" | {
 }
 target_partition1_fstype="$(blkid /dev/"$target_partition1" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
 target_partition2_fstype="$(blkid /dev/"$target_partition2" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
+
+# if the target device has a uefi vfat, and a BTRFS partition,
+# ask the user whether to to use the current partitions instead of wiping them off
 if [ "$target_partition1_is_efi" != true ] ||
 	[ "$target_partition1_fstype" != vfat ] ||
 	[ "$target_partition2_fstype" != btrfs ] ||
@@ -67,7 +68,7 @@ then
 	echo n # new partition
 	echo 1 # make it partition number 1
 	echo # default, start at beginning of disk 
-	echo +512M # 512 MB boot parttion
+	echo +260M # boot parttion
 	echo t # change partition type
 	echo uefi
 	echo n # new partition
@@ -83,26 +84,31 @@ then
 	target_partition1="$(echo "$target_partitions" | cut -d " " -f1)"
 	target_partition2="$(echo "$target_partitions" | cut -d " " -f2)"
 	
+	
+	
 	# format the partitions
+	apk add btrfs-progs
+	modprobe btrfs
 	mkfs.vfat -F 32 "$target_partition1"
 	mkfs.btrfs -f --quiet "$target_partition2"
+	
+	apk add cryptsetup
+	# create full disk encryption using TPM2
+	# https://news.opensuse.org/2025/07/18/fde-rogue-devices/
+	# https://microos.opensuse.org/blog/2023-12-20-sdboot-fde/
+	# https://en.opensuse.org/Portal:MicroOS/FDE
+	# https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system
+	# https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system#LUKS_on_a_partition_with_TPM2_and_Secure_Boot
+	# https://documentation.ubuntu.com/security/docs/security-features/storage/encryption-full-disk/
+	#
+	# secure boot:
+	# , enable secure boot, using custom keys (using efivar)
+	# , lock UEFI
+	# , when kernel is updated sign kernel and initrd
+	# https://security.stackexchange.com/a/281279
+	# use efivar to:
+	# , enable DMA protection (IOMMU) in UEFI, to make USB4 secure
+	# , set UEFI password
+	
+	# https://wiki.archlinux.org/title/Btrfs#Swap_file
 fi
-
-# create full disk encryption using TPM2
-# https://news.opensuse.org/2025/07/18/fde-rogue-devices/
-# https://microos.opensuse.org/blog/2023-12-20-sdboot-fde/
-# https://en.opensuse.org/Portal:MicroOS/FDE
-# https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system
-# https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system#LUKS_on_a_partition_with_TPM2_and_Secure_Boot
-# https://documentation.ubuntu.com/security/docs/security-features/storage/encryption-full-disk/
-#
-# secure boot:
-# , enable secure boot, using custom keys (using efivar)
-# , lock UEFI
-# , when kernel is updated sign kernel and initrd
-# https://security.stackexchange.com/a/281279
-# use efivar to:
-# , enable DMA protection (IOMMU) in UEFI, to make USB4 secure
-# , set UEFI password
-
-# https://wiki.archlinux.org/title/Btrfs#Swap_file

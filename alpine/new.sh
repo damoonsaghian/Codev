@@ -15,7 +15,7 @@ fi
 
 setup-interfaces -r
 
-. "$script_dir"/setup-disk.sh
+. "$script_dir"/setup-sd.sh
 
 mkdir -p "$new_root"/etc/apk
 echo 'http://dl-cdn.alpinelinux.org/alpine/edge/main
@@ -40,6 +40,7 @@ rc_new() {
 
 . "$script_dir"/setup-boot.sh
 . "$script_dir"/setup-base.sh
+. "$script_dir"/setup-netman.sh
 . "$script_dir"/setup-shell.sh
 
 apk_new add gnunet aria2
