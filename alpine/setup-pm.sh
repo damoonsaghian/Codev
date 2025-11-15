@@ -8,25 +8,6 @@ printf '#!/usr/bin/env sh
 ' > /usr/local/bin/spm
 # doas rules for "spm new"
 
-# regenerate UKI, when efistub or ucodes are updated
-#
-# before spm update/install:
-# rm -f /var/cache/uki/*-ucode.img /var/cache/uki/linux*.efi.stub
-# [ -f /boot/amd-ucode.img] && ln /boot/amd-ucode.img /var/cache/uki/
-# [ -f /boot/intel-ucode.img] && ln /boot/intel-ucode.img /var/cache/uki/
-# [ -f /usr/lib/systemd/boot/efi/linux*.efi.stub ] && ln /usr/lib/systemd/boot/efi/linux*.efi.stub /var/cache/uki/
-# [ -f /usr/lib/stubbyboot/linux*.efi.stub ] && ln /usr/lib/stubbyboot/linux*.efi.stub /var/cache/uki/
-#
-# after spm update/install:
-# [ -f /boot/amd-ucode.img] && ! [ /boot/amd-ucode.img -ef /var/cache/uki/amd-ucode.img ] && uki_regen_required=true
-# [ -f /boot/intel-ucode.img] && ! [ /boot/intel-ucode.img -ef /var/cache/uki/intel-ucode.img ] && uki_regen_required=true
-# [ -f /usr/lib/systemd/boot/efi/linux*.efi.stub ] &&
-# 	! [ /usr/lib/systemd/boot/efi/linux*.efi.stub -ef /var/cache/uki/linux*.efi.stub ] && uki_regen_required=true
-# [ -f /usr/lib/stubbyboot/linux*.efi.stub ] && 
-# 	! [ /usr/lib/stubbyboot/linux*.efi.stub -ef /var/cache/uki/linux*.efi.stub ] && uki_regen_required=true
-# [ "$uki_regen_required$ = true ] && /etc/kernel-hooks.d/uki.hook
-# rm -f /var/cache/uki/*-ucode.img /var/cache/uki/linux*.efi.stub
-
 # cp thid dir to /usr/local/share/spm
 ln -s /usr/local/share/spm/new /usr/local/bin/spm-new
 

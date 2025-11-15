@@ -40,6 +40,7 @@ rc_new() {
 
 . "$script_dir"/setup-boot.sh
 . "$script_dir"/setup-base.sh
+. "$script_dir"/setup-pm.sh
 . "$script_dir"/setup-netman.sh
 . "$script_dir"/setup-shell.sh
 

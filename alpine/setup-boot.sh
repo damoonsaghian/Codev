@@ -10,7 +10,7 @@
 # UKI with a signed TPM2 policy
 # https://0pointer.net/blog/brave-new-trusted-boot-world.html
 
-apk_new add kernel-hooks mkinitfs tpm2-tools efi-mkuki
+apk_new add kernel-hooks mkinitfs tpm2-tools stubbyboot-efistub efi-mkuki
 case "$(cat /etc/apk/arch)" in
 	x86*) apk_new add amd-ucode intel-ucode;;
 esac
@@ -50,6 +50,8 @@ trap "rm -f '$tmpdir'/*; rmdir '$tmpdir'" EXIT HUP INT TERM
 
 mkinitfs -o "$tmpdir"/initramfs "$NEW_VERSION-stable"
 echo 'disable_trigger=yes' >> "$new_root"/etc/mkinitfs/mkinitfs.conf
+# in initrd, use /mnt/boot/pcrsig (in efi partition) to unseal the luks key
+# try /mnt/boot/pcrsig.old if that failed
 
 efi-mkuki \
 	-k "$NEW_VERSION-stable" \
@@ -58,12 +60,29 @@ efi-mkuki \
 	-o /boot/uki.efi \
 	/boot/vmlinuz-stable $microcode "$tmpdir"/initramfs
 
-# .pcrsig tpm-tools PCR11
-# to keep the LUKS key used too encrypt root partition
-# /boot/keys/priv /boot/keys/pub (only readable by root)
-
-# cp /boot/uki /boot/efi/boot/boot${MARCH}.efi
+# TPM2 PCR4
+# create a key pair (only readable by root): /boot/keys/priv /boot/keys/pub
+# then create a policy for pcr4, using the public key, to keep the LUKS key used to encrypt root partition
+# get the hash of uki, and sign it with the private key, and store the signature in /boot/pcrsig
+# 	keep the old on in /boot/pcrsig.old
+# mv /boot/uki.efi /boot/efi/boot/boot${MARCH}.efi
 EOF
 chmod +x "$new_root"/etc/kernel-hooks.d/uki.hook
+
+# regenerate UKI, when efistub or ucodes are updated
+#
+# apk hook before commit:
+# rm -f /var/cache/uki/*-ucode.img /var/cache/uki/linux*.efi.stub
+# [ -f /boot/amd-ucode.img] && ln /boot/amd-ucode.img /var/cache/uki/
+# [ -f /boot/intel-ucode.img] && ln /boot/intel-ucode.img /var/cache/uki/
+# [ -f /usr/lib/stubbyboot/linux*.efi.stub ] && ln /usr/lib/stubbyboot/linux*.efi.stub /var/cache/uki/
+#
+# apk hook after commit:
+# [ -f /boot/amd-ucode.img] && ! [ /boot/amd-ucode.img -ef /var/cache/uki/amd-ucode.img ] && uki_regen_required=true
+# [ -f /boot/intel-ucode.img] && ! [ /boot/intel-ucode.img -ef /var/cache/uki/intel-ucode.img ] && uki_regen_required=true
+# [ -f /usr/lib/stubbyboot/linux*.efi.stub ] && 
+# 	! [ /usr/lib/stubbyboot/linux*.efi.stub -ef /var/cache/uki/linux*.efi.stub ] && uki_regen_required=true
+# [ "$uki_regen_required$ = true ] && /etc/kernel-hooks.d/uki.hook
+# rm -f /var/cache/uki/*-ucode.img /var/cache/uki/linux*.efi.stub
 
 apk_new add linux-stable

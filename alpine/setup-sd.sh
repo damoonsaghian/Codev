@@ -62,7 +62,7 @@ then
 	read -r answer
 	[ "$answer" = y ] || exit
 	
-	# create partitions
+	# create partitionsB
 	{
 	echo g # create a GPT partition table
 	echo n # new partition
@@ -84,31 +84,13 @@ then
 	target_partition1="$(echo "$target_partitions" | cut -d " " -f1)"
 	target_partition2="$(echo "$target_partitions" | cut -d " " -f2)"
 	
-	
+	apk add cryptsetup
 	
 	# format the partitions
 	apk add btrfs-progs
 	modprobe btrfs
 	mkfs.vfat -F 32 "$target_partition1"
 	mkfs.btrfs -f --quiet "$target_partition2"
-	
-	apk add cryptsetup
-	# create full disk encryption using TPM2
-	# https://news.opensuse.org/2025/07/18/fde-rogue-devices/
-	# https://microos.opensuse.org/blog/2023-12-20-sdboot-fde/
-	# https://en.opensuse.org/Portal:MicroOS/FDE
-	# https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system
-	# https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system#LUKS_on_a_partition_with_TPM2_and_Secure_Boot
-	# https://documentation.ubuntu.com/security/docs/security-features/storage/encryption-full-disk/
-	#
-	# secure boot:
-	# , enable secure boot, using custom keys (using efivar)
-	# , lock UEFI
-	# , when kernel is updated sign kernel and initrd
-	# https://security.stackexchange.com/a/281279
-	# use efivar to:
-	# , enable DMA protection (IOMMU) in UEFI, to make USB4 secure
-	# , set UEFI password
 	
 	# https://wiki.archlinux.org/title/Btrfs#Swap_file
 fi

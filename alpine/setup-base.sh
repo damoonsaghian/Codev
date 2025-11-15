@@ -3,7 +3,6 @@ apk_new add alpine-base musl-locales setpriv util-linux-misc \
 	networkmanager-cli wireless-regdb mobile-broadband-provider-info bluez \
 	pipewire wireplumber pipewire-pulse pipewire-spa-bluez rtkit \
 	bash doas btrfs-progs cryptsetup tpm2-tools efivar
-
 # util-linux-misc is needed for exch
 
 rc_new add acpid
