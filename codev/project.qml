@@ -44,7 +44,8 @@ class Project {
 		// use ssh-keygen to sign/verify files
 		// use gnunet-identity to obtain the Ed25519 key
 		// openssh public key format: ed25519 ... user@hostname
-		// openssh private key format: -----BEGIN OPENSSH PRIVATE KEY-----
+		// openssh private key format:
+		// -----BEGIN OPENSSH PRIVATE KEY-----
 		// base64-encoded data, that may also be encrypted with a passphrase
 		// -----END OPENSSH PRIVATE KEY-----
 		// https://hstechdocs.helpsystems.com/manuals/globalscape/eft82/mergedprojects/admin/ssh_key_formats.htm
