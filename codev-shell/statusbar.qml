@@ -5,6 +5,8 @@
 
 // monitor "$spm_dir/status", if it's content is "error", show package manager indicator
 
+// https://wiki.archlinux.org/title/Laptop
+
 /*
 system upgrade indicator: show icon when in'progress, add ! to the icon when failed
 https://github.com/enkore/i3pystatus/wiki/Restart-reminder

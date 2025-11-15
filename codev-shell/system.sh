@@ -70,7 +70,9 @@ manage_session() {
 	exit) ;;
 	reboot) doas dinit-reboot ;;
 	poweroff) doas dinit-poweroff ;;
-	suspend) # first lock then
+	suspend)
+		# if swap file's size is not enough, ask for increase
+		# first lock then
 		doas zzz ;;
 	esac
 }
