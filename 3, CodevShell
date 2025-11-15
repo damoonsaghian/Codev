@@ -10,19 +10,25 @@ the first item in application launcher is "system", which opens the system menu:
 , backup
 to close the focused window, press "super+backspace" or "alt+escape"
 
-press "alt+space" to show the terminal emulator; to close it press "ctrl+tab"
+entering "space" as the first character in application launcher, opens terminal emulator
 the entered command will be run in a new terminal view, inside a list at the right
 when terminal view finishes its job, if there is any output, its be transfered to the history list under the prompt
 to navigate between terminal views, use "ctrl+pageup" and "ctrl+pagedown" keys
+to go back to the prompt, press "ctrl+tab"
 to navigate in history list, use "up" and "down" arrow keys
-	to re'run a command in history, just press enter on it
+	to re'run a command in history, press enter on it to insert it in the prompt
 to close a terminal view (that will also kill any running process) press "super+backspace" or "alt+escape"
 
-you can easily create a backup on a removable storage device
+packages will be updated automatically, and it's an atomic process
+nonetheless, to have a really fail'safe system, redundant systems are necessary
+
+there is a timer that automatically downloads and merges project groups
+so all devices with the same egos, will be synced automatically
+
+you can also create a backup on a removable storage device
 backups will be done using "BTRFS send", so they will be incremental and fast
-the backup device has two partition:
-, a bootable UEFI partition that can recover your entire workflow on a new system
-, an encrypted partition containing a backup of your home directory
+the backup device has an encrypted partition containing a backup of your home directory
+	dencryption can be done using a password, as well as a key stored on the computer
 each time the device is connected, the backup procedure will be run automatically
 even in case of bit rot for data in home directory, this procedure repairs it automatically
 
