@@ -31,8 +31,7 @@ set -e
 # show the procedure in status bar
 #
 # backup procedure:
-# spm new <device-name>
-# decrypt and mount the second partition, then sync it with home dir
+# decrypt and mount the storage device, then sync it with home dir
 # notes:
 # if there is not enough space, try to backup the most number of projects possible
 # each time a new backup is created, the number stored in .data/backups will be increased
@@ -41,12 +40,10 @@ set -e
 # do not follow mounts
 # in case of bit rot, try to repair
 #
-# store the public key that is loaded into the uefi, in an encrypted zip file
-# when you want to restore your backup on a new system,
-# you can extract the file and put it in the efi firmware of the new system
-# this way you would be sure that the unencrypted part of backup device (kernel and initramfs) is untampered
+# when restoring a backup, check its gnunet url, and download and merge that, if it's newer
 #
-# maybe in the future, provide home dir backup to a remote device through gnunet
+# backup trough gnunet F2F
+# there is a timer that automatically syncs project groups, through this F2F network
 
 if [ -z "$1" ];then
 	menu() {
