@@ -7,7 +7,7 @@ the first item in application launcher is "system", which opens the system menu:
 , timezone
 , passwords
 , packages (install, remove, update, make a new system)
-, backup
+, backup (create, restore)
 to close the focused window, press "super+backspace" or "alt+escape"
 
 entering "space" as the first character in application launcher, opens terminal emulator
@@ -22,18 +22,17 @@ to close a terminal view (that will also kill any running process) press "super+
 packages will be updated automatically, and it's an atomic process
 nonetheless, to have a really fail'safe system, redundant systems are necessary
 
-there is a timer that automatically downloads and merges project groups
-so all devices with the same egos, will be synced automatically
-
-you can also create a backup on a removable storage device
+you can create a backup on a removable storage device
 backups will be done using "BTRFS send", so they will be incremental and fast
-the backup device has an encrypted partition containing a backup of your home directory
+the backup device is encrypted, and contains a backup of your home directory
 	dencryption can be done using a password, as well as a key stored on the computer
 each time the device is connected, the backup procedure will be run automatically
 even in case of bit rot for data in home directory, this procedure repairs it automatically
+this backup can be easily rstored on a new system
+these systems will then form an F2F network using GNUnet, through which will be synced to each other
 
 SPM Linux (still a work in progress) provides a user interface based on CodevShell and Codev
-in addition we can use Alpine Linux as the underling system to run CodevShell and Codev
+meawhile we can use Alpine Linux as the underling system to run CodevShell and Codev
 to do that we just need to be in a Posix system, and do these:
 , on a removable storage device, create a UEFI partition, format it with FAT32
 	run these as root:
