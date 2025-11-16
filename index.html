@@ -147,7 +147,7 @@ body {
 </div><div>, timezone
 </div><div>, passwords
 </div><div>, packages (install, remove, update, make a new system)
-</div><div>, backup
+</div><div>, backup (create, restore)
 </div><div>to close the focused window, press "super+backspace" or "alt+escape"
 </div><div>
 </div><div>entering "space" as the first character in application launcher, opens terminal emulator
@@ -162,18 +162,17 @@ body {
 </div><div>packages will be updated automatically, and it's an atomic process
 </div><div>nonetheless, to have a really fail'safe system, redundant systems are necessary
 </div><div>
-</div><div>there is a timer that automatically downloads and merges project groups
-</div><div>so all devices with the same egos, will be synced automatically
-</div><div>
-</div><div>you can also create a backup on a removable storage device
+</div><div>you can create a backup on a removable storage device
 </div><div>backups will be done using "BTRFS send", so they will be incremental and fast
-</div><div>the backup device has an encrypted partition containing a backup of your home directory
+</div><div>the backup device is encrypted, and contains a backup of your home directory
 </div><div>	dencryption can be done using a password, as well as a key stored on the computer
 </div><div>each time the device is connected, the backup procedure will be run automatically
 </div><div>even in case of bit rot for data in home directory, this procedure repairs it automatically
+</div><div>this backup can be easily rstored on a new system
+</div><div>these systems will then form an F2F network using GNUnet, through which will be synced to each other
 </div><div>
 </div><div>SPM Linux (still a work in progress) provides a user interface based on CodevShell and Codev
-</div><div>in addition we can use Alpine Linux as the underling system to run CodevShell and Codev
+</div><div>meawhile we can use Alpine Linux as the underling system to run CodevShell and Codev
 </div><div>to do that we just need to be in a Posix system, and do these:
 </div><div>, on a removable storage device, create a UEFI partition, format it with FAT32
 </div><div>	run these as root:
