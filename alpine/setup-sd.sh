@@ -85,6 +85,10 @@ then
 	target_partition2="$(echo "$target_partitions" | cut -d " " -f2)"
 	
 	apk add cryptsetup
+	# other than a key based slot, create a password slot
+	# warn the user that the passwrod must not be used carelessly
+	# only if the system is tampered it will ask for the password
+	# use password only if you are sure that the source of tamper is yourself
 	
 	# format the partitions
 	apk add btrfs-progs
@@ -94,3 +98,5 @@ then
 	
 	# https://wiki.archlinux.org/title/Btrfs#Swap_file
 fi
+
+# put the boot partition in fstab
