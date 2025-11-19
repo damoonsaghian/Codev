@@ -85,6 +85,11 @@ then
 	target_partition2="$(echo "$target_partitions" | cut -d " " -f2)"
 	
 	apk add cryptsetup
+	# generate a new key and add it to the LUKS partition
+	luks_key_file="$(mktemp)"
+	chmod 600 "$luks_key_file"
+	dd if=/dev/random of="$luks_key_file" bs=32 count=1
+	cryptsetup luksAddKey "$target_partition2" "$luks_key_file"
 	# other than a key based slot, create a password slot
 	# warn the user that the passwrod must not be used carelessly
 	# only if the system is tampered it will ask for the password
