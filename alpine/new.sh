@@ -57,6 +57,7 @@ apk add qt6-multimedia-imports qt6-webengine-imports qt6-pdf-imports qt6-virtual
 	kf6-kimageformats libQt6Svg6 kquickimageeditor6-imports
 
 # install codev
+# /usr/local/share/codev
 # .data/codev.svg
 # doas rules for sd.sh
 # codev executable has setgid 10 that lets it to read (password protected) private keys

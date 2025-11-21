@@ -14,5 +14,8 @@ apk add quickshell || {
 # https://doc.qt.io/qt-6/qtvirtualkeyboard-deployment-guide.html#integration-method
 
 # install codev-shell
+# /usr/local/share/codev-shell
+# /usr/local/share/codev-util
+# /usr/local/share/alpine
 
 # update hook for codev-shell

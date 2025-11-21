@@ -27,12 +27,16 @@ fi
 
 if ["$(basename "$0")" = spm ]; then
 	# this script is run through "spm new" command
-	# so we should install Alpine Linux on a removable storage device
+	# ask user for mode of installation
+	# , intall on internal storage device
+	# , install on removable storage device (to install Alpine on another system)
 	
-	# in EFI partition with vfat format:
-	# if the file date is not older than 1 month, exit
-	# unified kernel image, signed by current systems key
-	# it only includes programs needed to install Alpine on a system, plus the content of this project
+	if [ "$installation_mode" = removable ]; then
+		# if the device does not have one EFI partition of at least 500MB size with fat32 format, create it
+		# create  an initramfs that includes programs needed to install Alpine, plus the content of this project
+		# https://wiki.alpinelinux.org/wiki/How_to_make_a_custom_ISO_image_with_mkimage
+		exit
+	fi
 fi
 
 target_partitions="$(echo /sys/block/"$target_device"/"$target_device"* |
@@ -46,15 +50,28 @@ fdisk -l /dev/"$target_device" | sed -n "/$target_partition1.*EFI System/p" | {
 target_partition1_fstype="$(blkid /dev/"$target_partition1" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
 target_partition2_fstype="$(blkid /dev/"$target_partition2" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
 
-# if the target device has a uefi vfat, and a BTRFS partition,
+# if the target device has a uefi vfat, and a LUKS encrypted BTRFS partition,
 # ask the user whether to to use the current partitions instead of wiping them off
 if [ "$target_partition1_is_efi" != true ] ||
 	[ "$target_partition1_fstype" != vfat ] ||
-	[ "$target_partition2_fstype" != btrfs ] ||
+	[ "$target_partition2_fstype" != luks ] ||
 	{
 		echo "it seems that the target device is already partitioned properly"
 		printf "do you want to keep the partitions? (Y/n) "
 		read -r answer
+		[ "$answer" != n ] && while [ "$answer" != n ]; do
+			echo "enter the password to open the encrypted root partition"
+			cryptsetup open --allow-discards --persistent --type luks  "$target_partition2" "root" || {
+				echo "you entered wrong password to decrypt root partition; try again? (Y/n) "
+				read -r answer
+				[ "$answer" = n ] && break
+			}
+			root_fstype="$(blkid /dev/mapper/root | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
+			[ "$root_fstype" = btrfs ] || {
+				echo "can't use the root partition, cause its file system is not BTRFS"
+				answer=n
+			}
+		}
 		[ "$answer" = n ]
 	}
 then
@@ -84,24 +101,33 @@ then
 	target_partition1="$(echo "$target_partitions" | cut -d " " -f1)"
 	target_partition2="$(echo "$target_partitions" | cut -d " " -f2)"
 	
+	mkfs.vfat -F 32 "$target_partition1"
+	
 	apk add cryptsetup
-	# generate a new key and add it to the LUKS partition
 	luks_key_file="$(mktemp)"
 	chmod 600 "$luks_key_file"
 	dd if=/dev/random of="$luks_key_file" bs=32 count=1
-	cryptsetup luksAddKey "$target_partition2" "$luks_key_file"
-	# other than a key based slot, create a password slot
+	cryptsetup luksFormat "$target_partition2" "$luks_key_file"
+	# other than a key based slot, create a password based slot
 	# warn the user that the passwrod must not be used carelessly
 	# only if the system is tampered it will ask for the password
 	# use password only if you are sure that the source of tamper is yourself
+	cryptsetup luksAddKey "$target_partition2"
+	cryptsetup open --allow-discards --persistent --type luks --key-file "$luks_key_file" "$target_partition2" "root"
 	
-	# format the partitions
 	apk add btrfs-progs
 	modprobe btrfs
-	mkfs.vfat -F 32 "$target_partition1"
-	mkfs.btrfs -f --quiet "$target_partition2"
+	mkfs.btrfs -f --quiet "/dev/mapper/root"
 	
 	# https://wiki.archlinux.org/title/Btrfs#Swap_file
 fi
 
 # put the boot partition in fstab
+
+mount /dev/mapper/root /mnt
+new_root=/mnt
+
+mount "$target_partition1" /mnt/boot
+
+cryptroot_uuid= # from $taget_partition2
+root_uuid= # from /dev/mapper/root
