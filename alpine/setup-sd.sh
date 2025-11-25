@@ -105,10 +105,9 @@ then
 	
 	apk add cryptsetup
 	luks_key_file="$(mktemp)"
-	chmod 600 "$luks_key_file"
-	dd if=/dev/random of="$luks_key_file" bs=32 count=1
+	dd if=/dev/random of="$luks_key_file" bs=32 count=1 status=none
 	cryptsetup luksFormat "$target_partition2" "$luks_key_file"
-	# other than a key based slot, create a password based slot
+	# other than a key'based slot, create a password based slot
 	# warn the user that the passwrod must not be used carelessly
 	# only if the system is tampered it will ask for the password
 	# use password only if you are sure that the source of tamper is yourself
@@ -123,11 +122,26 @@ then
 fi
 
 # put the boot partition in fstab
+# use discard option, if the target device supports queued trim
+[ "$(cat /sys/block/"$target_device"/queue/discard_zeroes_data)" == 1 ] &&
 
-mount /dev/mapper/root /mnt
-new_root=/mnt
+new_root="$(mktemp -d)"
 
-mount "$target_partition1" /mnt/boot
+mount /dev/mapper/root "$new_root"
+mount "$target_partition1" "$new_root"/boot
+
+cat "$luks_key_file" > "$new_root"/var/lib/luks/key1
+chmod 600 "$new_root"/var/lib/luks/key1
+dd if=/dev/random of="$new_root"/var/lib/luks/key2 bs=32 count=1 status=none
+dd if=/dev/random of="$new_root"/var/lib/luks/key3 bs=32 count=1 status=none
+chmod 600 "$new_root"/var/lib/luks/key2
+chmod 600 "$new_root"/var/lib/luks/key3
+cryptsetup luksAddKey "$target_partition2" --keyfile "$new_root"/var/lib/luks/key2
+cryptsetup luksAddKey "$target_partition2" --keyfile "$new_root"/var/lib/luks/key3
+
+# before shutdown/suspend hook and before unmount, run "fstrim <mount-point>" for devices supporting unqueued trim
+# [ "$(cat /sys/block/"$device"/queue/discard_granularity)" -gt 0 ] &&
+# [ "$(cat /sys/block/"$device"/queue/discard_max_bytes)" -lt 2147483648 ] &&
 
 cryptroot_uuid= # from $taget_partition2
 root_uuid= # from /dev/mapper/root

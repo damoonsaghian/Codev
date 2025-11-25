@@ -15,21 +15,35 @@ linux	/efi/boot/vmlinuz
 [ -f /boot/intel-ucode.img ] && echo "initrd	/efi/boot/intel-ucode.img" >> "$new_root"/boot/loader/entries/alpine.conf
 printf "initrd	/efi/boot/initramfs
 options	root=UUID=$root_uuid ro modules=sd-mod,usb-storage,btrfs,nvme quiet rootfstype=btrfs
-options root=UUID=$cryptroot_uuid cryptkey=EXEC=/usr/local/bin/tpm-unseal-luks-key
+options root=UUID=$cryptroot_uuid cryptkey=EXEC=/usr/local/bin/tpm-get-luks-key
 " >> "$new_root"/boot/loader/entries/alpine.conf
+
+# mount root with discard, if the target device supports queued trim
+if [ "$(cat /sys/block/"$target_device"/queue/discard_granularity)" -gt 0 ] &&
+	[ "$(cat /sys/block/"$target_device"/queue/discard_max_bytes)" -gt 2147483648 ]
+then
+	echo "options rootflags=discard" >> "$new_root"/boot/loader/entries/alpine.conf
+fi
 
 printf 'default alpine.conf
 timeout 0
 auto-entries no
 ' > "$new_root"/boot/loader/loader.conf
 
-echo 'disable_trigger=yes' >> "$new_root"/etc/mkinitfs/mkinitfs.conf
+cp "$script_dir/tpm-get-luks-key.sh" "$new_root"/usr/local/bin/tpm-get-luks-key
+chmod +x "$new_root"/usr/local/bin/tpm-get-luks-key
+echo '/usr/bin/tpm2_unseal
+/usr/local/bin/tpm-get-luks-key
+' > /etc/mkinitfs/features.d/tpm.files
 
-cp "$script_dir/tpm-unseal-luks-key.sh" "$new_root"/usr/local/bin/tpm-unseal-luks-key
-chmod +x "$new_root"/usr/local/bin/tpm-unseal-luks-key
+# initfs_features
+# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-disk.in
+echo "features=\"$initfs_features tpm\"
+disable_trigger=yes
+" > "$new_root"/etc/mkinitfs/mkinitfs.conf
 
-cp "$script_dir/pcr-policy-hook.sh" "$new_root"/etc/kernel-hooks.d/tpm-policy.hook
-chmod +x "$new_root"/etc/kernel-hooks.d/tpm-policy.hook
+cp "$script_dir/update-boot.sh" "$new_root"/etc/kernel-hooks.d/update-boot.hook
+chmod +x "$new_root"/etc/kernel-hooks.d/update-boot.hook
 
 # regenerate tpm policy, when systemd-boot or ucodes are updated
 # apk hook after commit:

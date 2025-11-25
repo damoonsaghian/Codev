@@ -1,8 +1,6 @@
-set -e
-
 script_dir="$(dirname "$(realpath "$0")")"
 
-ovl_dir="$script_dir"/../.cache/ovl
+ovl_dir="$script_dir"/../.cache/alpine/ovl
 rm -r "$ovl_dir"
 mkdir -p "$ovl_dir"
 
@@ -38,6 +36,7 @@ tty6::respawn:/sbin/getty 38400 tty6
 ::shutdown:/sbin/openrc shutdown
 ' > "$ovl_dir"/etc/inittab
 
-tar --owner=0 --group=0 -czf "$script_dir"/../.cache/localhost.apkovl.tar.gz "$ovl_dir"
+rm -f "$script_dir"/../.cache/alpine/localhost.apkovl.tar.gz
+tar --owner=0 --group=0 -czf "$script_dir"/../.cache/alpine/localhost.apkovl.tar.gz "$ovl_dir"
 
 rm -r "$ovl_dir"
