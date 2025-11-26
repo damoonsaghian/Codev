@@ -1,4 +1,4 @@
-case "$(cat /etc/apk/arch)" in
+case "$(uname -m)" in
 x86*)
 	cpu_vendor_id="$(cat /proc/cpuinfo | grep vendor_id | head -n1 | sed -n "s/vendor_id[[:space:]]*:[[:space:]]*//p")"
 	[ "$cpu_vendor_id" = AuthenticAMD ] && apk_new add amd-ucode
@@ -30,7 +30,7 @@ timeout 0
 auto-entries no
 ' > "$new_root"/boot/loader/loader.conf
 
-cp "$script_dir/tpm-get-luks-key.sh" "$new_root"/usr/local/bin/tpm-get-luks-key
+cp "$script_dir/../codev-util/tpm-get-luks-key.sh" "$new_root"/usr/local/bin/tpm-get-luks-key
 chmod +x "$new_root"/usr/local/bin/tpm-get-luks-key
 echo '/usr/bin/tpm2_unseal
 /usr/local/bin/tpm-get-luks-key
@@ -42,11 +42,11 @@ echo "features=\"$initfs_features tpm\"
 disable_trigger=yes
 " > "$new_root"/etc/mkinitfs/mkinitfs.conf
 
-cp "$script_dir/update-boot.sh" "$new_root"/etc/kernel-hooks.d/update-boot.hook
+cp "$script_dir/../codev-util/update-boot.sh" "$new_root"/etc/kernel-hooks.d/update-boot.hook
 chmod +x "$new_root"/etc/kernel-hooks.d/update-boot.hook
 
 # regenerate tpm policy, when systemd-boot or ucodes are updated
 # apk hook after commit:
-# [ -f /usr/lib/systemd/boot/efi/system-boot*.efi ] || [ -f /boot/*-ucode.img] && /etc/kernel-hooks.d/pcr-policy.hook
+# [ -f /usr/lib/systemd/boot/efi/system-boot*.efi ] || [ -f /boot/*-ucode.img] && /etc/kernel-hooks.d/update-boot.hook
 
 apk_new add linux-stable

@@ -8,8 +8,12 @@ printf '#!/usr/bin/env sh
 ' > /usr/local/bin/spm
 # doas rules for "spm new"
 
-# cp thid dir to /usr/local/share/spm
-ln -s /usr/local/share/spm/new /usr/local/bin/spm-new
+# cp this dir to /usr/local/share/spm
+
+printf '#!/usr/bin/env sh
+exec sh /usr/local/share/spm/new.sh
+' > "$new_root"/usr/local/bin/spm-new
+chmod +x "$new_root"/usr/local/bin/spm-new
 
 # apk-autoupdate
 # autoupdate service

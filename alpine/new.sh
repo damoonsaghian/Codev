@@ -15,7 +15,12 @@ fi
 
 setup-interfaces -r
 
-. "$script_dir"/setup-sd.sh
+apk add cryptsetup btrfs-progs
+sh "$script_dir"/../codev-util/sd-new-sys.sh | {
+	read -r new_root
+	read -r cryptroot_uuid
+	read -r root_uuid
+}
 
 mkdir -p "$new_root"/etc/apk
 echo 'http://dl-cdn.alpinelinux.org/alpine/edge/main
@@ -47,10 +52,10 @@ rc_new() {
 apk_new add gnunet aria2
 # https://wiki.alpinelinux.org/wiki/GNUnet
 
-apk add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-terminal mauikit-documents \
+apk_new add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-terminal mauikit-documents \
 	breeze breeze-icons
 
-apk add qt6-multimedia-imports qt6-webengine-imports qt6-pdf-imports qt6-virtualkeyboard-imports \
+apk_new add qt6-multimedia-imports qt6-webengine-imports qt6-pdf-imports qt6-virtualkeyboard-imports \
 	qt6-location qt6-remoteobjects-imports qt6-sensors-imports qt6-texttospeech \
 	qt6-charts-imports qt6-graphs-imports qt6-datavisualization-imports qt6-quick3d-imports qt6-quick3dphysics-imports \
 	qt6-3d-imports qt6-quicktimeline-imports qt6-lottie-imports \
@@ -64,6 +69,6 @@ apk add qt6-multimedia-imports qt6-webengine-imports qt6-pdf-imports qt6-virtual
 # update hook for codev
 
 echo; echo -n "installation completed successfully"
-echo "press any key to reboot to the installed system"
+echo "press any key to reboot the system"
 read -rsn1
 reboot
