@@ -6,7 +6,6 @@ new_kernel_version="$2"
 # hook triggered for the kernel removal, nothing to do here
 [ "$new_kernel_version" ] || exit 0
 
-# mount boot partition in /boot
 # use discard option, if the target device supports queued trim
 if [ "$(cat /sys/block/"$target_device"/queue/discard_zeroes_data)" == 1 ]; then
 else
@@ -31,6 +30,9 @@ fi
 # plus sha256 sum of 0x00000000 (32 bits of zeros): df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119
 # plus sha256 sum of /boot/efi/boot-new/"$efi_name"
 # plus sha256 sum of /boot/efi/boot-new/vmlinuz
+# https://github.com/grawity/tpm_futurepcr#usage
+# https://github.com/grawity/tpm_futurepcr/blob/main/tpm_futurepcr/__init__.py
+
 
 if [ -f /boot/amd-ucode.img ]; then
 	mv /boot/amd-ucode.img /boot/efi/boot-new/amd-ucode.img
@@ -47,7 +49,7 @@ intel_ucode_paths=
 [ -f /boot/efi/boot-new/amd-ucode.img ] && amd_ucode_paths="/boot/efi/boot-new/amd-ucode.img"
 [ -f /boot/efi/boot-new/intel-ucode.img ] && intel_ucode_paths="/boot/efi/boot-new/intel-ucode.img"
 
-mkinitfs -o /boot/efi/boot-new/initramfs "${new_kernel_version}-stable"
+mkinitfs -P /usr/local/share/mkinitfs/features -o /boot/efi/boot-new/initramfs "${new_kernel_version}-stable"
 
 initramfs_sum="$(cat "$amd_ucode_path" "$intel_ucode_path" /boot/efi/boot-new/initramfs | sha256sum)"
 # initramfs_sum as pcr9 digest
@@ -91,6 +93,8 @@ if [ ! -f signing_key_private.pem ]; then
 	# create secure passphrase and seal to the sealing object
 	cat /var/lib/luks/key1 |
 		tpm2_create -g sha256 -u auth_pcr_seal_key.pub -r auth_pcr_seal_key.priv -i- -C prim.ctx -L authorized.policy
+	
+	# tpm2_nvwrite
 	
 	tpm2_createpolicy -P -L sha1:4,9,12 -f policy.digest
 	tpm2_createprimary -H e -g sha1 -G rsa -C primary.context
