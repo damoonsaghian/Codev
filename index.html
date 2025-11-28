@@ -138,28 +138,30 @@ body {
 </div><div>Kinesis Advantage 2 keyboard
 </div><div><a href="http://www.allthingsergo.com/the-best-ergonomic-mechanical-keyboards/">http://www.allthingsergo.com/the-best-ergonomic-mechanical-keyboards/</a>
 </div>
-<h2>3, CodevShell</h2><div>CodevShell is a Wayland shell, based on QuickShell
+<h2>3, CodevShell</h2><div>CodevShell is a Wayland shell, based on QuickShell (<a href="https://quickshell.org/">https://quickshell.org/</a>)
 </div><div>
 </div><div>there is an application launcher which can be toggled by pressing "super" (mod+mod) or "alt+tab"
-</div><div>the first item in application launcher is "system", which opens the system menu:
+</div><div>applications will be opened in their own workspace,	that will also contain any extra windows opened by that application
+</div><div>to close the focused window, press "super+backspace" or "alt+escape"
+</div><div>
+</div><div>entering "space" as the first character in application launcher, opens terminal emulator
+</div><div>the entered command will be run in a new terminal view, inside a list at the right column
+</div><div>when terminal view finishes its job, if there is any output, it'll be transfered to the history list under the prompt
+</div><div>to navigate between terminal views, use "ctrl+pageup" and "ctrl+pagedown" keys
+</div><div>to go back to the prompt, press "ctrl+tab"
+</div><div>to navigate in history list, use "up" and "down" arrow keys
+</div><div>	you can press enter on an entry to insert the command in the prompt, to edit and/or run it
+</div><div>to close a terminal view (that will also kill any running process) press "super+backspace" or "alt+escape"
+</div><div>
+</div><div>the first item in the application launcher is "system", which opens the system menu:
 </div><div>, session (lock, suspend, exit, reboot, poweroff)
 </div><div>, connections
 </div><div>, timezone
 </div><div>, passwords
 </div><div>, packages (install, remove, update, make a new system)
 </div><div>, backup (create, restore)
-</div><div>to close the focused window, press "super+backspace" or "alt+escape"
 </div><div>
-</div><div>entering "space" as the first character in application launcher, opens terminal emulator
-</div><div>the entered command will be run in a new terminal view, inside a list at the right
-</div><div>when terminal view finishes its job, if there is any output, its be transfered to the history list under the prompt
-</div><div>to navigate between terminal views, use "ctrl+pageup" and "ctrl+pagedown" keys
-</div><div>to go back to the prompt, press "ctrl+tab"
-</div><div>to navigate in history list, use "up" and "down" arrow keys
-</div><div>	to re'run a command in history, press enter on it to insert it in the prompt
-</div><div>to close a terminal view (that will also kill any running process) press "super+backspace" or "alt+escape"
-</div><div>
-</div><div>packages will be updated automatically, and it's an atomic process
+</div><div>packages are updated automatically; and the update process is atomic
 </div><div>nonetheless, to have a really fail'safe system, redundant systems are necessary
 </div><div>
 </div><div>you can create a backup on a removable storage device
@@ -168,23 +170,23 @@ body {
 </div><div>	dencryption can be done using a password, as well as a key stored on the computer
 </div><div>each time the device is connected, the backup procedure will be run automatically
 </div><div>even in case of bit rot for data in home directory, this procedure repairs it automatically
-</div><div>this backup can be easily rstored on a new system
-</div><div>these systems will then form an F2F network using GNUnet, through which will be synced to each other
+</div><div>this backup can be easily restored on a new system
+</div><div>these systems will then form an F2F network using GNUnet, through which they will be synced to each other
 </div><div>
 </div><div>SPM Linux (still a work in progress) provides a user interface based on CodevShell and Codev
-</div><div>meawhile we can use Alpine Linux as the underling system to run CodevShell and Codev
-</div><div>to do that we just need to be in a Posix system, and do these:
-</div><div>, on a removable storage device, create a UEFI partition, format it with FAT32
-</div><div>	run these as root:
-</div><div>	; fdisk -l # find the device name, and write it in place of "sdx" in the following commands
+</div><div>meanwhile we can use Alpine Linux as the underling system to run CodevShell and Codev
+</div><div>for that we just need to be in a Posix system, and do these:
+</div><div>, on a removable storage device, create a UEFI partition, and format it with FAT32
+</div><div>	to do those, run these as root:
+</div><div>	; fdisk -l # find the name of the device, and write it in place of "sdx" in the following commands
 </div><div>	; printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/sdx
 </div><div>	; mkfs.vfat -F 32 /dev/sdx1
 </div><div>, mount the removable media
 </div><div>, download Alpine Linux installation media from: https://alpinelinux.org/downloads/
-</div><div>	and extract its content into the directory where the removable media was mounted
-</div><div>, run: sh alpine/mkovl.sh
-</div><div>	this will create ".cache/localhost.apkovl.tar.gz" file
-</div><div>	copy that into the directory where the removable media was mounted
-</div><div>, boot into the installation media, and follow the instructions
+</div><div>	then extract its content into the directory where the removable media was mounted
+</div><div>, run this: sh alpine/mkovl.sh
+</div><div>	that will create a file at ".cache/alpine/localhost.apkovl.tar.gz"
+</div><div>	copy that too, into the directory where the removable media was mounted
+</div><div>, now boot into the installation media, and follow the instructions
 </div>
 </body></html>
