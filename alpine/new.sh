@@ -16,11 +16,23 @@ fi
 setup-interfaces -r
 
 apk add cryptsetup btrfs-progs
-sh "$script_dir"/../codev-util/sd-new-sys.sh | {
-	read -r new_root
-	read -r cryptroot_uuid
-	read -r root_uuid
-}
+new_sys_info="$(sh "$script_dir"/../codev-util/sd-new-sys.sh)"
+boot_uuid="$(echo "$new_sys_info" | cut -d "\n" -f 1)"
+cryptroot_uuid="$(echo "$new_sys_info" | cut -d "\n" -f 2)"
+new_root="$(echo "$new_sys_info" | cut -d "\n" -f 3)"
+
+rootfs_mount="$(mktemp -d)"
+mount /dev/mapper/rootfs "$rootfs_mount"
+btrfs subvolume create "$rootfs_mount"/etc
+umount "$rootfs_mount"; rmdir "$rootfs_mount"; rootfs_mount=""
+mkdir -p "$new_root"/root/etc
+mount /dev/mapper/roofs -o subvol=etc "$new_root"/root/etc
+
+printf "UUID=$boot_uuid /boot vfat rw,noatime 0 0
+/dev/mapper/rootfs /var btrfs subvol=/var,rw,noatime 0 0
+/dev/mapper/rootfs /etc btrfs subvol=/etc,rw,noatime 0 0
+/dev/mapper/rootfs /home btrfs subvol=/home,rw,noatime 0 0
+" > "$new_root"/etc/fstab
 
 mkdir -p "$new_root"/etc/apk
 echo 'http://dl-cdn.alpinelinux.org/alpine/edge/main
