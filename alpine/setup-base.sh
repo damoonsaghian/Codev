@@ -1,10 +1,8 @@
-apk_new add alpine-base musl-locales setpriv util-linux-misc btrfs-progs \
-	chrony acpid zzz eudev eudev-netifnames dbus doas-sudo-shim bash bash-completion \
-	networkmanager-cli wireless-regdb mobile-broadband-provider-info bluez \
-	pipewire wireplumber pipewire-pulse pipewire-spa-bluez rtkit
-# util-linux-misc is needed for exch
+apk_new add alpine-base musl-locales setpriv btrfs-progs \
+	acpid zzz eudev eudev-netifnames dbus doas-sudo-shim bash bash-completion \
+	pipewire wireplumber pipewire-pulse pipewire-alsa pipewire-spa-bluez bluez rtkit
 
-rc_new add acpid
+rc_new add seedrng boot
 
 rc_new delete hwdrivers sysinit
 rc_new delete mdev sysinit
@@ -13,8 +11,9 @@ rc_new delete mdevd sysinit
 rc_new add udev sysinit
 rc_new add udev-trigger sysinit
 rc_new add udev-settle sysinit
-rc_new add udev-postmount default
+rc_new add udev-postmount
 
+rc_new add acpid
 rc_new add cgroups
 rc_new add dbus
 rc_new add bluetooth

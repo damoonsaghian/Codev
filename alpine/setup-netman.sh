@@ -1,4 +1,4 @@
-apk_new add networkmanager tzdata chrony
+apk_new add networkmanager-cli wireless-regdb mobile-broadband-provider-info tzdata chrony
 
 printf '#!/apps/env sh
 set -e

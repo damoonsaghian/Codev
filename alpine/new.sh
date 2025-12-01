@@ -1,9 +1,8 @@
 # install a minimal Alpine Linux system that runs Codev inside CodevShell
-# https://gitlab.alpinelinux.org/alpine
 # https://gitlab.alpinelinux.org/alpine/alpine-conf
 # https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/alpine-baselayout
-# https://wiki.alpinelinux.org/wiki/Daily_driver_guide
-# https://wiki.alpinelinux.org/wiki/Developer_Documentation
+# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/busybox
+# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/openrc
 
 script_dir="$(dirname "$(realpath "$0")")"
 
@@ -16,30 +15,20 @@ setup-interfaces -r
 ntpd -qnN -p pool.ntp.org
 rc-service --quiet seedrng start
 
+# setup a storage device for the new system
 apk add cryptsetup btrfs-progs
-new_sys_info="$(sh "$script_dir"/../codev-util/sd-new-sys.sh)"
-boot_uuid="$(echo "$new_sys_info" | cut -d "\n" -f 1)"
-cryptroot_uuid="$(echo "$new_sys_info" | cut -d "\n" -f 2)"
-new_root="$(echo "$new_sys_info" | cut -d "\n" -f 3)"
+{ sh "$script_dir"/../codev-util/sd.sh mksys || exit 1 } | {
+	read -r boot_mountopt
+	read -r boot_uuid
+	read -r cryptroot_uuid
+	read -r new_root
+}
 
-rootfs_mount="$(mktemp -d)"
-mount /dev/mapper/rootfs "$rootfs_mount"
-btrfs subvolume create "$rootfs_mount"/etc
-umount "$rootfs_mount"; rmdir "$rootfs_mount"; rootfs_mount=""
-mkdir -p "$new_root"/root/etc
-mount /dev/mapper/roofs -o subvol=etc "$new_root"/root/etc
+mkdir -p "$new_root"/var/etc
+ln --symbolic --relative "$new_root"/var/etc "$new_root"/etc
 
-# it seems that vfat does not mount with discard as default (unlike btrfs)
-# if queued trim is supported, use discard option when mounting
-if [ "$(cat /sys/block/"$device"/queue/discard_granularity)" -gt 0 ] &&
-	[ "$(cat /sys/block/"$device"/queue/discard_max_bytes)" -gt 2147483648 ]
-then
-	vfat_discard=discard
-fi
-
-printf "UUID=$boot_uuid /boot vfat rw,noatime,$vfat_discard 0 0
+printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
 /dev/mapper/rootfs /var btrfs subvol=/var,rw,noatime 0 0
-/dev/mapper/rootfs /etc btrfs subvol=/etc,rw,noatime 0 0
 /dev/mapper/rootfs /home btrfs subvol=/home,rw,noatime 0 0
 " > "$new_root"/etc/fstab
 
@@ -59,7 +48,7 @@ rc_new() {
 	[ -z "$service" ] && return
 	[ -z "$runlevel" ] && runlevel=default
 	case "$1" in
-	add) ln -s "$new_root"/etc/init.d/"$service" "$new_root"/etc/runlevels/"$runlevel"/ ;;
+	add) ln --symbolic --relative "$new_root"/etc/init.d/"$service" "$new_root"/etc/runlevels/"$runlevel"/ ;;
 	del|delete) rm -f "$new_root"/etc/runlevels/"$runlevel"/"$service" ;;
 	esac
 }
