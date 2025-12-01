@@ -10,7 +10,7 @@ when terminal view finishes its job, if there is any output, it'll be transfered
 to navigate between terminal views, use "ctrl+pageup" and "ctrl+pagedown" keys
 to go back to the prompt, press "ctrl+tab"
 to navigate in history list, use "up" and "down" arrow keys
-	you can press enter on an entry to insert the command in the prompt, to edit and/or run it
+	you can press enter on an entry to rerun the command, or press space to first edit it
 to close a terminal view (that will also kill any running process) press "super+backspace" or "alt+escape"
 
 the first item in the application launcher is "system", which opens the system menu:
