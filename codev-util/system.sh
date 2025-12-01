@@ -252,6 +252,9 @@ mode="$(menu "upgrade\nremove\ninstall SPM Linux")"
 
 # add section: some suggested apps like termulator
 
+# sandbox <command>
+# run command as user 65534 (nobody)
+
 [ "$mode" = remove ] && {
 	package_name_list="$(apt-cache search --names-only "^ospkg-$(id -u)--.*" | sed s/^.*--//)"
 	package_name="$(menu "$package_name_list" | { read -r first _rest; echo "$first"; })"
