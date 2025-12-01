@@ -5,6 +5,7 @@ script_dir="$(dirname "$(realpath "$0")")"
 # mount with suid bits disabled
 # mount to ~/.local/state/mounts
 
+# it seems that vfat does not mount with discard as default (unlike btrfs)
 # if queued trim is supported, use discard option when mounting
 if [ "$(cat /sys/block/"$device"/queue/discard_granularity)" -gt 0 ] &&
 	[ "$(cat /sys/block/"$device"/queue/discard_max_bytes)" -gt 2147483648 ]

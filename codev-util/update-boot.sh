@@ -6,11 +6,6 @@ new_kernel_version="$2"
 # hook triggered for the kernel removal, nothing to do here
 [ "$new_kernel_version" ] || exit 0
 
-# use discard option, if the target device supports queued trim
-if [ "$(cat /sys/block/"$target_device"/queue/discard_zeroes_data)" == 1 ]; then
-else
-fi
-
 efi_name="$(ls /usr/lib/systemd/boot/efi/system-boot*.efi | sed -n "s@/usr/lib/systemd/boot/efi/system-@@p")"
 if [ -f /usr/lib/systemd/boot/efi/system-boot*.efi ]; then
 	mv /usr/lib/systemd/boot/efi/system-boot*.efi /boot/efi/boot-new/"$efi_name"

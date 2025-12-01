@@ -1,6 +1,4 @@
 target_device="$1"
-removable_storage="$2"
-
 if [ -z "$target_device" ]; then
 	echo; echo "available storage devices:"
 	printf "\tname\tsize\tmodel\n"
@@ -24,20 +22,6 @@ if [ -z "$target_device" ]; then
 	if [ "$target_device" = "$root_device" ]; then
 		echo "can't install on \"$target_device\", since it contains the running system"
 		exit 1
-	fi
-fi
-
-if [ -n "$removable_storage" ]; then
-	# this script is run through "spm new" command
-	# ask user for mode of installation
-	# , intall on internal storage device
-	# , install on removable storage device (to install Alpine on another system)
-	
-	if [ "$installation_mode" = removable ]; then
-		# if the device does not have one EFI partition of at least 500MB size with fat32 format, create it
-		# create  an initramfs that includes programs needed to install Alpine, plus the content of this project
-		# https://wiki.alpinelinux.org/wiki/How_to_make_a_custom_ISO_image_with_mkimage
-		exit
 	fi
 fi
 
