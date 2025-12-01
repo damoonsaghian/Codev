@@ -2,7 +2,6 @@
 # https://gitlab.alpinelinux.org/alpine
 # https://gitlab.alpinelinux.org/alpine/alpine-conf
 # https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/alpine-baselayout
-# https://docs.alpinelinux.org/
 # https://wiki.alpinelinux.org/wiki/Daily_driver_guide
 # https://wiki.alpinelinux.org/wiki/Developer_Documentation
 
@@ -14,6 +13,8 @@ if [ $(id -u) != 0 ]; then
 fi
 
 setup-interfaces -r
+ntpd -qnN -p pool.ntp.org
+rc-service --quiet seedrng start
 
 apk add cryptsetup btrfs-progs
 new_sys_info="$(sh "$script_dir"/../codev-util/sd-new-sys.sh)"
@@ -28,16 +29,24 @@ umount "$rootfs_mount"; rmdir "$rootfs_mount"; rootfs_mount=""
 mkdir -p "$new_root"/root/etc
 mount /dev/mapper/roofs -o subvol=etc "$new_root"/root/etc
 
-printf "UUID=$boot_uuid /boot vfat rw,noatime 0 0
+# it seems that vfat does not mount with discard as default (unlike btrfs)
+# if queued trim is supported, use discard option when mounting
+if [ "$(cat /sys/block/"$device"/queue/discard_granularity)" -gt 0 ] &&
+	[ "$(cat /sys/block/"$device"/queue/discard_max_bytes)" -gt 2147483648 ]
+then
+	vfat_discard=discard
+fi
+
+printf "UUID=$boot_uuid /boot vfat rw,noatime,$vfat_discard 0 0
 /dev/mapper/rootfs /var btrfs subvol=/var,rw,noatime 0 0
 /dev/mapper/rootfs /etc btrfs subvol=/etc,rw,noatime 0 0
 /dev/mapper/rootfs /home btrfs subvol=/home,rw,noatime 0 0
 " > "$new_root"/etc/fstab
 
 mkdir -p "$new_root"/etc/apk
-echo 'http://dl-cdn.alpinelinux.org/alpine/edge/main
-http://dl-cdn.alpinelinux.org/alpine/edge/community
-@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing
+echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main
+https://dl-cdn.alpinelinux.org/alpine/edge/community
+@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing
 ' > "$new_root"/etc/apk/repositories
 
 apk_new() {
@@ -60,6 +69,11 @@ rc_new() {
 . "$script_dir"/setup-pm.sh
 . "$script_dir"/setup-netman.sh
 . "$script_dir"/setup-shell.sh
+
+# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-timezone.in
+# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-ntp.in
+rc_new add seedrng boot || rc_new add urandom boot
+rc_new add acpid
 
 apk_new add gnunet aria2
 # https://wiki.alpinelinux.org/wiki/GNUnet

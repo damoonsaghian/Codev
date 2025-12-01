@@ -1,9 +1,11 @@
+apk_new add networkmanager tzdata chrony
+
 printf '#!/apps/env sh
 set -e
 if [ "$1" = set ]; then
 	tz="$2"
 	[ -f /usr/share/zoneinfo/"$tz" ] &&
-		ln -s /usr/share/zoneinfo/"$tz" /etc/localtime
+		ln -s /usr/share/zoneinfo/right/"$tz" /var/lib/netman/tz
 elif [ "$1" = continents ]; then
 	ls -1 -d /usr/share/zoneinfo/*/ | cut -d / -f5
 elif [ "$1" = cities ]; then
@@ -39,3 +41,10 @@ chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
 # libgeoclue=false introspection=false gtk-doc=false
 # wifi-source=false wifi-source=false 3g-source=false ip-source=false 
 # avahi-glib: build and statically link
+
+# ntp sets system time based on UTC which suffers from leap seconds
+# "chrony -Q" prints the offset; add it to leap seconds, and adjust the system time using "adjtimex" command
+# for this to work properly, system timezone must be set from "right" timezones in tzdata
+# https://www.ucolick.org/~sla/leapsecs/right+gps.html
+# https://skarnet.org/software/skalibs/flags.html#clockistai
+# when chrony can't adjust time, try to set it using the time reported by modemmanager

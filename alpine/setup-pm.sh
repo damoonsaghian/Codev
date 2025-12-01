@@ -18,6 +18,7 @@ chmod +x "$new_root"/usr/local/bin/spm-new
 # apk-autoupdate
 # autoupdate service
 # service timer: 5min after boot, every 24h
+# rc_new add crond
 printf '#!/usr/bin/env sh
 metered_connection() {
 	#nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"

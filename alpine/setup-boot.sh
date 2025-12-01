@@ -6,7 +6,7 @@ x86*)
 ;;
 esac
 
-apk_new add systemd-boot tpm2-tools kernel-hooks mkinitfs
+apk_new add systemd-boot cryptsetup tpm2-tools kernel-hooks mkinitfs
 
 printf "title	Alpine Linux
 linux	/efi/boot/vmlinuz
@@ -18,13 +18,6 @@ options cryptkey=EXEC=/usr/local/bin/tpm-getkey cryptroot=UUID=$cryptroot_uuid c
 options	root=/dev/mapper/rootfs rootflags=subvol=root,rw,noatime rootfstype=btrfs
 options modules=sd-mod,usb-storage,btrfs,$modules quiet
 " >> "$new_root"/boot/loader/entries/alpine.conf
-
-# mount root with discard, if the target device supports queued trim
-if [ "$(cat /sys/block/"$target_device"/queue/discard_granularity)" -gt 0 ] &&
-	[ "$(cat /sys/block/"$target_device"/queue/discard_max_bytes)" -gt 2147483648 ]
-then
-	echo "options rootflags=discard" >> "$new_root"/boot/loader/entries/alpine.conf
-fi
 
 printf 'default alpine.conf
 timeout 0

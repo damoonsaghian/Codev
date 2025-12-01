@@ -1,8 +1,7 @@
-apk_new add alpine-base musl-locales setpriv util-linux-misc \
+apk_new add alpine-base musl-locales setpriv util-linux-misc btrfs-progs \
 	chrony acpid zzz eudev eudev-netifnames dbus doas-sudo-shim bash bash-completion \
 	networkmanager-cli wireless-regdb mobile-broadband-provider-info bluez \
-	pipewire wireplumber pipewire-pulse pipewire-spa-bluez rtkit \
-	bash doas btrfs-progs cryptsetup
+	pipewire wireplumber pipewire-pulse pipewire-spa-bluez rtkit
 # util-linux-misc is needed for exch
 
 rc_new add acpid
@@ -34,6 +33,7 @@ sed -i 's@tty1:respawn:\(.*\)getty@tty1:respawn:\1getty -n -l /usr/local/bin/log
 
 printf '#!/usr/bin/env sh
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+export TZ="/var/lib/netman/tz"
 export LANG="en_US.UTF-8"
 export MUSL_LOCPATH="/usr/share/i18n/locales/musl"
 export HOME="/home"
