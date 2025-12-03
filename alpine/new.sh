@@ -57,31 +57,7 @@ rc_new() {
 . "$script_dir"/setup-base.sh
 . "$script_dir"/setup-pm.sh
 . "$script_dir"/setup-netman.sh
-. "$script_dir"/setup-shell.sh
-
-# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-timezone.in
-# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-ntp.in
-rc_new add seedrng boot || rc_new add urandom boot
-rc_new add acpid
-
-apk_new add gnunet aria2
-# https://wiki.alpinelinux.org/wiki/GNUnet
-
-apk_new add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-terminal mauikit-documents \
-	breeze breeze-icons
-
-apk_new add qt6-multimedia-imports qt6-webengine-imports qt6-pdf-imports qt6-virtualkeyboard-imports \
-	qt6-location qt6-remoteobjects-imports qt6-sensors-imports qt6-texttospeech \
-	qt6-charts-imports qt6-graphs-imports qt6-datavisualization-imports qt6-quick3d-imports qt6-quick3dphysics-imports \
-	qt6-3d-imports qt6-quicktimeline-imports qt6-lottie-imports \
-	kf6-kimageformats libQt6Svg6 kquickimageeditor6-imports
-
-# install codev
-# /usr/local/share/codev
-# .data/codev.svg
-# doas rules for sd.sh
-# codev executable has setgid 10 that lets it to read (password protected) private keys
-# update hook for codev
+. "$script_dir"/setup-codev.sh
 
 echo; echo -n "installation completed successfully"
 echo "press any key to reboot the system"

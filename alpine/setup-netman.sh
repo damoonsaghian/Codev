@@ -1,5 +1,6 @@
 apk_new add networkmanager-cli wireless-regdb mobile-broadband-provider-info tzdata chrony
 
+# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-timezone.in
 printf '#!/apps/env sh
 set -e
 if [ "$1" = set ]; then
@@ -42,6 +43,7 @@ chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
 # wifi-source=false wifi-source=false 3g-source=false ip-source=false 
 # avahi-glib: build and statically link
 
+# https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-ntp.in
 # ntp sets system time based on UTC which suffers from leap seconds
 # "chrony -Q" prints the offset; add it to leap seconds, and adjust the system time using "adjtimex" command
 # for this to work properly, system timezone must be set from "right" timezones in tzdata
