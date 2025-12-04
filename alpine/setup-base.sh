@@ -1,5 +1,5 @@
 apk_new add alpine-base musl-locales setpriv btrfs-progs \
-	acpid zzz eudev eudev-netifnames dbus doas-sudo-shim bash bash-completion \
+	acpid zzz eudev eudev-netifnames dbus doas-sudo-shim \
 	pipewire wireplumber pipewire-pulse pipewire-alsa pipewire-spa-bluez bluez rtkit
 
 rc_new add seedrng boot
@@ -44,9 +44,9 @@ mkdir -p /run/user/1000
 chown 1000:1000 /run/user/1000
 chmod 700 /run/user/1000
 cat /home/.config/rc-services | while read service; do
-	setpriv --reuid=1000 --regid=1000 --groups=plugdev,audio,video,rtkit rc-service --user "$service" restart
+	setpriv --reuid=1000 --regid=1000 --groups=plugdev,audio,video,rtkit,gnunet rc-service --user "$service" restart
 done
-setpriv --reuid=1000 --regid=1000 --groups=plugdev,audio,video,input --inh-caps=-all codev-shell
+setpriv --reuid=1000 --regid=1000 --groups=plugdev,audio,video,input,gnunet --inh-caps=-all codev-shell
 ' > /usr/local/bin/login
 chmod +x /usr/local/bin/login
 

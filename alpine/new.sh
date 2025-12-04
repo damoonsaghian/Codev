@@ -57,7 +57,55 @@ rc_new() {
 . "$script_dir"/setup-base.sh
 . "$script_dir"/setup-pm.sh
 . "$script_dir"/setup-netman.sh
-. "$script_dir"/setup-codev.sh
+
+apk_new add bash bash-completion mesa-dri-gallium mesa-va-gallium breeze breeze-icons \
+	font-adobe-source-code-pro font-noto font-noto-emoji \
+	font-noto-armenian font-noto-georgian font-noto-hebrew font-noto-arabic font-noto-ethiopic font-noto-nko \
+	font-noto-devanagari font-noto-gujarati font-noto-telugu font-noto-kannada font-noto-malayalam \
+	font-noto-oriya font-noto-bengali font-noto-tamil font-noto-myanmar \
+	font-noto-thai font-noto-lao font-noto-khmer font-noto-cjk \
+	qt6-qtvirtualkeyboard qt6-qtsensors mauikit-terminal
+apk_new add quickshell || {
+	apk_new add qt6-qtwayland --virtual quickshell-virtual
+	# build and install quickshell from git
+}
+cp -r "$script_dir"/../codev-shell "$new_root"/usr/local/share/codev-shell
+chmod +x "$new_root"/usr/local/share/codev-shell/codev-shell.sh
+ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/local/bin/codev-shell
+
+cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/codev-util
+# doas rules for sh /usr/local/share/codev-util/sd.sh
+
+apk_new add gnunet
+rc_new add gnunet-system-services
+echo '#!/usr/bin/env openrc-run
+description="GNUnet user services"
+command="/usr/lib/gnunet/libexec/gnunet-service-arm"
+command_args="-c /home/.config/gnunet.conf"
+command_user="1000:1000"
+command_background="yes"
+pidfile="/var/run/${RC_SVCNAME}.user.pid"
+depend() {
+	need gnunet-system-services
+}
+' > "$new_root"/etc/runlevels/default/gnunet-user-services
+chmod +x "$new_root"/etc/runlevels/default/gnunet-user-services
+echo '[paths]
+GNUNET_RUNTIME_DIR = "/var/run/gnunet/"
+[arm]
+START_SYSTEM_SERVICES = NO
+START_USER_SERVICES = YES
+' > "$new_root"/home/.config/gnunet.conf
+chown 1000:1000 "$new_root"/home/.config/gnunet.conf
+
+apk_new add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
+	kio-extras kimageformats qt6-qtsvg \
+	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine aria2 \
+	qt6-qtlocation qt6-qtremoteobjects qt6-qtspeech \
+	qt6-qtcharts qt6-qtgraphs qt6-qtdatavis3d qt6-qtquick3d qt6-qt3d qt6-qtquicktimeline
+# qt6-qtquick3dphysics qt6-qtlottie
+cp -r "$script_dir"/../codev "$new_root"/usr/local/share/codev
+cp "$script_dir"/../.data/codev.svg "$new_root"/usr/local/share/icons/hicolor/scalable/apps/
 
 echo; echo -n "installation completed successfully"
 echo "press any key to reboot the system"

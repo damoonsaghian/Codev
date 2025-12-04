@@ -1,19 +1,35 @@
 # implement "spm" by wrapping apk commands
 printf '#!/usr/bin/env sh
-# spm list ...
-# spm install ...
-# spm remove ...
-# spm update
-# spm new
+case "$1" in
+list) ;;
+install) ;;
+remove) ;;
+update)
+	apk upgrade
+	
+	[ -f /usr/local/bin/quickshell ] && if apk add quickshell &>/dev/null; then
+		# apk del quickshell-virtual
+		# remove quickshell from /usr/local/
+	else
+		# build and install quickshell from git
+	fi
+	
+	# alpine codev-util codev-shell codev
+	;;
+new)
+	if [ "$2" = removable ]; then
+		sh /usr/local/share/spm/new-removable.sh
+	else
+		sh /usr/local/share/spm/new.sh
+	fi
+	;;
+esac
 ' > /usr/local/bin/spm
-# doas rules for "spm new"
+chmod +x /usr/local/bin/spm
+# doas rules for spm
 
-# cp this dir to /usr/local/share/spm
-
-printf '#!/usr/bin/env sh
-exec sh /usr/local/share/spm/new.sh
-' > "$new_root"/usr/local/bin/spm-new
-chmod +x "$new_root"/usr/local/bin/spm-new
+mkdir -p "$new_root"/usr/local/share/spm/
+cp -r "$script_dir"/new* "$script_dir"/setup-* "$new_root"/usr/local/share/spm/
 
 # apk-autoupdate
 # autoupdate service

@@ -13,6 +13,7 @@ cp -r "$script_dir"/../alpine "$ovl_dir"/codev/
 cp -r "$script_dir"/../codev "$ovl_dir"/codev/
 cp -r "$script_dir"/../codev-shell "$ovl_dir"/codev/
 cp -r "$script_dir"/../codev-util "$ovl_dir"/codev/
+cp -r "$script_dir"/../.data "$ovl_dir"/codev/
 
 mkdir -p "$ovl_dir"/root
 printf 'sh /codev/alpine/new.sh
