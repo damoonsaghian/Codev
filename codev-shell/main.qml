@@ -107,5 +107,7 @@ https://github.com/Hummer12007/brightnessctl
 
 // on'screen keyboard
 // https://github.com/qt/qtvirtualkeyboard
+// keymap
+// https://doc.qt.io/qt-6/qtvirtualkeyboard-deployment-guide.html#integration-method
 
 // voice control

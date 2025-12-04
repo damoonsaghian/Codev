@@ -1,3 +1,4 @@
+#!/usr/bin/env sh
 script_dir="$(dirname "$(realpath "$0")")"
 
 export PATH="$PATH:/$HOME/.local/bin"
