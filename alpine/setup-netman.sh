@@ -1,4 +1,4 @@
-apk_new add networkmanager-cli wireless-regdb mobile-broadband-provider-info tzdata chrony
+apk_new add networkmanager-cli wireless-regdb mobile-broadband-provider-info dnsmasq tzdata chrony
 
 # https://gitlab.alpinelinux.org/alpine/alpine-conf/-/blob/master/setup-timezone.in
 printf '#!/apps/env sh
@@ -50,3 +50,4 @@ chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
 # https://www.ucolick.org/~sla/leapsecs/right+gps.html
 # https://skarnet.org/software/skalibs/flags.html#clockistai
 # when chrony can't adjust time, try to set it using the time reported by modemmanager
+printf '\nFAST_STARTUP=yes\n' >> "$new_root"/etc/conf.d/chronyd

@@ -17,7 +17,7 @@ rc-service --quiet seedrng start
 
 # setup a storage device for the new system
 apk add cryptsetup btrfs-progs
-{ sh "$script_dir"/../codev-util/sd.sh mksys || exit 1 } | {
+{ sh "$script_dir"/../codev-util/sd.sh mksys || exit 1; } | {
 	read -r boot_mountopt
 	read -r boot_uuid
 	read -r cryptroot_uuid
@@ -65,16 +65,13 @@ apk_new add bash bash-completion mesa-dri-gallium mesa-va-gallium breeze breeze-
 	font-noto-oriya font-noto-bengali font-noto-tamil font-noto-myanmar \
 	font-noto-thai font-noto-lao font-noto-khmer font-noto-cjk \
 	qt6-qtvirtualkeyboard qt6-qtsensors mauikit-terminal
-apk_new add quickshell || {
-	apk_new add qt6-qtwayland --virtual quickshell-virtual
-	# build and install quickshell from git
-}
+apk_new add quickshell || . "$script_dir"/quickshell.sh
 cp -r "$script_dir"/../codev-shell "$new_root"/usr/local/share/codev-shell
 chmod +x "$new_root"/usr/local/share/codev-shell/codev-shell.sh
 ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/local/bin/codev-shell
 
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/codev-util
-# doas rules for sh /usr/local/share/codev-util/sd.sh
+echo 'permit nopass 1000 /usr/local/share/codev-util/sd.sh' >> /etc/doas.conf
 
 apk_new add gnunet
 rc_new add gnunet-system-services

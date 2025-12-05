@@ -1,6 +1,6 @@
 apk_new add alpine-base musl-locales setpriv btrfs-progs \
-	acpid zzz eudev eudev-netifnames dbus doas-sudo-shim \
-	pipewire wireplumber pipewire-pulse pipewire-alsa pipewire-spa-bluez bluez rtkit
+	acpid zzz eudev eudev-netifnames dbus doas-sudo-shim rtkit \
+	pipewire wireplumber sof-firmware pipewire-pulse pipewire-alsa pipewire-spa-bluez bluez
 
 rc_new add seedrng boot
 

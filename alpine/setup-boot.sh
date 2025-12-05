@@ -40,7 +40,12 @@ cp "$script_dir/../codev-util/update-boot.sh" "$new_root"/etc/kernel-hooks.d/upd
 chmod +x "$new_root"/etc/kernel-hooks.d/update-boot.hook
 
 # regenerate tpm policy, when systemd-boot or ucodes are updated
-# apk hook after commit:
-# [ -f /usr/lib/systemd/boot/efi/system-boot*.efi ] || [ -f /boot/*-ucode.img] && /etc/kernel-hooks.d/update-boot.hook
+'#!/usr/bin/env sh
+if [ "$1" = "post-commit" ]; then
+	[ -f /usr/lib/systemd/boot/efi/system-boot*.efi ] || [ -f /boot/*-ucode.img] &&
+	/etc/kernel-hooks.d/update-boot.hook
+fi
+' > "$new_root"/etc/apk/commit_hooks.d/update-boot.hook
+chmod +x "$new_root"/etc/apk/commit_hooks.d/update-boot.hook
 
 apk_new add linux-stable
