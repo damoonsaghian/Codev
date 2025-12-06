@@ -1,3 +1,5 @@
+#!/usr/bin/env sh
+
 # mounting and formatting storage devices
 
 # exit if $2 is the system device
@@ -87,13 +89,15 @@ if [ "$target_partition1_is_efi" != true ] ||
 		printf "do you want to keep the partitions? (Y/n) "
 		read -r answer
 		[ "$answer" != n ] && while [ "$answer" != n ]; do
-			echo "enter the password to open the encrypted root partition"
-			cryptsetup open --allow-discards --persistent --type luks  "$target_partition2" "root" || {
-				echo "you entered wrong password to decrypt root partition; try again? (Y/n) "
-				read -r answer
-				[ "$answer" = n ] && break
+			[ -b /dev/mapper/rootfs ] || {
+				echo "enter the password to open the encrypted root partition"
+				cryptsetup open --allow-discards --persistent --type luks  "$target_partition2" "rootfs" || {
+					echo "you entered a wrong password to decrypt root partition; try again? (Y/n) "
+					read -r answer
+					[ "$answer" = n ] && break
+				}
 			}
-			root_fstype="$(blkid /dev/mapper/root | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
+			root_fstype="$(blkid /dev/mapper/rootfs | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
 			[ "$root_fstype" = btrfs ] || {
 				echo "can't use the root partition, cause its file system is not BTRFS"
 				answer=n
@@ -158,6 +162,7 @@ boot_uuid="$(blkid "$taget_partition1" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)
 cryptroot_uuid="$(blkid "$taget_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
 
 rootfs_mount="$(mktemp -d)"
+trap "trap - EXIT; umount \"$rootfs_mount\"; rmdir \"$rootfs_mount\"" EXIT INT TERM QUIT HUP PIPE
 mount /dev/mapper/rootfs "$rootfs_mount"
 btrfs subvolume create "$rootfs_mount"/root
 btrfs subvolume create "$rootfs_mount"/var
@@ -165,6 +170,9 @@ btrfs subvolume create "$rootfs_mount"/home
 umount "$rootfs_mount"; rmdir "$rootfs_mount"; rootfs_mount=""
 
 new_root="$(mktemp -d)"
+unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/var; umount \"$new_root\"/home; \
+	umount \"$new_root\"; rmdir \"$new_root\""
+trap "exit_status=\$?; trap - EXIT; [ \$exit_status = 0 ] || { $unmount_all; }" EXIT INT TERM QUIT HUP PIPE
 mount /dev/mapper/roofs -o subvol=root "$new_root" || exit 1
 mkdir -p "$new_root"/root/var
 mount /dev/mapper/roofs -o subvol=var "$new_root"/root/var || exit 1
