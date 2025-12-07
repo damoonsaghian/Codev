@@ -6,7 +6,7 @@ mkdir -p "$ovl_dir"
 
 # this is necessary when using an overlay
 mkdir -p "$ovl_dir"/etc
-$ touch "$ovl_dir"/etc/.default_boot_services
+touch "$ovl_dir"/etc/.default_boot_services
 
 mkdir -p "$ovl_dir"/codev
 cp -r "$script_dir"/../alpine "$ovl_dir"/codev/
