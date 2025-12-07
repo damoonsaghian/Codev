@@ -150,7 +150,7 @@ then
 fi
 
 # it seems that vfat does not mount with discard as default (unlike btrfs)
-# if queued trim is supported, use discard option when mounting boot
+# so if queued trim is supported, use discard option when mounting boot
 boot_mountopt=""
 if [ "$(cat /sys/block/"$target_device"/queue/discard_granularity)" -gt 0 ] &&
 	[ "$(cat /sys/block/"$target_device"/queue/discard_max_bytes)" -gt 2147483648 ]
@@ -179,15 +179,15 @@ mount /dev/mapper/roofs -o subvol=var "$new_root"/root/var || exit 1
 mkdir -p "$new_root"/root/home
 mount /dev/mapper/roofs -o subvol=home "$new_root"/root/home || exit 1
 
-cat "$luks_key_file" > "$new_root"/var/lib/luks/key1
-chmod 600 "$new_root"/var/lib/luks/key1
-# extra keys, in case of bit rot
+[ -n "$luks_key_file" ] && cat "$luks_key_file" > "$new_root"/var/lib/luks/key0
+dd if=/dev/random of="$new_root"/var/lib/luks/key1 bs=32 count=1 status=none
 dd if=/dev/random of="$new_root"/var/lib/luks/key2 bs=32 count=1 status=none
-dd if=/dev/random of="$new_root"/var/lib/luks/key3 bs=32 count=1 status=none
+chmod 600 "$new_root"/var/lib/luks/key0
+chmod 600 "$new_root"/var/lib/luks/key1
 chmod 600 "$new_root"/var/lib/luks/key2
-chmod 600 "$new_root"/var/lib/luks/key3
-cryptsetup luksAddKey --keyfile "$luks_key_file" "$target_partition2" "$new_root"/var/lib/luks/key2
-cryptsetup luksAddKey --keyfile "$luks_key_file" "$target_partition2" "$new_root"/var/lib/luks/key3
+cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 0 "$target_partition2" "$new_root"/var/lib/luks/key0
+cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 1 "$target_partition2" "$new_root"/var/lib/luks/key1
+cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 2 "$target_partition2" "$new_root"/var/lib/luks/key2
 
 mkdir -p "$new_root"/boot
 mount "$taget_partition1" "$new_root"/boot
