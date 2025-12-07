@@ -81,7 +81,7 @@ chmod +x "$new_root"/usr/local/share/codev-shell/codev-shell.sh
 ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/local/bin/codev-shell
 
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
-echo 'permit nopass 1000 /usr/local/share/codev-util/sd.sh' >> /etc/doas.conf
+echo "permit nopass 1000 /usr/local/share/codev-util/sd.sh" > /etc/doas.d/sd.conf
 
 apk_new add gnunet
 rc_new add gnunet-system-services

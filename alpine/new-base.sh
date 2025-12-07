@@ -50,6 +50,7 @@ setpriv --reuid=1000 --regid=1000 --groups=plugdev,audio,video,input,gnunet --in
 ' > /usr/local/bin/login
 chmod +x /usr/local/bin/login
 
+mkdir -p /etc/doas.d
 # using "sudo" in CodevShell does not suffer from these flaws:
 # https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/
 # https://security.stackexchange.com/questions/119410/why-should-one-use-sudo
@@ -71,9 +72,8 @@ touch /home/.config/rc-services
 chown 1000:1000 /home/.config/rc-services
 echo "dbus\npipewire\nwireplumber" >> /home/.config/rc-services
 
-# doas rules:
-# , nopass if id is 1000:1:2 and target is 1000
-# , if id is 1000:1:2 ask for passwd
+echo "permit nopass 1000:input as 1000
+permit 1000:input" > /etc/doas.d/shell.conf
 
 # set root password
-# chroot /mnt passwd
+chroot "$new_root" passwd
