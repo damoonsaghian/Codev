@@ -1,8 +1,8 @@
 # install a minimal Alpine Linux system that runs Codev inside CodevShell
 # https://gitlab.alpinelinux.org/alpine/alpine-conf
 # https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/alpine-baselayout
-# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/busybox
 # https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/openrc
+# https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/busybox
 
 script_dir="$(dirname "$(realpath "$0")")"
 
@@ -24,16 +24,28 @@ apk add cryptsetup btrfs-progs
 	read -r new_root
 }
 unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/var; umount \"$new_root\"/home; \
+	umount -q \"$new_root\"/dev; umount -q \"$new_root\"/proc; \
 	umount \"$new_root\"; rmdir \"$new_root\""
 trap "trap - EXIT; $unmount_all" EXIT INT TERM QUIT HUP PIPE
 
+mkdir -p "$new_root"/dev
+mkdir -p "$new_root"/proc
+mount --bind /dev "$new_root"/dev
+mount --bind /proc "$new_root"/proc
+
 mkdir -p "$new_root"/var/etc
 ln --symbolic --relative "$new_root"/var/etc "$new_root"/etc
+
+mkdir -p "$new_root"/usr/lib "$new_root"/usr/bin "$new_root"/usr/sbin
+ln -s usr/bin usr/sbin usr/lib "$new_root"/
 
 printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
 /dev/mapper/rootfs /var btrfs subvol=/var,rw,noatime 0 0
 /dev/mapper/rootfs /home btrfs subvol=/home,rw,noatime 0 0
 " > "$new_root"/etc/fstab
+
+mkdir -p "$new_root"/etc/apk/keys/
+cp /etc/apk/keys/* "$new_root"/etc/apk/keys/
 
 mkdir -p "$new_root"/etc/apk
 echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main
@@ -42,7 +54,7 @@ https://dl-cdn.alpinelinux.org/alpine/edge/community
 ' > "$new_root"/etc/apk/repositories
 
 apk_new() {
-	apk --repositories-file "$new_root"/etc/apk/repositories --root "$new_root" --quiet $@
+	apk --repositories-file "$new_root"/etc/apk/repositories --root "$new_root" --quiet --progress $@
 }
 
 rc_new() {
@@ -107,7 +119,7 @@ chown 1000:1000 "$new_root"/home/.config/gnunet.conf
 
 apk_new add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
 	kio-extras kimageformats qt6-qtsvg \
-	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine aria2 \
+	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine aria2 openssh \
 	qt6-qtlocation qt6-qtremoteobjects qt6-qtspeech \
 	qt6-qtcharts qt6-qtgraphs qt6-qtdatavis3d qt6-qtquick3d qt6-qt3d qt6-qtquicktimeline --virtual codev
 # qt6-qtquick3dphysics qt6-qtlottie

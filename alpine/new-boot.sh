@@ -1,4 +1,4 @@
-apk_new add systemd-boot mkinitfs cryptsetup tpm2-tools kernel-hooks
+apk_new add systemd-boot mkinitfs btrfs-progs cryptsetup tpm2-tools kernel-hooks
 
 bootconf_initrd="initrd	/efi/boot/initramfs"
 case "$(uname -m)" in
@@ -35,7 +35,7 @@ echo '/usr/bin/tpm2_nvread
 /usr/local/bin/tpm-getkey
 ' > "$new_root"/usr/local/share/mkinitfs/features/tpm.files
 
-initfs_features="ata base nvme ide scsi usb mmc virtio btrfs cryptsetup tpm"
+initfs_features="ata base nvme scsi usb mmc virtio btrfs cryptsetup tpm"
 [ "$(uname -m)" = "aarch64" ] && initfs_features="$initfs_features phy"
 echo "features=\"$initfs_features\"
 disable_trigger=yes

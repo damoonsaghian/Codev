@@ -35,9 +35,6 @@ mkdir -p "$new_root"/usr/local/share/spm/
 cp "$script_dir"/* "$new_root"/usr/local/share/spm/
 
 # apk-autoupdate
-# autoupdate service
-# service timer: 5min after boot, every 24h
-# rc_new add crond
 printf '#!/usr/bin/env sh
 metered_connection() {
 	#nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
@@ -49,5 +46,7 @@ metered_connection && exit 0
 # if during autoupdate an error occures: echo error > /var/cache/autoupdate-status
 
 # fwupd
-' > /usr/local/bin/autoupdate
-chmod +x /usr/local/bin/autoupdate
+' > "$new_root"/usr/local/bin/autoupdate
+chmod +x "$new_root"/usr/local/bin/autoupdate
+# service timer: 5min after boot, every 24h
+ln --symbolic --relative "$new_root"/usr/local/bin/autoupdate "$new_root"/etc/cron.d/periodic/daily/
