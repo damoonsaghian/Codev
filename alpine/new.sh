@@ -54,18 +54,23 @@ https://dl-cdn.alpinelinux.org/alpine/edge/community
 ' > "$new_root"/etc/apk/repositories
 
 apk_new() {
-	apk --repositories-file "$new_root"/etc/apk/repositories --root "$new_root" --quiet --progress $@
+	apk --repositories-file "$new_root"/etc/apk/repositories --root "$new_root" --quiet --progress add $@
 }
 
 rc_new() {
-	local service="$2"
-	local runlevel="$3"
-	[ -z "$service" ] && return
-	[ -z "$runlevel" ] && runlevel=default
-	case "$1" in
-	add) ln --symbolic --relative "$new_root"/etc/init.d/"$service" "$new_root"/etc/runlevels/"$runlevel"/ ;;
-	del|delete) rm -f "$new_root"/etc/runlevels/"$runlevel"/"$service" ;;
-	esac
+	if [ "$1" = --user ] || [ "$1" = -u ]; then
+		local service="$2"
+		local runlevel="$3"
+		[ -z "$service" ] && return
+		[ -z "$runlevel" ] && runlevel=sysinit
+		ln --symbolic /etc/user/init.d/"$service" "$new_root"/home/.config/rc/runlevels/"$runlevel"/
+	else
+		local service="$1"
+		local runlevel="$2"
+		[ -z "$service" ] && return
+		[ -z "$runlevel" ] && runlevel=default
+		ln --symbolic /etc/init.d/"$service" "$new_root"/etc/runlevels/"$runlevel"/
+	fi
 }
 
 . "$script_dir"/new-boot.sh
@@ -93,7 +98,7 @@ chmod +x "$new_root"/usr/local/share/codev-shell/codev-shell.sh
 ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/local/bin/codev-shell
 
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
-echo "permit nopass 1000 /usr/local/share/codev-util/sd.sh" > /etc/doas.d/sd.conf
+echo "permit nopass home /usr/local/share/codev-util/sd.sh" > /etc/doas.d/sd.conf
 
 apk_new add gnunet
 rc_new add gnunet-system-services
@@ -101,9 +106,9 @@ echo '#!/usr/bin/env openrc-run
 description="GNUnet user services"
 command="/usr/lib/gnunet/libexec/gnunet-service-arm"
 command_args="-c /home/.config/gnunet.conf"
-command_user="1000:1000"
+command_user="home:home"
 command_background="yes"
-pidfile="/var/run/${RC_SVCNAME}.user.pid"
+pidfile="/var/run/${RC_SVCNAME}.home.pid"
 depend() {
 	need gnunet-system-services
 }
@@ -115,7 +120,7 @@ GNUNET_RUNTIME_DIR = "/var/run/gnunet/"
 START_SYSTEM_SERVICES = NO
 START_USER_SERVICES = YES
 ' > "$new_root"/home/.config/gnunet.conf
-chown 1000:1000 "$new_root"/home/.config/gnunet.conf
+chown home:home "$new_root"/home/.config/gnunet.conf
 
 apk_new add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
 	kio-extras kimageformats qt6-qtsvg \

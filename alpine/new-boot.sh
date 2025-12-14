@@ -1,14 +1,14 @@
-apk_new add systemd-boot mkinitfs btrfs-progs cryptsetup tpm2-tools kernel-hooks
+apk_new systemd-boot mkinitfs btrfs-progs cryptsetup tpm2-tools kernel-hooks
 
 bootconf_initrd="initrd	/efi/boot/initramfs"
 case "$(uname -m)" in
 x86*)
 	cpu_vendor_id="$(cat /proc/cpuinfo | grep vendor_id | head -n1 | sed -n "s/vendor_id[[:space:]]*:[[:space:]]*//p")"
 	[ "$cpu_vendor_id" = AuthenticAMD ] &&
-		apk_new add amd-ucode &&
+		apk_new amd-ucode &&
 		bootconf_initrd="initrd	/efi/boot/amd-ucode.img\n$bootconf_initrd"
 	[ "$cpu_vendor_id" = GenuineIntel ] &&
-		apk_new add intel-ucode &&
+		apk_new intel-ucode &&
 		bootconf_initrd="initrd	/efi/boot/intel-ucode.img\n$bootconf_initrd"
 ;;
 esac
@@ -54,4 +54,4 @@ fi
 ' > "$new_root"/etc/apk/commit_hooks.d/update-boot.hook
 chmod +x "$new_root"/etc/apk/commit_hooks.d/update-boot.hook
 
-apk_new add linux-stable
+apk_new linux-stable
