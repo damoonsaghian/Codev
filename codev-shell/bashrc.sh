@@ -1,3 +1,13 @@
+# ask user for lockscreen password, and if correct continue
+
+TMOUT=600 # this is for timeout when in bash prompt
+_precmd() {
+	# this is for timeout for long running processes
+	[ -n "$START" ] && [ "$((SECONDS-START-TMOUT))" -ge 0 ] && exit
+	START="$SECONDS"
+}
+PROMPT_COMMAND=_precmd
+
 if [ "$CODEVSHELL_PROMPT" = true ]; then
 	PS1=""
 	_run_cmd() {
