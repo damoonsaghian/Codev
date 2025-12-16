@@ -145,8 +145,6 @@ then
 	cryptsetup open --allow-discards --persistent --type luks --key-file "$luks_key_file" "$target_partition2" "rootfs"
 	
 	mkfs.btrfs -f --quiet "/dev/mapper/rootfs"
-	
-	# https://wiki.archlinux.org/title/Btrfs#Swap_file
 fi
 
 # it seems that vfat does not mount with discard as default (unlike btrfs)

@@ -241,6 +241,7 @@ set_timezone() {
 
 set_password() {
 	# user password, root password, root encryption password
+	# use "sudo passwd home", because we do not want to use PAM support of passwd
 }
 
 echo 'packages:'
