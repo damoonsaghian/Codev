@@ -95,25 +95,29 @@ apk_new add bash bash-completion mesa-dri-gallium mesa-va-gallium breeze breeze-
 }
 cp -r "$script_dir"/../codev-shell "$new_root"/usr/local/share/codev-shell
 chmod +x "$new_root"/usr/local/share/codev-shell/codev-shell.sh
+setgid "$new_root"/usr/local/share/codev-shell/codev-shell.sh
 ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/local/bin/codev-shell
 
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
 echo "permit nopass home /usr/local/share/codev-util/sd.sh" > /etc/doas.d/sd.conf
 
-apk_new add gnunet
-rc_new add gnunet-system-services
-echo '#!/usr/bin/env openrc-run
-description="GNUnet user services"
-command="/usr/lib/gnunet/libexec/gnunet-service-arm"
-command_args="-c /home/.config/gnunet.conf"
-command_user="home:home"
-command_background="yes"
-pidfile="/var/run/${RC_SVCNAME}.home.pid"
-depend() {
-	need gnunet-system-services
+apk_new gnunet
+rc_new gnunet-system-services
+[ -f "$new_root"/etc/init.d/gnunet-user-services ] || {
+	cat <<-'EOF' > "$new_root"/etc/init.d/gnunet-user-services
+	#!/usr/bin/env openrc-run
+	description="GNUnet user services"
+	command="/usr/lib/gnunet/libexec/gnunet-service-arm"
+	command_args="-c /home/.config/gnunet.conf"
+	command_background="yes"
+	pidfile="/var/run/${RC_SVCNAME}.home.pid"
+	depend() {
+		need gnunet-system-services
+	}
+	EOF
+	chmod +x "$new_root"/home/.config/rc/runlevels/sysinit/gnunet-user-services
 }
-' > "$new_root"/etc/runlevels/default/gnunet-user-services
-chmod +x "$new_root"/etc/runlevels/default/gnunet-user-services
+rc_new gnunet-user-services
 echo '[paths]
 GNUNET_RUNTIME_DIR = "/var/run/gnunet/"
 [arm]
