@@ -31,10 +31,6 @@ password prompt closes (showing codev in lock mode) when Escape is pressed,
 start in locked mode
 to prevent BadUSB, lock when a new input device is connected
 
-first time ask to set a password
-sudo passwd normaluser
-(used sudo because we do not want to use PAM support of passwd)
-
 https://git.suckless.org/ubase/file/passwd.c.html
 https://git.busybox.net/busybox/tree/loginutils/cryptpw.c
 https://github.com/rfc1036/whois/blob/next/mkpasswd.c
