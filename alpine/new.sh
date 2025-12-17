@@ -101,39 +101,22 @@ ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/loc
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
 echo "permit nopass home /usr/local/share/codev-util/sd.sh" > /etc/doas.d/sd.conf
 
-apk_new gnunet
-rc_new gnunet-system-services
-[ -f "$new_root"/etc/init.d/gnunet-user-services ] || {
-	cat <<-'EOF' > "$new_root"/etc/init.d/gnunet-user-services
-	#!/usr/bin/env openrc-run
-	description="GNUnet user services"
-	command="/usr/lib/gnunet/libexec/gnunet-service-arm"
-	command_args="-c /home/.config/gnunet.conf"
-	command_background="yes"
-	pidfile="/var/run/${RC_SVCNAME}.home.pid"
-	depend() {
-		need gnunet-system-services
-	}
-	EOF
-	chmod +x "$new_root"/home/.config/rc/runlevels/sysinit/gnunet-user-services
-}
-rc_new gnunet-user-services
-echo '[paths]
-GNUNET_RUNTIME_DIR = "/var/run/gnunet/"
-[arm]
-START_SYSTEM_SERVICES = NO
-START_USER_SERVICES = YES
-' > "$new_root"/home/.config/gnunet.conf
-chown home:home "$new_root"/home/.config/gnunet.conf
-
 apk_new add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
 	kio-extras kimageformats qt6-qtsvg \
-	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine aria2 openssh \
+	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine gnunet aria2 openssh \
 	qt6-qtlocation qt6-qtremoteobjects qt6-qtspeech \
 	qt6-qtcharts qt6-qtgraphs qt6-qtdatavis3d qt6-qtquick3d qt6-qt3d qt6-qtquicktimeline --virtual codev
 # qt6-qtquick3dphysics qt6-qtlottie
 cp -r "$script_dir"/../codev "$new_root"/usr/local/share/
 cp "$script_dir"/../.data/codev.svg "$new_root"/usr/local/share/icons/hicolor/scalable/apps/
+echo '[Desktop Entry]
+Name=Codev
+Comment=Collaborative Development
+Icon=codev
+exec=qml6 /usr/local/share/codev/main.qml
+StartupNotify=true
+Type=Application
+' > "$new_root"/usr/local/share/applications/codev.desktop
 
 echo; echo -n "installation completed successfully"
 echo "press any key to reboot the system"
