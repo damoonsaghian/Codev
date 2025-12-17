@@ -20,6 +20,8 @@ in modern systems, other hardwares (cpu, network ...) are automatically put into
 
 // use lines on borders of scrolled QtQuick widgets to show the amount of overflowed content
 
+// gnunet-arm -s -i fs
+
 // create an app with appId "codev"
 app.onActivate(function(app) {
 	switch (app.getWindows()[0]) {
