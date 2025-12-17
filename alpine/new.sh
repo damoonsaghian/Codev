@@ -34,15 +34,15 @@ mount --bind /dev "$new_root"/dev
 mount --bind /proc "$new_root"/proc
 
 mkdir -p "$new_root"/var/etc
-ln --symbolic --relative "$new_root"/var/etc "$new_root"/etc
+ln --symbolic var/etc "$new_root"/
 
 mkdir -p "$new_root"/usr/lib "$new_root"/usr/bin "$new_root"/usr/sbin
-ln -s usr/bin usr/sbin usr/lib "$new_root"/
+ln --symbolic usr/bin usr/sbin usr/lib "$new_root"/
 
 printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
 /dev/mapper/rootfs /var btrfs subvol=/var,rw,noatime 0 0
 /dev/mapper/rootfs /home btrfs subvol=/home,rw,noatime 0 0
-" > "$new_root"/etc/fstab
+" > "$new_root"/var/etc/fstab
 
 mkdir -p "$new_root"/etc/apk/keys/
 cp /etc/apk/keys/* "$new_root"/etc/apk/keys/
@@ -75,12 +75,11 @@ rc_new() {
 
 . "$script_dir"/new-boot.sh
 . "$script_dir"/new-base.sh
-. "$script_dir"/new-pm.sh
 . "$script_dir"/new-netman.sh
 
 quickshell_pkg=
 apk info quickshell &>/dev/null && quickshell_pkg=quickshell
-apk_new add bash bash-completion mesa-dri-gallium mesa-va-gallium breeze breeze-icons \
+apk_new doas-sudo-shim bash bash-completion mesa-dri-gallium mesa-va-gallium breeze breeze-icons \
 	font-adobe-source-code-pro font-noto font-noto-emoji \
 	font-noto-armenian font-noto-georgian font-noto-hebrew font-noto-arabic font-noto-ethiopic font-noto-nko \
 	font-noto-devanagari font-noto-gujarati font-noto-telugu font-noto-kannada font-noto-malayalam \
@@ -91,17 +90,32 @@ apk_new add bash bash-completion mesa-dri-gallium mesa-va-gallium breeze breeze-
 	apk_new add git clang cmake ninja-is-really-ninja pkgconf spirv-tools wayland-protocols qt6-qtshadertools-dev \
 		jemalloc-dev pipewire-dev libdrm-dev mesa-dev wayland-dev \
 		qt6-qtbase-dev qt6-qtdeclarative-dev qt6-qtsvg-dev qt6-qtwayland-dev --virtual quickshell-git
-	chroot "$new_root" sh "$script_dir"/quickshell.sh
+	chroot "$new_root" sh "$script_dir"/spm-apk.sh update
 }
 cp -r "$script_dir"/../codev-shell "$new_root"/usr/local/share/codev-shell
 chmod +x "$new_root"/usr/local/share/codev-shell/codev-shell.sh
-setgid "$new_root"/usr/local/share/codev-shell/codev-shell.sh
 ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/local/bin/codev-shell
 
-cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
-echo "permit nopass home /usr/local/share/codev-util/sd.sh" > /etc/doas.d/sd.conf
+mkdir -p "$new_root"/etc/doas.d
+cat <<-EOF > "$new_root"/etc/doas.d/codev-shell.conf
+permit nopass home cmd setpriv --reuid=home --regid=home --groups=input,video,audio /usr/local/bin/codev-shell
+permit nopass home cmd /usr/bin/passwd home
+EOF
 
-apk_new add mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
+echo '#!/usr/bin/env sh
+openrc -U
+' > "$new_root"/usr/local/bin/home-services
+chmod +x "$new_root"/usr/local/bin/home-services
+
+cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
+cp "$script_dir"/spm-apk.sh /usr/local/bin/spm
+chmod +x /usr/local/bin/spm
+cat <<-EOF > "$new_root"/etc/doas.d/codev-util.conf
+permit nopass home cmd sh /usr/local/share/codev-util/sd.sh
+permit nopass home cmd /usr/local/bin/spm
+EOF
+
+apk_new mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
 	kio-extras kimageformats qt6-qtsvg \
 	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine gnunet aria2 openssh \
 	qt6-qtlocation qt6-qtremoteobjects qt6-qtspeech \

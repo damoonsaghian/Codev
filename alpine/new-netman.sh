@@ -52,4 +52,4 @@ chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
 # https://skarnet.org/software/skalibs/flags.html#clockistai
 # when chrony can't adjust time, try to set it using the time reported by modemmanager
 printf '\nFAST_STARTUP=yes\n' >> "$new_root"/etc/conf.d/chronyd
-rc_new chrony
+rc_new chronyd
