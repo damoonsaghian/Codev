@@ -45,3 +45,19 @@ bright7=FCFCFA
 selection-background=555555
 selection-foreground=dddddd
 */
+
+/*
+using "sudo" in CodevShell does not suffer from these flaws:
+https://www.reddit.com/r/linuxquestions/comments/8mlil7/whats_the_point_of_the_sudo_password_prompt_if/
+https://security.stackexchange.com/questions/119410/why-should-one-use-sudo
+because:
+, when a user enters "sudo" in command line, it will run /usr/bin/sudo
+	this can't be manipulated by normal user
+, reaching to terminal in CodevShell: app launcher -> space
+	this can't be manipulated by normal user
+, CodevShell only allows keyboard input from real keyboard, or from its built'in on'screen keyboard
+, though CodevShell has access to input and video devices,
+	that privilage will be dropped (using "sudo -u "$USER" ...") for all launched apps and commands
+, there is no way for normal user to replace CodevShell
+so a malicious program can't steal root password (eg by faking password entry)
+*/

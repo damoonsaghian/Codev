@@ -1,4 +1,9 @@
 #!/usr/bin/env sh
+
+[ "$1" = priv ] || {
+	exec sudo setpriv --reuid=home --regid=home --groups=input,video,audio /usr/local/bin/codev-shell priv
+}
+
 script_dir="$(dirname "$(realpath "$0")")"
 
 [ -f /etc/profile ] && . /etc/profile
@@ -9,7 +14,7 @@ done
 export TZ="/var/lib/netman/tz"
 export LANG="en_US.UTF-8"
 export MUSL_LOCPATH="/usr/share/i18n/locales/musl"
-export SHELL="sudo clear-groups /usr/bin/bash --noprofile --norc -i \"$script_dir\"/bashrc.sh"
+export SHELL="sudo -u "$USER" /usr/bin/bash --noprofile --norc -i \"$script_dir\"/bashrc.sh"
 export PATH="/usr/local/bin:/usr/bin:/$HOME/.local/bin"
 export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
