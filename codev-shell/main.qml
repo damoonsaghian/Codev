@@ -12,12 +12,8 @@
 // https://github.com/JUMO-GmbH-Co-KG/embedded-compositor
 // https://github.com/lirios/shell
 
-// https://docs.voidlinux.org/config/session-management.html
-// https://git.sr.ht/~kennylevinsen/seatd
-
 // https://doc.qt.io/qt-6/qml-qtnetwork-networkinformation.html
 
-// https://invent.kde.org/plasma/plasma-keyboard
 
 // apps will open in separate desktops
 // extra windows will be floating with border shadow, and will be closed when unfocused
