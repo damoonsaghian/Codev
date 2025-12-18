@@ -164,18 +164,18 @@ trap "trap - EXIT; umount \"$rootfs_mount\"; rmdir \"$rootfs_mount\"" EXIT INT T
 mount /dev/mapper/rootfs "$rootfs_mount"
 btrfs subvolume create "$rootfs_mount"/root
 btrfs subvolume create "$rootfs_mount"/var
-btrfs subvolume create "$rootfs_mount"/home
+btrfs subvolume create "$rootfs_mount"/nu
 umount "$rootfs_mount"; rmdir "$rootfs_mount"; rootfs_mount=""
 
 new_root="$(mktemp -d)"
-unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/var; umount \"$new_root\"/home; \
+unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/var; umount \"$new_root\"/nu; \
 	umount \"$new_root\"; rmdir \"$new_root\""
 trap "exit_status=\$?; trap - EXIT; [ \$exit_status = 0 ] || { $unmount_all; }" EXIT INT TERM QUIT HUP PIPE
 mount /dev/mapper/roofs -o subvol=root "$new_root" || exit 1
-mkdir -p "$new_root"/root/var
-mount /dev/mapper/roofs -o subvol=var "$new_root"/root/var || exit 1
-mkdir -p "$new_root"/root/home
-mount /dev/mapper/roofs -o subvol=home "$new_root"/root/home || exit 1
+mkdir -p "$new_root"/var
+mount /dev/mapper/roofs -o subvol=var "$new_root"/var || exit 1
+mkdir -p "$new_root"/nu
+mount /dev/mapper/roofs -o subvol=nu "$new_root"/nu || exit 1
 
 [ -n "$luks_key_file" ] && cat "$luks_key_file" > "$new_root"/var/lib/luks/key0
 dd if=/dev/random of="$new_root"/var/lib/luks/key1 bs=32 count=1 status=none
