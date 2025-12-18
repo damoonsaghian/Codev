@@ -23,7 +23,7 @@ apk add cryptsetup btrfs-progs
 	read -r cryptroot_uuid
 	read -r new_root
 }
-unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/var; umount \"$new_root\"/home; \
+unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/var; umount \"$new_root\"/nu; \
 	umount -q \"$new_root\"/dev; umount -q \"$new_root\"/proc; \
 	umount \"$new_root\"; rmdir \"$new_root\""
 trap "trap - EXIT; $unmount_all" EXIT INT TERM QUIT HUP PIPE
@@ -41,7 +41,7 @@ ln --symbolic usr/bin usr/sbin usr/lib "$new_root"/
 
 printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
 /dev/mapper/rootfs /var btrfs subvol=/var,rw,noatime 0 0
-/dev/mapper/rootfs /home btrfs subvol=/home,rw,noatime 0 0
+/dev/mapper/rootfs /nu btrfs subvol=/nu,rw,noatime 0 0
 " > "$new_root"/var/etc/fstab
 
 mkdir -p "$new_root"/etc/apk/keys/
@@ -58,12 +58,12 @@ apk_new() {
 }
 
 rc_new() {
-	if [ "$1" = --user ] || [ "$1" = -u ]; then
+	if [ "$1" = --nu ]; then
 		local service="$2"
 		local runlevel="$3"
 		[ -z "$service" ] && return
 		[ -z "$runlevel" ] && runlevel=sysinit
-		ln --symbolic /etc/user/init.d/"$service" "$new_root"/home/.config/rc/runlevels/"$runlevel"/
+		ln --symbolic /etc/user/init.d/"$service" "$new_root"/nu/.config/rc/runlevels/"$runlevel"/
 	else
 		local service="$1"
 		local runlevel="$2"
@@ -79,7 +79,7 @@ rc_new() {
 
 quickshell_pkg=
 apk info quickshell &>/dev/null && quickshell_pkg=quickshell
-apk_new doas-sudo-shim bash bash-completion mesa-dri-gallium mesa-va-gallium breeze breeze-icons \
+apk_new setpriv doas-sudo-shim bash bash-completion mesa-dri-gallium mesa-va-gallium breeze breeze-icons \
 	font-adobe-source-code-pro font-noto font-noto-emoji \
 	font-noto-armenian font-noto-georgian font-noto-hebrew font-noto-arabic font-noto-ethiopic font-noto-nko \
 	font-noto-devanagari font-noto-gujarati font-noto-telugu font-noto-kannada font-noto-malayalam \
@@ -98,21 +98,19 @@ ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/loc
 
 mkdir -p "$new_root"/etc/doas.d
 cat <<-EOF > "$new_root"/etc/doas.d/codev-shell.conf
-permit nopass home cmd setpriv --reuid=home --regid=home --groups=input,video,audio /usr/local/bin/codev-shell
-permit nopass home cmd /usr/bin/passwd home
+permit nopass nu cmd setpriv --reuid=nu --regid=nu --groups=input,video,audio /usr/local/bin/codev-shell priv
+permit nopass nu cmd /usr/bin/passwd nu
 EOF
 
-echo '#!/usr/bin/env sh
-openrc -U
-' > "$new_root"/usr/local/bin/home-services
-chmod +x "$new_root"/usr/local/bin/home-services
-
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
+# service timer: 5min after boot, every 24h
+ln --symbolic --relative "$new_root"/usr/local/share/codev-util/autoupdate.sh "$new_root"/etc/cron.d/periodic/daily/
+chmod +x "$new_root"/usr/local/share/codev-util/autoupdate.sh
 cp "$script_dir"/spm-apk.sh /usr/local/bin/spm
 chmod +x /usr/local/bin/spm
 cat <<-EOF > "$new_root"/etc/doas.d/codev-util.conf
-permit nopass home cmd sh /usr/local/share/codev-util/sd.sh
-permit nopass home cmd /usr/local/bin/spm
+permit nopass nu cmd sh /usr/local/share/codev-util/sd.sh
+permit nopass nu cmd /usr/local/bin/spm
 EOF
 
 apk_new mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \

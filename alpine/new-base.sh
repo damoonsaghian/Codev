@@ -37,34 +37,16 @@ cat <<-EOF > "$new_root"/etc/cron.d/crontab
 @monthly		ID=periodic.monthly		run-parts /etc/cron.d/periodic/monthly
 EOF
 
-# apk-autoupdate
-printf '#!/usr/bin/env sh
-metered_connection() {
-	#nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
-	#dbus: org.freedesktop.NetworkManager Metered
-}
-metered_connection && exit 0
-# if plugged
-# inhibit suspend/shutdown when an upgrade is in progress
-# if during autoupdate an error occures: echo error > /var/cache/autoupdate-status
-
-# fwupd
-# just check, if available download and show notification in status bar
-' > "$new_root"/usr/local/bin/autoupdate
-chmod +x "$new_root"/usr/local/bin/autoupdate
-# service timer: 5min after boot, every 24h
-ln --symbolic --relative "$new_root"/usr/local/bin/autoupdate "$new_root"/etc/cron.d/periodic/daily/
-
 echo; echo "set root password (can be the same one entered before, to encrypt the root partition)"
 while ! chroot "$new_root" passwd root; do
 	echo "please retry"
 done
 
-rmdir "$new_root"/home
-chroot "$new_root" adduser --empty-password --home /home --shell /usr/local/bin/codev-shell home
+# create a normal user
+chroot "$new_root" adduser --empty-password --home /nu --shell /usr/local/bin/codev-shell nu
 
 echo; echo "set lock'screen password"
-while ! chroot "$new_root" passwd home; do
+while ! chroot "$new_root" passwd nu; do
 	echo "please retry"
 done
 
@@ -74,11 +56,11 @@ sed -i 's@tty2:respawn:\(.*\)getty@tty2:respawn:\1getty -n -l /usr/local/bin/aut
 printf '#!/usr/bin/env sh
 # set resource limits for realtime applications like the rt module in pipewire
 ulimit -r 95 -e -19 -l 4194304
-exec login -f home
+exec login -f nu
 ' > "$new_root"/usr/local/bin/autologin
 chmod +x "$new_root"/usr/local/bin/autologin
 
 rc_new dbus
-rc_new --user dbus
-rc_new --user pipewire
-rc_new --user wireplumber
+rc_new --nu dbus
+rc_new --nu pipewire
+rc_new --nu wireplumber

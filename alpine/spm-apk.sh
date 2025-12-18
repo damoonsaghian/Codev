@@ -36,8 +36,11 @@ update)
 		build_and_install_quickshell
 	fi
 	
+	[ -d "$new_root"/home ] && rmdir --ignore-fail-on-non-empty "$new_root"/home
+	
 	# alpine codev-util codev-shell codev
 	;;
+srv) openrc -U ;;
 new)
 	if [ "$2" = removable ]; then
 		sh /usr/local/share/spm/new-removable.sh
