@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 [ "$1" = priv ] || {
-	exec sudo setpriv --reuid=home --regid=home --groups=input,video,audio /usr/local/bin/codev-shell priv
+	exec sudo setpriv --reuid=nu --regid=nu --groups=input,video,audio /usr/local/bin/codev-shell priv
 }
 
 script_dir="$(dirname "$(realpath "$0")")"
@@ -21,7 +21,7 @@ export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
 rm -rf "$XDG_RUNTIME_DIR"
 mkdir -pm 0700 "$XDG_RUNTIME_DIR"
 
-home-services
+spm srv
 
 umask 022
 
