@@ -5,6 +5,13 @@ spm_import cryptsetup
 
 # doas rules for sd.sh
 
+# https://github.com/eggert/tz
+# only produce "right" timezones
+echo '#!/bin/sh
+system tz guess
+' > /usr/share/NetworkManager/dispatcher.d/09-dispatch-script
+chmod 755 /usr/share/NetworkManager/dispatcher.d/09-dispatch-script
+
 pkg=codev-shell
 
 spm_import bash
