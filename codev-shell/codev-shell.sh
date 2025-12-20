@@ -11,7 +11,7 @@ for profile_script in /usr/share/profile/*.sh; do
 	[ -r "$profile_script" ] && . "$profile_script"
 done
 
-export TZ="/var/lib/netman/tz"
+export TZ="$HOME/.config/tz"
 export LANG="en_US.UTF-8"
 export MUSL_LOCPATH="/usr/share/i18n/locales/musl"
 export SHELL="sudo -u "$USER" /usr/bin/bash --noprofile --norc -i \"$script_dir\"/bashrc.sh"
