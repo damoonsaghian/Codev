@@ -1,6 +1,8 @@
 #!/apps/env sh
 set -e
 
+script_dir="$(dirname "$(realpath "$0")")"
+
 # session
 # connections
 # passwords
@@ -111,6 +113,7 @@ manage_wifi() {
 
 manage_cell() {
 	echo "not yet implemented"
+	# https://gitlab.freedesktop.org/mobile-broadband/ModemManager
 }
 
 # use nmcli for bluetooth connection or:
@@ -219,6 +222,32 @@ router) manage_router ;;
 esac
 
 set_timezone() {
+	local tzdata_path="$script_dir"/tzdata
+	# when codev-util is not installed using its SPMbuild.sh script:
+	[ -d "$tzdata_path" ] || tzdata_path=/usr/share/zoneinfo/right
+	
+	if [ "$1" = set ]; then
+		tz="$2"
+		[ -f "$script_dir"/tzdata/"$tz" ] &&
+			ln -s "$tzdata_path/$tz" "$HOME/.config/tz"
+	elif [ "$1" = continents ]; then
+		ls -1 -d "$tzdata_path"/*/ | cut -d / -f5
+	elif [ "$1" = cities ]; then
+		ls -1 "$tzdata_path/$2"/* | cut -d / -f6
+	elif [ "$1" = check ]; then
+		# get timezone from location
+		# https://www.freedesktop.org/software/geoclue/docs/gdbus-org.freedesktop.GeoClue2.Location.html
+		# https://github.com/evansiroky/timezone-boundary-builder (releases -> timezone-with-oceans-now.geojson.zip)
+		# https://github.com/BertoldVdb/ZoneDetect
+		# ln -s "$tzdata_path/$continent/$city" /var/cache/tz-guess"
+	else
+		echo "usage:"
+		echo "	tz set <offset|city/continent>"
+		echo "	tz continents"
+		echo "	tz cities <continent>"
+		echo "	tz check"
+	fi
+	
 	# if there is a modem
 	if []; then
 		# https://www.freedesktop.org/software/ModemManager/doc/latest/ModemManager/gdbus-org.freedesktop.ModemManager1.Modem.Time.html
