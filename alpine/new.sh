@@ -34,10 +34,10 @@ mount --bind /dev "$new_root"/dev
 mount --bind /proc "$new_root"/proc
 
 mkdir -p "$new_root"/var/etc
-ln --symbolic var/etc "$new_root"/
+ln -s var/etc "$new_root"/
 
 mkdir -p "$new_root"/usr/lib "$new_root"/usr/bin "$new_root"/usr/sbin
-ln --symbolic usr/bin usr/sbin usr/lib "$new_root"/
+ln -s usr/bin usr/sbin usr/lib "$new_root"/
 
 printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
 /dev/mapper/rootfs /var btrfs subvol=/var,rw,noatime 0 0
@@ -63,19 +63,18 @@ rc_new() {
 		local runlevel="$3"
 		[ -z "$service" ] && return
 		[ -z "$runlevel" ] && runlevel=sysinit
-		ln --symbolic /etc/user/init.d/"$service" "$new_root"/nu/.config/rc/runlevels/"$runlevel"/
+		ln -s /etc/user/init.d/"$service" "$new_root"/nu/.config/rc/runlevels/"$runlevel"/
 	else
 		local service="$1"
 		local runlevel="$2"
 		[ -z "$service" ] && return
 		[ -z "$runlevel" ] && runlevel=default
-		ln --symbolic /etc/init.d/"$service" "$new_root"/etc/runlevels/"$runlevel"/
+		ln -s /etc/init.d/"$service" "$new_root"/etc/runlevels/"$runlevel"/
 	fi
 }
 
 . "$script_dir"/new-boot.sh
 . "$script_dir"/new-base.sh
-. "$script_dir"/new-netman.sh
 
 quickshell_pkg=
 apk info quickshell &>/dev/null && quickshell_pkg=quickshell
@@ -85,11 +84,11 @@ apk_new setpriv doas-sudo-shim bash bash-completion mesa-dri-gallium mesa-va-gal
 	font-noto-devanagari font-noto-gujarati font-noto-telugu font-noto-kannada font-noto-malayalam \
 	font-noto-oriya font-noto-bengali font-noto-tamil font-noto-myanmar \
 	font-noto-thai font-noto-lao font-noto-khmer font-noto-cjk \
-	qt6-qtvirtualkeyboard qt6-qtsensors mauikit-terminal $quickshell_pkg --virtual codev-shell
+	qt6-qtvirtualkeyboard qt6-qtsensors mauikit-terminal $quickshell_pkg --virtual .codev-shell
 [ -z $quickshell_pkg ] && {
 	apk_new add git clang cmake ninja-is-really-ninja pkgconf spirv-tools wayland-protocols qt6-qtshadertools-dev \
 		jemalloc-dev pipewire-dev libdrm-dev mesa-dev wayland-dev \
-		qt6-qtbase-dev qt6-qtdeclarative-dev qt6-qtsvg-dev qt6-qtwayland-dev --virtual quickshell-git
+		qt6-qtbase-dev qt6-qtdeclarative-dev qt6-qtsvg-dev qt6-qtwayland-dev --virtual .quickshell
 	chroot "$new_root" sh "$script_dir"/spm-apk.sh update
 }
 cp -r "$script_dir"/../codev-shell "$new_root"/usr/local/share/codev-shell
@@ -102,9 +101,10 @@ permit nopass nu cmd setpriv --reuid=nu --regid=nu --groups=input,video,audio /u
 permit nopass nu cmd /usr/bin/passwd nu
 EOF
 
+apk_new tzdata geoclue --virtual .codev-util
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
 # service timer: 5min after boot, every 24h
-ln --symbolic --relative "$new_root"/usr/local/share/codev-util/autoupdate.sh "$new_root"/etc/cron.d/periodic/daily/
+ln -s /usr/local/share/codev-util/autoupdate.sh "$new_root"/etc/cron.d/periodic/daily/
 chmod +x "$new_root"/usr/local/share/codev-util/autoupdate.sh
 cp "$script_dir"/spm-apk.sh /usr/local/bin/spm
 chmod +x /usr/local/bin/spm
@@ -112,12 +112,16 @@ cat <<-EOF > "$new_root"/etc/doas.d/codev-util.conf
 permit nopass nu cmd sh /usr/local/share/codev-util/sd.sh
 permit nopass nu cmd /usr/local/bin/spm
 EOF
+echo '#!/bin/sh
+system tz guess
+' > /etc/NetworkManager/dispatcher.d/09-dispatch-script
+chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
 
 apk_new mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
 	kio-extras kimageformats qt6-qtsvg \
-	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine gnunet aria2 openssh \
+	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine gnunet aria2 openssh geoclue \
 	qt6-qtlocation qt6-qtremoteobjects qt6-qtspeech \
-	qt6-qtcharts qt6-qtgraphs qt6-qtdatavis3d qt6-qtquick3d qt6-qt3d qt6-qtquicktimeline --virtual codev
+	qt6-qtcharts qt6-qtgraphs qt6-qtdatavis3d qt6-qtquick3d qt6-qt3d qt6-qtquicktimeline --virtual .codev
 # qt6-qtquick3dphysics qt6-qtlottie
 cp -r "$script_dir"/../codev "$new_root"/usr/local/share/
 cp "$script_dir"/../.data/codev.svg "$new_root"/usr/local/share/icons/hicolor/scalable/apps/

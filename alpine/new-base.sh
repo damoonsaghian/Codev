@@ -1,5 +1,8 @@
-apk_new alpine-base eudev eudev-netifnames bluez earlyoom acpid zzz dcron dbus musl-locales \
-	pipewire pipewire-pulse pipewire-alsa pipewire-echo-cancel pipewire-spa-bluez wireplumber sof-firmware
+apk_new alpine-base eudev eudev-netifnames earlyoom acpid zzz bluez \
+	networkmanager-cli wireless-regdb mobile-broadband-provider-info ppp-pppoe dnsmasq \
+	dcron chrony musl-locales dbus \
+	pipewire pipewire-pulse pipewire-alsa pipewire-echo-cancel pipewire-spa-bluez wireplumber sof-firmware \
+	
 
 rc_new devfs sysinit
 rc_new dmesg sysinit
@@ -23,9 +26,11 @@ rc_new udev-postmount
 # to prevent BadUSB: input-gaurd service
 # only the keyboard giving password is allowed in the session
 
-rc_new bluetooth
 rc_new earlyoom
 rc_new acpid
+rc_new bluetooth
+rc_new networkmanager
+rc_new networkmanager-dispatcher
 
 rc_new dcron
 cat <<-EOF > "$new_root"/etc/cron.d/crontab
@@ -36,6 +41,9 @@ cat <<-EOF > "$new_root"/etc/cron.d/crontab
 @weekly			ID=periodic.weekly		run-parts /etc/cron.d/periodic/weekly
 @monthly		ID=periodic.monthly		run-parts /etc/cron.d/periodic/monthly
 EOF
+
+ln -s /usr/local/share/codev-util/timesync.sh "$new_root"/etc/cron.d/periodic/daily/
+chmod +x "$new_root"/usr/local/share/codev-util/timesync.sh
 
 echo; echo "set root password (can be the same one entered before, to encrypt the root partition)"
 while ! chroot "$new_root" passwd root; do

@@ -30,7 +30,7 @@ update)
 	apk upgrade
 	
 	[ -f /usr/local/bin/quickshell ] && if apk add quickshell &>/dev/null; then
-		apk del quickshell-git
+		apk del .quickshell
 		# remove quickshell and cli11 files from /usr/local/
 	else
 		build_and_install_quickshell
