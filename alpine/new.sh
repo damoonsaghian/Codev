@@ -119,9 +119,9 @@ chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
 
 apk_new mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
 	kio-extras kimageformats qt6-qtsvg \
-	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine gnunet aria2 openssh geoclue \
-	qt6-qtlocation qt6-qtremoteobjects qt6-qtspeech \
-	qt6-qtcharts qt6-qtgraphs qt6-qtdatavis3d qt6-qtquick3d qt6-qt3d qt6-qtquicktimeline --virtual .codev
+	qt6-qtmultimedia ffmpeg-libavcodec qt6-qtwebengine qt6-qtlocation geoclue qt6-qtremoteobjects qt6-qtspeech \
+	qt6-qtcharts qt6-qtgraphs qt6-qtdatavis3d qt6-qtquick3d qt6-qt3d qt6-qtquicktimeline \
+	gnunet aria2 openssh --virtual .codev
 # qt6-qtquick3dphysics qt6-qtlottie
 cp -r "$script_dir"/../codev "$new_root"/usr/local/share/
 cp "$script_dir"/../.data/codev.svg "$new_root"/usr/local/share/icons/hicolor/scalable/apps/
