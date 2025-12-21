@@ -103,17 +103,18 @@ EOF
 
 apk_new tzdata geoclue --virtual .codev-util
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
-# service timer: 5min after boot, every 24h
-ln -s /usr/local/share/codev-util/autoupdate.sh "$new_root"/etc/cron.d/periodic/daily/
-chmod +x "$new_root"/usr/local/share/codev-util/autoupdate.sh
 cp "$script_dir"/spm-apk.sh /usr/local/bin/spm
 chmod +x /usr/local/bin/spm
 cat <<-EOF > "$new_root"/etc/doas.d/codev-util.conf
 permit nopass nu cmd sh /usr/local/share/codev-util/sd.sh
 permit nopass nu cmd /usr/local/bin/spm
 EOF
+echo '@daily ID=timesync sh /usr/local/share/codev-util/autoupdate.sh' > "$new_root"/etc/cron.d/autoupdate
+# https://networkmanager.dev/docs/api/latest/NetworkManager-dispatcher.html
 echo '#!/bin/sh
-system tz guess
+case "$2" in
+up) system tz guess ;;
+esac
 ' > /etc/NetworkManager/dispatcher.d/09-dispatch-script
 chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
 

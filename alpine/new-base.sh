@@ -31,19 +31,12 @@ rc_new acpid
 rc_new bluetooth
 rc_new networkmanager
 rc_new networkmanager-dispatcher
-
 rc_new dcron
-cat <<-EOF > "$new_root"/etc/cron.d/crontab
-# min	hour	day		month	weekday	command
-*/15	*		*		*		*		run-parts /etc/cron.d/periodic/15min
-@hourly			ID=periodic.hourly		run-parts /etc/cron.d/periodic/hourly
-@daily			ID=periodic.daily		run-parts /etc/cron.d/periodic/daily
-@weekly			ID=periodic.weekly		run-parts /etc/cron.d/periodic/weekly
-@monthly		ID=periodic.monthly		run-parts /etc/cron.d/periodic/monthly
-EOF
 
-ln -s /usr/local/share/codev-util/timesync.sh "$new_root"/etc/cron.d/periodic/daily/
-chmod +x "$new_root"/usr/local/share/codev-util/timesync.sh
+mkdir -p "$new_root"/etc/cron.d
+echo '@daily ID=timesync sh /usr/local/share/codev-util/timesync.sh
+@reboot /usr/local/share/codev-util/timesync.sh reboot
+' > "$new_root"/etc/cron.d/timesync
 
 echo; echo "set root password (can be the same one entered before, to encrypt the root partition)"
 while ! chroot "$new_root" passwd root; do
