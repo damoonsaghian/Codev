@@ -6,6 +6,9 @@ new_kernel_version="$2"
 # hook triggered for the kernel removal, nothing to do here
 [ "$new_kernel_version" ] || exit 0
 
+# a 5min delay, for when it's started on boot
+sleep 300
+
 efi_name="$(ls /usr/lib/systemd/boot/efi/system-boot*.efi | sed -n "s@/usr/lib/systemd/boot/efi/system-@@p")"
 if [ -f /usr/lib/systemd/boot/efi/system-boot*.efi ]; then
 	mv /usr/lib/systemd/boot/efi/system-boot*.efi /boot/efi/boot-new/"$efi_name"
