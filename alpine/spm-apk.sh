@@ -1,7 +1,6 @@
 #!/usr/bin/env sh
 
 # implement "spm" by wrapping apk commands
-# atomic updates
 
 # build quickshell from source, then install it in /usr/local/
 build_and_install_quickshell() {
@@ -22,9 +21,26 @@ build_and_install_quickshell() {
 	cmake --build build && cmake --install build
 }
 
+prepare_usr() {
+	# check which subvolume is mounted on /usr, usr0 or usr1; let's say it's usr0
+	# remove usr1 (if it exists)
+	# create a snapshot of usr0 to usr1
+	# create a tmp dir
+	# mount rbind root into it
+	# umount <tmp-dir>/usr
+	# mount <tmp-dir>/usr1 <tmp-dir>/usr
+}
+
+# at the end ask user to make the changes alive or wait for the next boot
+# for autoupdate do not change alive, but notify the user
+
 case "$1" in
 list) shift; apk list $@ ;;
-install) shift; apk add $@ ;;
+install)
+	shift
+	apk add $@
+	# if there are services, ask user whether to activate it or not
+	;;
 remove) shift; apk del $@ ;;
 update)
 	apk upgrade

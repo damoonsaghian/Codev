@@ -18,12 +18,10 @@ rc-service --quiet seedrng start
 # setup a storage device to install the new system
 apk add cryptsetup btrfs-progs
 { sh "$script_dir"/../codev-util/sd.sh mksys || exit 1; } | {
-	read -r boot_mountopt
-	read -r boot_uuid
 	read -r cryptroot_uuid
 	read -r new_root
 }
-unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/var; umount \"$new_root\"/nu; \
+unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/usr; \
 	umount -q \"$new_root\"/dev; umount -q \"$new_root\"/proc; \
 	umount \"$new_root\"; rmdir \"$new_root\""
 trap "trap - EXIT; $unmount_all" EXIT INT TERM QUIT HUP PIPE
@@ -33,16 +31,10 @@ mkdir -p "$new_root"/proc
 mount --bind /dev "$new_root"/dev
 mount --bind /proc "$new_root"/proc
 
-mkdir -p "$new_root"/var/etc
-ln -s var/etc "$new_root"/
-
 mkdir -p "$new_root"/usr/lib "$new_root"/usr/bin "$new_root"/usr/sbin
 ln -s usr/bin usr/sbin usr/lib "$new_root"/
 
-printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
-/dev/mapper/rootfs /var btrfs subvol=/var,rw,noatime 0 0
-/dev/mapper/rootfs /nu btrfs subvol=/nu,rw,noatime 0 0
-" > "$new_root"/var/etc/fstab
+ln -s var/etc "$new_root"/
 
 mkdir -p "$new_root"/etc/apk/keys/
 cp /etc/apk/keys/* "$new_root"/etc/apk/keys/
@@ -74,7 +66,7 @@ rc_new() {
 }
 
 . "$script_dir"/new-boot.sh
-. "$script_dir"/new-base.sh
+. "$script_dir"/new-sys.sh
 
 quickshell_pkg=
 apk info quickshell &>/dev/null && quickshell_pkg=quickshell
@@ -125,7 +117,9 @@ apk_new mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauik
 	gnunet aria2 openssh --virtual .codev
 # qt6-qtquick3dphysics qt6-qtlottie
 cp -r "$script_dir"/../codev "$new_root"/usr/local/share/
+mkdir -p "$new_root"/usr/local/share/icons/hicolor/scalable/apps
 cp "$script_dir"/../.data/codev.svg "$new_root"/usr/local/share/icons/hicolor/scalable/apps/
+mkdir -p "$new_root"/usr/local/share/applications
 echo '[Desktop Entry]
 Name=Codev
 Comment=Collaborative Development
