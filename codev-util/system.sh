@@ -54,10 +54,6 @@ script_dir="$(dirname "$(realpath "$0")")"
 # backup through gnunet F2F
 # there is a timer that automatically syncs project groups, through this F2F network
 
-# scheduler using dcron, with per'user crontabs
-# https://github.com/ptchinster/dcron/blob/master/crond.markdown
-# https://github.com/ptchinster/dcron/blob/master/crontab.markdown
-
 if [ -z "$1" ];then
 	menu() {
 		printf "$1" | fzy

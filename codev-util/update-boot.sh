@@ -1,13 +1,9 @@
 #!/usr/bin/env sh
-set -euo pipefail
 
 new_kernel_version="$2"
 
 # hook triggered for the kernel removal, nothing to do here
 [ "$new_kernel_version" ] || exit 0
-
-# a 5min delay, for when it's started on boot
-sleep 300
 
 efi_name="$(ls /usr/lib/systemd/boot/efi/system-boot*.efi | sed -n "s@/usr/lib/systemd/boot/efi/system-@@p")"
 if [ -f /usr/lib/systemd/boot/efi/system-boot*.efi ]; then
@@ -47,7 +43,10 @@ intel_ucode_paths=
 [ -f /boot/efi/boot-new/amd-ucode.img ] && amd_ucode_paths="/boot/efi/boot-new/amd-ucode.img"
 [ -f /boot/efi/boot-new/intel-ucode.img ] && intel_ucode_paths="/boot/efi/boot-new/intel-ucode.img"
 
-mkinitfs -P /usr/local/share/mkinitfs/features -o /boot/efi/boot-new/initramfs "${new_kernel_version}-stable"
+initfs_features="ata base nvme scsi usb mmc virtio btrfs cryptsetup tpm"
+[ "$(uname -m)" = "aarch64" ] && initfs_features="$initfs_features phy"
+mkinitfs -P /usr/local/share/mkinitfs/features -F "$initfs_features" \
+	-o /boot/efi/boot-new/initramfs "${new_kernel_version}-stable"
 
 initramfs_sum="$(cat "$amd_ucode_path" "$intel_ucode_path" /boot/efi/boot-new/initramfs | sha256sum)"
 # initramfs_sum as pcr9 digest
@@ -62,6 +61,8 @@ cat /boot/loader/entries/alpine.conf | grep '^options' | sed "s/^options[[:space
 done
 cmdline_sum=
 # cmd_line_sum as pcr12 digest
+
+# boot entry: usrflags=subvol=usr0 or usr1
 
 # measured boot (instead of secure boot)
 # if there is no /boot/keys/priv /boot/keys/pub

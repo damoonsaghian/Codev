@@ -1,3 +1,6 @@
+# a 5min delay, for when it's started on boot
+sleep 300
+
 metered_connection() {
 	#nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
 	#dbus: org.freedesktop.NetworkManager Metered

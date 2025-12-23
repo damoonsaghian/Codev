@@ -147,6 +147,20 @@ then
 	mkfs.btrfs -f --quiet "/dev/mapper/rootfs"
 fi
 
+cryptroot_uuid="$(blkid "$taget_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
+
+new_root="$(mktemp -d)"
+unmount_all="umount -q \"$new_root\"/boot; umount -q \"$new_root\"/usr; umount -q \"$new_root\"; rmdir \"$new_root\""
+trap "exit_status=\$?; trap - EXIT; [ \$exit_status = 0 ] || { $unmount_all; }" EXIT INT TERM QUIT HUP PIPE
+mount /dev/mapper/rootfs "$new_root"
+
+btrfs subvolume create "$new_root"/usr0
+mkdir "$new_root"/usr
+mount --bind "$new_root"/usr0 "$new_root"/usr
+
+mkdir -p "$new_root"/boot
+mount "$taget_partition1" "$new_root"/boot
+
 # it seems that vfat does not mount with discard as default (unlike btrfs)
 # so if queued trim is supported, use discard option when mounting boot
 boot_mountopt=""
@@ -156,27 +170,14 @@ then
 	boot_mountopt="discard,"
 fi
 
+# fstab
 boot_uuid="$(blkid "$taget_partition1" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
-cryptroot_uuid="$(blkid "$taget_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
+mkdir -p "$new_root"/var/etc
+printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
+/dev/mapper/rootfs /usr btrfs X-mount.subdir=/usr,ro,noatime 0 0
+" > "$new_root"/var/etc/fstab
 
-rootfs_mount="$(mktemp -d)"
-trap "trap - EXIT; umount \"$rootfs_mount\"; rmdir \"$rootfs_mount\"" EXIT INT TERM QUIT HUP PIPE
-mount /dev/mapper/rootfs "$rootfs_mount"
-btrfs subvolume create "$rootfs_mount"/root
-btrfs subvolume create "$rootfs_mount"/var
-btrfs subvolume create "$rootfs_mount"/nu
-umount "$rootfs_mount"; rmdir "$rootfs_mount"; rootfs_mount=""
-
-new_root="$(mktemp -d)"
-unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/var; umount \"$new_root\"/nu; \
-	umount \"$new_root\"; rmdir \"$new_root\""
-trap "exit_status=\$?; trap - EXIT; [ \$exit_status = 0 ] || { $unmount_all; }" EXIT INT TERM QUIT HUP PIPE
-mount /dev/mapper/roofs -o subvol=root "$new_root" || exit 1
-mkdir -p "$new_root"/var
-mount /dev/mapper/roofs -o subvol=var "$new_root"/var || exit 1
-mkdir -p "$new_root"/nu
-mount /dev/mapper/roofs -o subvol=nu "$new_root"/nu || exit 1
-
+mkdir -p "$new_root"/var/lib/luks
 [ -n "$luks_key_file" ] && cat "$luks_key_file" > "$new_root"/var/lib/luks/key0
 dd if=/dev/random of="$new_root"/var/lib/luks/key1 bs=32 count=1 status=none
 dd if=/dev/random of="$new_root"/var/lib/luks/key2 bs=32 count=1 status=none
@@ -187,10 +188,5 @@ cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 0 "$target_parti
 cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 1 "$target_partition2" "$new_root"/var/lib/luks/key1
 cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 2 "$target_partition2" "$new_root"/var/lib/luks/key2
 
-mkdir -p "$new_root"/boot
-mount "$taget_partition1" "$new_root"/boot
-
-echo "$boot_mountopt"
-echo "$boot_uuid"
 echo "$cryptroot_uuid"
 echo "$new_root"
