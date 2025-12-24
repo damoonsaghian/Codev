@@ -174,7 +174,7 @@ fi
 boot_uuid="$(blkid "$taget_partition1" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
 mkdir -p "$new_root"/var/etc
 printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
-/dev/mapper/rootfs /usr btrfs X-mount.subdir=/usr,ro,noatime 0 0
+/dev/mapper/rootfs /usr btrfs noauto 0 0
 " > "$new_root"/var/etc/fstab
 
 mkdir -p "$new_root"/var/lib/luks
