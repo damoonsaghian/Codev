@@ -29,26 +29,22 @@ fi
 
 
 if [ -f /boot/amd-ucode.img ]; then
-	mv /boot/amd-ucode.img /boot/efi/boot-new/amd-ucode.img
-elif [ -f /boot/efi/boot/amd-ucode.img ]; then
-	cp /boot/efi/boot/amd-ucode.img /boot/efi/boot-new/amd-ucode.img
+	mv /boot/amd-ucode.img /boot/efi/boot-new/ucode.img
+elif [ -f /boot/efi/boot/ucode.img ]; then
+	cp /boot/efi/boot/ucode.img /boot/efi/boot-new/ucode.img
 fi
 if [ -f /boot/intel-ucode.img ]; then
-	mv /boot/amd-ucode.img /boot/efi/boot-new/amd-ucode.img
-elif [ -f /boot/efi/boot/intel-ucode.img ]; then
-	cp /boot/efi/boot/intel-ucode.img /boot/efi/boot-new/intel-ucode.img
+	mv /boot/amd-ucode.img /boot/efi/boot-new/ucode.img
+elif [ -f /boot/efi/boot/ucode.img ]; then
+	cp /boot/efi/boot/ucode.img /boot/efi/boot-new/ucode.img
 fi
-amd_ucode_paths=
-intel_ucode_paths=
-[ -f /boot/efi/boot-new/amd-ucode.img ] && amd_ucode_paths="/boot/efi/boot-new/amd-ucode.img"
-[ -f /boot/efi/boot-new/intel-ucode.img ] && intel_ucode_paths="/boot/efi/boot-new/intel-ucode.img"
 
 initfs_features="ata base nvme scsi usb mmc virtio btrfs cryptsetup tpm"
 [ "$(uname -m)" = "aarch64" ] && initfs_features="$initfs_features phy"
 mkinitfs -P /usr/local/share/mkinitfs/features -F "$initfs_features" \
 	-o /boot/efi/boot-new/initramfs "${new_kernel_version}-stable"
 
-initramfs_sum="$(cat "$amd_ucode_path" "$intel_ucode_path" /boot/efi/boot-new/initramfs | sha256sum)"
+initramfs_sum="$(cat /boot/efi/boot-new/ucode.img /boot/efi/boot-new/initramfs | sha256sum)"
 # initramfs_sum as pcr9 digest
 
 cmdline=

@@ -37,6 +37,7 @@
 	echo "	sd unmount <mount-point>"
 	echo "	sd format <dev-name>"
 	echo "	sd mksys"
+	exit 1
 }
 
 # the following is run only when "$1" is "mksys"
@@ -136,30 +137,46 @@ then
 	
 	luks_key_file="$(mktemp)"
 	dd if=/dev/random of="$luks_key_file" bs=32 count=1 status=none
-	cryptsetup luksFormat --batch-mode --key-file="$luks_key_file" "$target_partition2"
+	cryptsetup luksFormat --batch-mode --key-file="$luks_key_file" "$target_partition2" || exit 1
 	# other than a key'based slot, create a password based slot
 	# warn the user that the passwrod must not be used carelessly
 	# only if the system is tampered it will ask for the password
 	# use password only if you are sure that the source of tamper is yourself
-	cryptsetup luksAddKey --key-file "$luks_key_file" "$target_partition2"
+	cryptsetup luksAddKey --key-file "$luks_key_file" "$target_partition2" || exit 1
 	cryptsetup open --allow-discards --persistent --type luks --key-file "$luks_key_file" "$target_partition2" "rootfs"
 	
-	mkfs.btrfs -f --quiet "/dev/mapper/rootfs"
+	mkfs.btrfs -f --quiet "/dev/mapper/rootfs" || exit 1
 fi
-
-cryptroot_uuid="$(blkid "$taget_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
 
 new_root="$(mktemp -d)"
 unmount_all="umount -q \"$new_root\"/boot; umount -q \"$new_root\"/usr; umount -q \"$new_root\"; rmdir \"$new_root\""
 trap "exit_status=\$?; trap - EXIT; [ \$exit_status = 0 ] || { $unmount_all; }" EXIT INT TERM QUIT HUP PIPE
-mount /dev/mapper/rootfs "$new_root"
+mount /dev/mapper/rootfs "$new_root" || exit 1
 
 btrfs subvolume create "$new_root"/usr0
 mkdir "$new_root"/usr
-mount --bind "$new_root"/usr0 "$new_root"/usr
+mount --bind "$new_root"/usr0 "$new_root"/usr || exit 1
 
 mkdir -p "$new_root"/boot
-mount "$taget_partition1" "$new_root"/boot
+mount "$taget_partition1" "$new_root"/boot || exit 1
+
+# systemd bootloader
+cryptroot_uuid="$(blkid "$taget_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
+modules="nvme,sd-mod,usb-storage,btrfs"
+[ -e /sys/module/vmd ] && modules="$modules,vmd"
+mkdir -p "$new_root"/boot/loader/entries
+printf "title Alpine Linux
+linux /efi/boot/vmlinuz
+initrd /efi/boot/ucode.img
+initrd /efi/boot/initramfs
+options cryptkey=EXEC=tpm-getkey cryptroot=UUID=$cryptroot_uuid cryptdm=rootfs
+options root=/dev/mapper/rootfs rootfstype=btrfs rootflags=rw,noatime usrflags=subvol=usr0,ro,noatime \
+options modules=$modules quiet
+" > "$new_root"/boot/loader/entries/alpine.conf
+printf 'default alpine.conf
+timeout 0
+auto-entries no
+' > "$new_root"/boot/loader/loader.conf
 
 # it seems that vfat does not mount with discard as default (unlike btrfs)
 # so if queued trim is supported, use discard option when mounting boot
@@ -188,5 +205,4 @@ cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 0 "$target_parti
 cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 1 "$target_partition2" "$new_root"/var/lib/luks/key1
 cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 2 "$target_partition2" "$new_root"/var/lib/luks/key2
 
-echo "$cryptroot_uuid"
 echo "$new_root"
