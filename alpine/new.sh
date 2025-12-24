@@ -17,10 +17,8 @@ rc-service --quiet seedrng start
 
 # setup a storage device to install the new system
 apk add cryptsetup btrfs-progs
-{ sh "$script_dir"/../codev-util/sd.sh mksys || exit 1; } | {
-	read -r cryptroot_uuid
+{ sh "$script_dir"/../codev-util/sd.sh mksys || exit 1; } |
 	read -r new_root
-}
 unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/usr; \
 	umount -q \"$new_root\"/dev; umount -q \"$new_root\"/proc; \
 	umount \"$new_root\"; rmdir \"$new_root\""
@@ -31,10 +29,7 @@ mkdir -p "$new_root"/proc
 mount --bind /dev "$new_root"/dev
 mount --bind /proc "$new_root"/proc
 
-mkdir -p "$new_root"/usr/lib "$new_root"/usr/bin "$new_root"/usr/sbin
-ln -s usr/bin usr/sbin usr/lib "$new_root"/
-
-ln -s var/etc "$new_root"/
+ln -s usr/bin usr/sbin usr/lib var/etc "$new_root"/
 
 mkdir -p "$new_root"/etc/apk/keys/
 cp /etc/apk/keys/* "$new_root"/etc/apk/keys/
@@ -65,8 +60,7 @@ rc_new() {
 	fi
 }
 
-. "$script_dir"/new-boot.sh
-. "$script_dir"/new-sys.sh
+. "$script_dir"/new-base.sh
 
 quickshell_pkg=
 apk info quickshell &>/dev/null && quickshell_pkg=quickshell
