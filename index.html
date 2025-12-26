@@ -150,7 +150,7 @@ body {
 </div><div>to navigate between terminal views, use "ctrl+pageup" and "ctrl+pagedown" keys
 </div><div>to go back to the prompt, press "ctrl+tab"
 </div><div>to navigate in history list, use "up" and "down" arrow keys
-</div><div>	you can press enter on an entry to insert the command in the prompt, to edit and/or run it
+</div><div>	you can press enter on an entry to rerun the command, or press space to first edit it
 </div><div>to close a terminal view (that will also kill any running process) press "super+backspace" or "alt+escape"
 </div><div>
 </div><div>the first item in the application launcher is "system", which opens the system menu:
@@ -158,7 +158,7 @@ body {
 </div><div>, connections
 </div><div>, timezone
 </div><div>, passwords
-</div><div>, packages (install, remove, update, make a new system)
+</div><div>, packages (install, remove, update, make installation media)
 </div><div>, backup (create, restore)
 </div><div>
 </div><div>packages are updated automatically; and the update process is atomic
@@ -175,18 +175,9 @@ body {
 </div><div>
 </div><div>SPM Linux (still a work in progress) provides a user interface based on CodevShell and Codev
 </div><div>meanwhile we can use Alpine Linux as the underling system to run CodevShell and Codev
-</div><div>for that we just need to be in a Posix system, and do these:
-</div><div>, on a removable storage device, create a UEFI partition, and format it with FAT32
-</div><div>	to do those, run these as root:
-</div><div>	; fdisk -l # find the name of the device, and write it in place of "sdx" in the following commands
-</div><div>	; printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/sdx
-</div><div>	; mkfs.vfat -F 32 /dev/sdx1
-</div><div>, mount the removable media
-</div><div>, download Alpine Linux installation media from: https://alpinelinux.org/downloads/
-</div><div>	then extract its content into the directory where the removable media was mounted
-</div><div>, run this: sh alpine/mkovl.sh
-</div><div>	that will create a file at ".cache/alpine/localhost.apkovl.tar.gz"
-</div><div>	copy that too, into the directory where the removable media was mounted
-</div><div>, now boot into the installation media, and follow the instructions
+</div><div>for that we just need to be in a Posix system
+</div><div>then run the following command, to create a bootable installer on a removable storage device:
+</div><div>; sh spm-alpine/mkinst.sh
+</div><div>now boot into the installation media, and follow the instructions
 </div>
 </body></html>
