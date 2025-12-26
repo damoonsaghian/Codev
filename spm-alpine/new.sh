@@ -6,16 +6,11 @@
 
 script_dir="$(dirname "$(realpath "$0")")"
 
-if [ $(id -u) != 0 ]; then
-	echo "this script must be run as root"
-	exit 1
-fi
-
 setup-interfaces -r
 ntpd -qnN -p pool.ntp.org
 rc-service --quiet seedrng start
 
-# setup a storage device to install the new system
+# setup a storage device for installing the new system
 apk add cryptsetup btrfs-progs
 { sh "$script_dir"/../codev-util/sd.sh mksys || exit 1; } |
 	read -r new_root
@@ -62,9 +57,15 @@ rc_new() {
 
 . "$script_dir"/new-base.sh
 
+###############
+# codev-shell #
+###############
+
 quickshell_pkg=
 apk info quickshell &>/dev/null && quickshell_pkg=quickshell
-apk_new setpriv doas-sudo-shim bash bash-completion mesa-dri-gallium mesa-va-gallium breeze breeze-icons \
+apk_new setpriv doas-sudo-shim musl-locales tzdata geoclue bash bash-completion dbus \
+	pipewire pipewire-pulse pipewire-alsa pipewire-echo-cancel pipewire-spa-bluez wireplumber sof-firmware \
+	mesa-dri-gallium mesa-va-gallium breeze breeze-icons \
 	font-adobe-source-code-pro font-noto font-noto-emoji \
 	font-noto-armenian font-noto-georgian font-noto-hebrew font-noto-arabic font-noto-ethiopic font-noto-nko \
 	font-noto-devanagari font-noto-gujarati font-noto-telugu font-noto-kannada font-noto-malayalam \
@@ -75,8 +76,13 @@ apk_new setpriv doas-sudo-shim bash bash-completion mesa-dri-gallium mesa-va-gal
 	apk_new add git clang cmake ninja-is-really-ninja pkgconf spirv-tools wayland-protocols qt6-qtshadertools-dev \
 		jemalloc-dev pipewire-dev libdrm-dev mesa-dev wayland-dev \
 		qt6-qtbase-dev qt6-qtdeclarative-dev qt6-qtsvg-dev qt6-qtwayland-dev --virtual .quickshell
-	chroot "$new_root" sh "$script_dir"/spm-apk.sh update
+	chroot "$new_root" sh "$script_dir"/spm-apk.sh quickshell
 }
+rc_new dbus
+rc_new --nu dbus
+rc_new --nu pipewire
+rc_new --nu wireplumber
+
 cp -r "$script_dir"/../codev-shell "$new_root"/usr/local/share/codev-shell
 chmod +x "$new_root"/usr/local/share/codev-shell/codev-shell.sh
 ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/local/bin/codev-shell
@@ -87,22 +93,23 @@ permit nopass nu cmd setpriv --reuid=nu --regid=nu --groups=input,video,audio /u
 permit nopass nu cmd /usr/bin/passwd nu
 EOF
 
-apk_new tzdata geoclue --virtual .codev-util
-cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
-cp "$script_dir"/spm-apk.sh /usr/local/bin/spm
-chmod +x /usr/local/bin/spm
-cat <<-EOF > "$new_root"/etc/doas.d/codev-util.conf
-permit nopass nu cmd sh /usr/local/share/codev-util/sd.sh
-permit nopass nu cmd /usr/local/bin/spm
-EOF
-echo '@daily ID=timesync sh /usr/local/share/codev-util/autoupdate.sh' > "$new_root"/etc/cron.d/autoupdate
-# https://networkmanager.dev/docs/api/latest/NetworkManager-dispatcher.html
+chmod +x "$new_root"/usr/local/share/codev-shell/system.sh
+ln -s /usr/local/share/codev-shell/system.sh "$new_root"/usr/local/bin/system
+
+chmod +x "$new_root"/usr/local/share/codev-shell/sd.sh
+ln -s /usr/local/share/codev-shell/sd.sh "$new_root"/usr/local/bin/sd
+echo 'permit nopass nu cmd /usr/local/bin/sd' > "$new_root"/etc/doas.d/sd.conf
+
 echo '#!/bin/sh
 case "$2" in
-up) system tz guess ;;
+up) sudo -u nu system tz guess ;;
 esac
 ' > /etc/NetworkManager/dispatcher.d/09-dispatch-script
 chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
+
+#########
+# codev #
+#########
 
 apk_new mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
 	kio-extras kimageformats qt6-qtsvg \
@@ -113,6 +120,7 @@ apk_new mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauik
 cp -r "$script_dir"/../codev "$new_root"/usr/local/share/
 mkdir -p "$new_root"/usr/local/share/icons/hicolor/scalable/apps
 cp "$script_dir"/../.data/codev.svg "$new_root"/usr/local/share/icons/hicolor/scalable/apps/
+
 mkdir -p "$new_root"/usr/local/share/applications
 echo '[Desktop Entry]
 Name=Codev
