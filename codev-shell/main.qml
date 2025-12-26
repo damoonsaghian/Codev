@@ -14,9 +14,13 @@
 
 // https://doc.qt.io/qt-6/qml-qtnetwork-networkinformation.html
 
-
 // apps will open in separate desktops
 // extra windows will be floating with border shadow, and will be closed when unfocused
+
+// to prevent BadUSB:
+// only accept input from one keyboard
+// if more than one mouse is connected, accept input from neither
+// only accept input from microphones connected through bluetooth (not usb)
 
 /*
 lock
