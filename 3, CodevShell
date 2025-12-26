@@ -18,7 +18,7 @@ the first item in the application launcher is "system", which opens the system m
 , connections
 , timezone
 , passwords
-, packages (install, remove, update, make a new system)
+, packages (install, remove, update, make installation media)
 , backup (create, restore)
 
 packages are updated automatically; and the update process is atomic
@@ -35,16 +35,7 @@ these systems will then form an F2F network using GNUnet, through which they wil
 
 SPM Linux (still a work in progress) provides a user interface based on CodevShell and Codev
 meanwhile we can use Alpine Linux as the underling system to run CodevShell and Codev
-for that we just need to be in a Posix system, and do these:
-, on a removable storage device, create a UEFI partition, and format it with FAT32
-	to do those, run these as root:
-	; fdisk -l # find the name of the device, and write it in place of "sdx" in the following commands
-	; printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/sdx
-	; mkfs.vfat -F 32 /dev/sdx1
-, mount the removable media
-, download Alpine Linux installation media from: https://alpinelinux.org/downloads/
-	then extract its content into the directory where the removable media was mounted
-, run this: sh alpine/mkovl.sh
-	that will create a file at ".cache/alpine/localhost.apkovl.tar.gz"
-	copy that too, into the directory where the removable media was mounted
-, now boot into the installation media, and follow the instructions
+for that we just need to be in a Posix system
+then run the following command, to create a bootable installer on a removable storage device:
+; sh spm-alpine/mkinst.sh
+now boot into the installation media, and follow the instructions
