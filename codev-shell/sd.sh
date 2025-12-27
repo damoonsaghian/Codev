@@ -2,7 +2,40 @@
 
 # mounting and formatting storage devices
 
-# exit if $2 is the system device
+target_device="$2"
+
+if [ -z "$target_device" ]; then
+	echo; echo "available storage devices:"
+	printf "\tname\tsize\tmodel\n"
+	printf "\t----\t----\t-----\n"
+	ls -1 --color=never /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
+		device_size="$(cat /sys/block/"$device_name"/size)"
+		device_size="$((device_size / 1000000))GB"
+		device_model="$(cat /sys/block/"$device_name"/device/model)"
+		printf "\t$device_name\t$device_size\t$device_model\n"
+	done
+	printf "enter the name of the target device for installation: "
+	read -r target_device
+fi
+
+test -e /sys/block/"$target_device" || {
+	echo "there is no storage device named \"$target_device\""
+	exit 1
+}
+
+# if target_device is a partition, find the parent device
+/sys/class/block/"$target_device"/dev
+target_device_num="$(cat /sys/class/block/"$target_device"/dev | cut -d ":" -f 1):0"
+target_device="$(basename "$(readlink /dev/block/"$target_device_num")")"
+
+# exit if $target_device is the system device
+root_partition="$(df / | tail -n 1 | cut -d " " -f 1 | cut -d / -f 3)"
+root_device_num="$(cat /sys/class/block/"$root_partition"/dev | cut -d ":" -f 1):0"
+root_device="$(basename "$(readlink /dev/block/"$root_device_num")")"
+if [ "$(stat -L -c %d:%i "/dev/$target_device")" = "$(stat -L -c %d:%i "/dev/$root_device")"]; then
+	echo "can't install on \"$target_device\", since it contains the running system"
+	exit 1
+fi
 
 [ "$1" = mount ] && {
 	# mount with suid bits disabled
@@ -14,12 +47,14 @@
 		[ "$(cat /sys/block/"$device"/queue/discard_max_bytes)" -gt 2147483648 ]
 	then
 	fi
+	exit
 }
 
 [ "$1" = unmount ] && {
 	# before unmount, run "fstrim <mount-point>" for devices supporting unqueued trim
 	# [ "$(cat /sys/block/"$device"/queue/discard_granularity)" -gt 0 ] &&
 	# [ "$(cat /sys/block/"$device"/queue/discard_max_bytes)" -lt 2147483648 ] &&
+	exit
 }
 
 [ "$1" = format ] && {
@@ -29,6 +64,15 @@
 	# format non'system devices, format with vfat or exfat (if wants files bigger than 4GB)
 	# for system devices:
 	# doas sh -c "mkfs.btrfs -f <dev-path>; mount <dev-path> /mnt; chmod 777 /mnt; umount /mnt"
+	exit
+}
+
+[ "$1" = format-inst ] && {
+	# create a UEFI partition, and format it with FAT32
+	printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/"$target_device"
+	mkfs.vfat -F 32 /dev/"$target_device"
+	echo "$target_device"
+	exit
 }
 
 [ "$1" = mksys ] || {
@@ -41,33 +85,6 @@
 }
 
 # the following is run only when "$1" is "mksys"
-
-target_device="$2"
-if [ -z "$target_device" ]; then
-	echo; echo "available storage devices:"
-	printf "\tname\tsize\tmodel\n"
-	printf "\t----\t----\t-----\n"
-	ls -1 --color=never /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
-		device_size="$(cat /sys/block/"$device_name"/size)"
-		device_size="$((device_size / 1000000))GB"
-		device_model="$(cat /sys/block/"$device_name"/device/model)"
-		printf "\t$device_name\t$device_size\t$device_model\n"
-	done
-	printf "enter the name of the device to install SPM Linux on: "
-	read -r target_device
-	test -e /sys/block/"$target_device" || {
-		echo "there is no storage device named \"$target_device\""
-		exit 1
-	}
-	
-	root_partition="$(df / | tail -n 1 | cut -d " " -f 1 | cut -d / -f 3)"
-	root_device_num="$(cat /sys/class/block/"$root_partition"/dev | cut -d ":" -f 1):0"
-	root_device="$(basename "$(readlink /dev/block/"$root_device_num")")"
-	if [ "$target_device" = "$root_device" ]; then
-		echo "can't install on \"$target_device\", since it contains the running system"
-		exit 1
-	fi
-fi
 
 target_partitions="$(echo /sys/block/"$target_device"/"$target_device"* |
 	sed -n "s/\/sys\/block\/$target_device\///pg")"
