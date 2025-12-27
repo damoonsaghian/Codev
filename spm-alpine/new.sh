@@ -12,7 +12,7 @@ rc-service --quiet seedrng start
 
 # setup a storage device for installing the new system
 apk add cryptsetup btrfs-progs
-{ sh "$script_dir"/../codev-util/sd.sh mksys || exit 1; } |
+{ sh "$script_dir"/../codev-shell/sd.sh mksys || exit 1; } |
 	read -r new_root
 unmount_all="umount \"$new_root\"/boot; umount \"$new_root\"/usr; \
 	umount -q \"$new_root\"/dev; umount -q \"$new_root\"/proc; \
