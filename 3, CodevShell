@@ -37,5 +37,5 @@ SPM Linux (still a work in progress) provides a user interface based on CodevShe
 meanwhile we can use Alpine Linux as the underling system to run CodevShell and Codev
 for that we just need to be in a Posix system
 then run the following command, to create a bootable installer on a removable storage device:
-; sh spm-alpine/mkinst.sh
+; sudo sh spm-alpine/mkinst.sh
 now boot into the installation media, and follow the instructions
