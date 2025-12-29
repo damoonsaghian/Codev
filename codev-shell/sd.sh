@@ -2,41 +2,6 @@
 
 # mounting and formatting storage devices
 
-target_device="$2"
-
-if [ -z "$target_device" ]; then
-	echo; echo "available storage devices:"
-	printf "\tname\tsize\tmodel\n"
-	printf "\t----\t----\t-----\n"
-	ls -1 --color=never /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
-		device_size="$(cat /sys/block/"$device_name"/size)"
-		device_size="$((device_size / 1000000))GB"
-		device_model="$(cat /sys/block/"$device_name"/device/model)"
-		printf "\t$device_name\t$device_size\t$device_model\n"
-	done
-	printf "enter the name of the target device for installation: "
-	read -r target_device
-fi
-
-test -e /sys/block/"$target_device" || {
-	echo "there is no storage device named \"$target_device\""
-	exit 1
-}
-
-# if target_device is a partition, find the parent device
-/sys/class/block/"$target_device"/dev
-target_device_num="$(cat /sys/class/block/"$target_device"/dev | cut -d ":" -f 1):0"
-target_device="$(basename "$(readlink /dev/block/"$target_device_num")")"
-
-# exit if $target_device is the system device
-root_partition="$(df / | tail -n 1 | cut -d " " -f 1 | cut -d / -f 3)"
-root_device_num="$(cat /sys/class/block/"$root_partition"/dev | cut -d ":" -f 1):0"
-root_device="$(basename "$(readlink /dev/block/"$root_device_num")")"
-if [ "$(stat -L -c %d:%i "/dev/$target_device")" = "$(stat -L -c %d:%i "/dev/$root_device")"]; then
-	echo "can't install on \"$target_device\", since it contains the running system"
-	exit 1
-fi
-
 [ "$1" = mount ] && {
 	# mount with suid bits disabled
 	# mount to ~/.local/state/mounts
@@ -67,21 +32,57 @@ fi
 	exit
 }
 
-[ "$1" = format-inst ] && {
-	# create a UEFI partition, and format it with FAT32
-	printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/"$target_device"
-	mkfs.vfat -F 32 /dev/"$target_device"
-	echo "$target_device"
-	exit
-}
-
-[ "$1" = mksys ] || {
+if [ "$1" != mksys ] && [ "$1" != format-inst ]; then
 	echo "usage:"
 	echo "	sd mount <dev-name>"
 	echo "	sd unmount <mount-point>"
 	echo "	sd format <dev-name>"
 	echo "	sd mksys"
 	exit 1
+fi
+
+target_dir="$2"
+if [ -z "$target_dir" ]; then
+	target_dir=target
+fi
+
+echo; echo "available storage devices:"
+printf "\tname\tsize\tmodel\n"
+printf "\t----\t----\t-----\n"
+ls -1 --color=never /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
+	device_size="$(cat /sys/block/"$device_name"/size)"
+	device_size="$((device_size / 1000000))GB"
+	device_model="$(cat /sys/block/"$device_name"/device/model)"
+	printf "\t$device_name\t$device_size\t$device_model\n"
+done
+printf "enter the name of the target device for installation: "
+read -r target_device
+
+test -e /sys/block/"$target_device" || {
+	echo "there is no storage device named \"$target_device\""
+	exit 1
+}
+
+# if target_device is a partition, find the parent device
+/sys/class/block/"$target_device"/dev
+target_device_num="$(cat /sys/class/block/"$target_device"/dev | cut -d ":" -f 1):0"
+target_device="$(basename "$(readlink /dev/block/"$target_device_num")")"
+
+# exit if $target_device is the system device
+root_partition="$(df / | tail -n 1 | cut -d " " -f 1 | cut -d / -f 3)"
+root_device_num="$(cat /sys/class/block/"$root_partition"/dev | cut -d ":" -f 1):0"
+root_device="$(basename "$(readlink /dev/block/"$root_device_num")")"
+if [ "$(stat -L -c %d:%i "/dev/$target_device")" = "$(stat -L -c %d:%i "/dev/$root_device")"]; then
+	echo "can't install on \"$target_device\", since it contains the running system"
+	exit 1
+fi
+
+[ "$1" = format-inst ] && {
+	# create a UEFI partition, and format it with FAT32
+	printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/"$target_device"
+	mkfs.vfat -F 32 /dev/"$target_device"
+	mount "$target_device" "$target_dir"
+	exit
 }
 
 # the following is run only when "$1" is "mksys"
@@ -165,23 +166,20 @@ then
 	mkfs.btrfs -f --quiet "/dev/mapper/rootfs" || exit 1
 fi
 
-new_root="$(mktemp -d)"
-unmount_all="umount -q \"$new_root\"/boot; umount -q \"$new_root\"/usr; umount -q \"$new_root\"; rmdir \"$new_root\""
-trap "exit_status=\$?; trap - EXIT; [ \$exit_status = 0 ] || { $unmount_all; }" EXIT INT TERM QUIT HUP PIPE
-mount /dev/mapper/rootfs "$new_root" || exit 1
+mount /dev/mapper/rootfs "$target_dir" || exit 1
 
-btrfs subvolume create "$new_root"/usr0
-mkdir "$new_root"/usr
-mount --bind "$new_root"/usr0 "$new_root"/usr || exit 1
+btrfs subvolume create "$target_dir"/usr0
+mkdir "$target_dir"/usr
+mount --bind "$target_dir"/usr0 "$target_dir"/usr || exit 1
 
-mkdir -p "$new_root"/boot
-mount "$taget_partition1" "$new_root"/boot || exit 1
+mkdir -p "$target_dir"/boot
+mount "$taget_partition1" "$target_dir"/boot || exit 1
 
 # systemd bootloader
 cryptroot_uuid="$(blkid "$taget_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
 modules="nvme,sd-mod,usb-storage,btrfs"
 [ -e /sys/module/vmd ] && modules="$modules,vmd"
-mkdir -p "$new_root"/boot/loader/entries
+mkdir -p "$target_dir"/boot/loader/entries
 printf "title Alpine Linux
 linux /efi/boot/vmlinuz
 initrd /efi/boot/ucode.img
@@ -189,11 +187,11 @@ initrd /efi/boot/initramfs
 options cryptkey=EXEC=tpm-getkey cryptroot=UUID=$cryptroot_uuid cryptdm=rootfs
 options root=/dev/mapper/rootfs rootfstype=btrfs rootflags=rw,noatime usrflags=subvol=usr0,ro,noatime \
 options modules=$modules quiet
-" > "$new_root"/boot/loader/entries/alpine.conf
+" > "$target_dir"/boot/loader/entries/alpine.conf
 printf 'default alpine.conf
 timeout 0
 auto-entries no
-' > "$new_root"/boot/loader/loader.conf
+' > "$target_dir"/boot/loader/loader.conf
 
 # it seems that vfat does not mount with discard as default (unlike btrfs)
 # so if queued trim is supported, use discard option when mounting boot
@@ -206,20 +204,18 @@ fi
 
 # fstab
 boot_uuid="$(blkid "$taget_partition1" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
-mkdir -p "$new_root"/var/etc
+mkdir -p "$target_dir"/var/etc
 printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
 /dev/mapper/rootfs /usr btrfs noauto 0 0
-" > "$new_root"/var/etc/fstab
+" > "$target_dir"/var/etc/fstab
 
-mkdir -p "$new_root"/var/lib/luks
-[ -n "$luks_key_file" ] && cat "$luks_key_file" > "$new_root"/var/lib/luks/key0
-dd if=/dev/random of="$new_root"/var/lib/luks/key1 bs=32 count=1 status=none
-dd if=/dev/random of="$new_root"/var/lib/luks/key2 bs=32 count=1 status=none
-chmod 600 "$new_root"/var/lib/luks/key0
-chmod 600 "$new_root"/var/lib/luks/key1
-chmod 600 "$new_root"/var/lib/luks/key2
-cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 0 "$target_partition2" "$new_root"/var/lib/luks/key0
-cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 1 "$target_partition2" "$new_root"/var/lib/luks/key1
-cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 2 "$target_partition2" "$new_root"/var/lib/luks/key2
-
-echo "$new_root"
+mkdir -p "$target_dir"/var/lib/luks
+[ -n "$luks_key_file" ] && cat "$luks_key_file" > "$target_dir"/var/lib/luks/key0
+dd if=/dev/random of="$target_dir"/var/lib/luks/key1 bs=32 count=1 status=none
+dd if=/dev/random of="$target_dir"/var/lib/luks/key2 bs=32 count=1 status=none
+chmod 600 "$target_dir"/var/lib/luks/key0
+chmod 600 "$target_dir"/var/lib/luks/key1
+chmod 600 "$target_dir"/var/lib/luks/key2
+cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 0 "$target_partition2" "$target_dir"/var/lib/luks/key0
+cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 1 "$target_partition2" "$target_dir"/var/lib/luks/key1
+cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 2 "$target_partition2" "$target_dir"/var/lib/luks/key2
