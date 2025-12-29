@@ -1,21 +1,43 @@
-# create an installer on a removable storage device
+# create a bootable installer on a removable storage device
 
 script_dir="$(dirname "$(realpath "$0")")"
 
-target_device="$(sh "$script_dir"/../codev-shell/sd.sh format-inst)"
+cd "$script_dir"/../.cache/spm-alpine
 
-target_dir="$(mktemp -d)"
-trap "trap - EXIT; umount -q \"$target_dir\"; rmdir \"$target_dir\"" EXIT INT TERM QUIT HUP PIPE
-mount "$target_device" "$target_dir"
+mkdir -p target iso_mount
+ovl_dir="$(mktemp -d)"
+trap "trap - EXIT; umount -q target; umount -q iso_mount; rmdir target iso_mount; rm -r \"$ovl_dir\"" \
+	EXIT INT TERM QUIT HUP PIPE
 
-# ask user to choose a target architecture
+printf 'installation media can be made for these architectures:
+	1) x86_64
+	2) aarch64
+	3) riscv64
+'
+echo "enter the number of the desired architechture: "
+read -r ans
+case "$ans" in
+1) arch=x86_64 ;;
+2) arch=aarch64 ;;
+3) arch=riscv64 ;;
+esac
 
-# download iso (using curl or wget) https://alpinelinux.org/downloads/
-# mount it and copy its content into $target_dir
+# download iso (using curl or wget)
+release_info_url="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$arch/latest-releases.yaml"
+if command -v curl; then
+	curl "$release_info_url"
+	# grep "file: alpine-standared-.*" | grep -o "alpine-standared-.*"
+elif command -v wget; then
+	wget "$release_info_url"
+	# grep "file: alpine-standared-.*" | grep -o "alpine-standared-.*"
+else
+	echo 'either "curl" or "wget" must be installed on the system'
+	exit 1
+fi
+mount "$alpine_iso_file_name" iso_mount
+cp -r iso_mount/* target/
 
-ovl_dir="$script_dir"/../.cache/alpine/ovl
-rm -r "$ovl_dir"
-mkdir -p "$ovl_dir"
+sh "$script_dir"/../codev-shell/sd.sh format-inst target || exit 1
 
 # this is necessary when using an overlay
 mkdir -p "$ovl_dir"/etc
@@ -50,8 +72,8 @@ tty6::respawn:/sbin/getty 38400 tty6
 ::shutdown:/sbin/openrc shutdown
 ' > "$ovl_dir"/etc/inittab
 
-rm -f "$script_dir"/../.cache/alpine/localhost.apkovl.tar.gz
-tar --owner=0 --group=0 -czf "$script_dir"/../.cache/alpine/localhost.apkovl.tar.gz "$ovl_dir"
-mv "$script_dir"/../.cache/alpine/localhost.apkovl.tar.gz "$targte_dir"/
+rm -f localhost.apkovl.tar.gz
+tar --owner=0 --group=0 -czf localhost.apkovl.tar.gz "$ovl_dir"
+mv localhost.apkovl.tar.gz "$targte_dir"/
 
-rm -r "$ovl_dir"
+echo "bootable installer successfully created"
