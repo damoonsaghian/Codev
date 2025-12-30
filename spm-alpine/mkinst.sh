@@ -9,40 +9,6 @@ ovl_dir="$(mktemp -d)"
 trap "trap - EXIT; umount -q target; umount -q iso_mount; rmdir target iso_mount; rm -r \"$ovl_dir\"" \
 	EXIT INT TERM QUIT HUP PIPE
 
-printf 'installation media can be made for these architectures:
-	1) x86_64
-	2) aarch64
-	3) riscv64
-'
-echo "enter the number of the desired architechture: "
-read -r ans
-case "$ans" in
-1) arch=x86_64 ;;
-2) arch=aarch64 ;;
-3) arch=riscv64 ;;
-esac
-
-# download iso (using curl or wget)
-release_info_url="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$arch/latest-releases.yaml"
-if command -v curl; then
-	curl "$release_info_url"
-	# grep "file: alpine-standared-.*" | grep -o "alpine-standared-.*"
-elif command -v wget; then
-	wget "$release_info_url"
-	# grep "file: alpine-standared-.*" | grep -o "alpine-standared-.*"
-else
-	echo 'either "curl" or "wget" must be installed on the system'
-	exit 1
-fi
-mount "$alpine_iso_file_name" iso_mount
-cp -r iso_mount/* target/
-
-sh "$script_dir"/../codev-shell/sd.sh format-inst target || exit 1
-
-# this is necessary when using an overlay
-mkdir -p "$ovl_dir"/etc
-touch "$ovl_dir"/etc/.default_boot_services
-
 mkdir -p "$ovl_dir"/codev
 cp -r "$script_dir"/../spm-alpine "$ovl_dir"/codev/
 cp -r "$script_dir"/../codev "$ovl_dir"/codev/
@@ -54,11 +20,12 @@ mkdir -p "$ovl_dir"/root
 printf 'sh /codev/alpine/new.sh
 ' > "$ovl_dir"/root/.profile
 
-print '#!/usr/bin/env sh
+printf '#!/usr/bin/env sh
 exec login -f root
 ' > "$ovl_dir"/usr/local/bin/autologin
 chmod +x "$ovl_dir"/usr/local/bin/autologin
 
+mkdir -p "$ovl_dir"/etc
 printf '::sysinit:/sbin/openrc sysinit
 ::sysinit:/sbin/openrc boot
 ::wait:/sbin/openrc default
@@ -72,8 +39,72 @@ tty6::respawn:/sbin/getty 38400 tty6
 ::shutdown:/sbin/openrc shutdown
 ' > "$ovl_dir"/etc/inittab
 
+# this is necessary when using an overlay
+touch "$ovl_dir"/etc/.default_boot_services
+
 rm -f localhost.apkovl.tar.gz
 tar --owner=0 --group=0 -czf localhost.apkovl.tar.gz "$ovl_dir"
+
+printf 'installation media can be made for these architectures:
+	1) x86_64
+	2) aarch64
+	3) riscv64
+'
+echo "enter the number of the desired architechture: "
+read -r ans
+case "$ans" in
+1) arch=x86_64 ;;
+2) arch=aarch64 ;;
+3) arch=riscv64 ;;
+esac
+
+# try previously downloaded file from cache, and exit if there is none
+try_cached_alpine_iso() {
+	alpine_iso_file_name=$(ls alpine-standard-*-"$arch".iso | tail -n1)
+	sha256sum "$alpine_iso_file_name" | rm -f "$alpine_iso_file_name"
+	if [ -e "$alpine_iso_file_name" ]; then
+		echo "using previousely downloaded file: '$(realpath .)/$alpine_iso_file_name'"
+	else
+		echo "alternatively, download an standard image from https://alpinelinux.org/downloads/,"
+		echo "	and put it in '$(realpath .)'"
+		exit 1
+	fi
+}
+
+download_url="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$arch"
+if command -v curl; then
+	if curl --proto '=https' -fO "$download_url/latest-releases.yaml"; then
+		cat latest-releases.yaml | grep "file: alpine-standared-.*" | grep -o "alpine-standared-.*" |
+			read -r alpine_iso_file_name
+		curl --proto '=https' -fO -C- "$download_url/$alpine_iso_file_name"
+		curl --proto '=https' -fO  "$download_url/$alpine_iso_file_name.sha256"
+		sha256sum "$alpine_iso_file_name" | rm -f "$alpine_iso_file_name"
+	else
+		echo "can't reach Alpine Linux server"
+		try_cached_alpine_iso
+	fi
+elif command -v wget; then
+	rm -f latest-releases.yaml
+	if wget --no-verbose "$download_url/latest-releases.yaml"; then
+		cat latest-releases.yaml | grep "file: alpine-standared-.*" | grep -o "alpine-standared-.*" |
+			read -r alpine_iso_file_name
+		wget --no-verbose --show-progress --no-clobber "$download_url/$alpine_iso_file_name"
+		rm -f "$alpine_iso_file_name.sha256"
+		wget --no-verbose "$download_url/$alpine_iso_file_name.sha256"
+		sha256sum "$alpine_iso_file_name" | rm -f "$alpine_iso_file_name"
+	else
+		echo "can't reach Alpine Linux server"
+		try_cached_alpine_iso
+	fi
+else
+	echo "can't download Alpine Linux installer image; since neither \"curl\" nor \"wget\" is available"
+	try_cached_alpine_iso
+fi
+mount "$alpine_iso_file_name" iso_mount
+
+# prepare a storage device, and copy the files into it
+sh "$script_dir"/../codev-shell/sd.sh format-inst "$(realpath ./target)" || exit 1
+cp -r iso_mount/* target/
 mv localhost.apkovl.tar.gz "$targte_dir"/
 
 echo "bootable installer successfully created"
