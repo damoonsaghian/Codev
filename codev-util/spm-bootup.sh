@@ -58,8 +58,6 @@ done
 cmdline_sum=
 # cmd_line_sum as pcr12 digest
 
-# boot entry: usrflags=subvol=usr0 or usr1
-
 # measured boot (instead of secure boot)
 # if there is no /boot/keys/priv /boot/keys/pub
 # use a public/private key pair (RSA2048) to generate a TPM2 signed PCR policy,

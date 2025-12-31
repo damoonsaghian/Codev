@@ -15,7 +15,7 @@ metered_connection && exit 0
 
 # if during autoupdate an error occures: echo error > /var/cache/autoupdate-status
 
-spm update
+spm update auto
 
 # fwupd
 # just check, if available download and show notification in status bar
