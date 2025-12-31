@@ -61,8 +61,14 @@ rc_new() {
 # codev-shell #
 ###############
 
-quickshell_pkg=
-apk info quickshell &>/dev/null && quickshell_pkg=quickshell
+if apk info quickshell &>/dev/null; then
+	apk_new quickshell --virtual .quickshell
+else
+	apk_new git clang cmake ninja-is-really-ninja pkgconf spirv-tools wayland-protocols qt6-qtshadertools-dev \
+		jemalloc-dev pipewire-dev libdrm-dev mesa-dev wayland-dev \
+		qt6-qtbase-dev qt6-qtdeclarative-dev qt6-qtsvg-dev qt6-qtwayland-dev --virtual .quickshell
+		chroot "$new_root" sh "$script_dir"/spm.sh quickshell
+fi
 apk_new setpriv doas-sudo-shim musl-locales tzdata geoclue bash bash-completion dbus \
 	pipewire pipewire-pulse pipewire-alsa pipewire-echo-cancel pipewire-spa-bluez wireplumber sof-firmware \
 	mesa-dri-gallium mesa-va-gallium breeze breeze-icons \
@@ -71,13 +77,7 @@ apk_new setpriv doas-sudo-shim musl-locales tzdata geoclue bash bash-completion 
 	font-noto-devanagari font-noto-gujarati font-noto-telugu font-noto-kannada font-noto-malayalam \
 	font-noto-oriya font-noto-bengali font-noto-tamil font-noto-myanmar \
 	font-noto-thai font-noto-lao font-noto-khmer font-noto-cjk \
-	qt6-qtvirtualkeyboard qt6-qtsensors mauikit-terminal $quickshell_pkg --virtual .codev-shell
-[ -z $quickshell_pkg ] && {
-	apk_new add git clang cmake ninja-is-really-ninja pkgconf spirv-tools wayland-protocols qt6-qtshadertools-dev \
-		jemalloc-dev pipewire-dev libdrm-dev mesa-dev wayland-dev \
-		qt6-qtbase-dev qt6-qtdeclarative-dev qt6-qtsvg-dev qt6-qtwayland-dev --virtual .quickshell
-	chroot "$new_root" sh "$script_dir"/spm-apk.sh quickshell
-}
+	qt6-qtvirtualkeyboard qt6-qtsensors mauikit-terminal .quickshell --virtual .codev-shell
 rc_new dbus
 rc_new --nu dbus
 rc_new --nu pipewire
