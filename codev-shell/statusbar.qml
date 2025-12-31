@@ -3,7 +3,9 @@
 // click on app icons
 // right click on app icons  -> options including close window
 
-// monitor "$spm_dir/status", if it's content is "error", show package manager indicator
+// monitor "/tmp/spm-status"
+// if it's content is "error", show package manager error indicator
+// if it's content is "reboot", show package manager "reboot" indicator
 
 // https://wiki.archlinux.org/title/Laptop
 
