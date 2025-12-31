@@ -52,7 +52,7 @@ echo '/usr/bin/tpm2_nvread
 
 echo "disable_trigger=yes" > "$new_root"/etc/mkinitfs/mkinitfs.conf
 
-# setup boot files and regenerate tpm policy, when systemd-boot or ucodes or kernel are updated
+# setup boot files and generate tpm policy, when systemd-boot or ucodes or kernel are updated
 chmod +x "$new_root"/usr/local/share/codev-util/spm-bootup.sh
 ln -s /usr/local/share/codev-util/spm-bootup.sh "$new_root"/usr/local/bin/spm-bootup
 printf '#!/usr/bin/env sh

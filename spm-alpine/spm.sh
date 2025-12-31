@@ -4,18 +4,18 @@
 
 # build quickshell from source, then install it in /usr/local/
 build_and_install_quickshell() {
-	mkdir -p /usr/local/src/cli11
-	cd /usr/local/src/cli11
+	mkdir -p /var/cache/src/cli11
+	cd /var/cache/src/cli11
 	git clone https://github.com/CLIUtils/CLI11
-	cmake -B build -W no-dev -D CMAKE_BUILD_TYPE=None -D CMAKE_INSTALL_PREFIX=/usr/local \
+	cmake -B build -W no-dev -D CMAKE_BUILD_TYPE=None -D CMAKE_INSTALL_PREFIX=$new_root/usr/local \
 		-D CLI11_BUILD_TESTS=OFF -D CLI11_BUILD_EXAMPLES=OFF
 	cmake --build build && cmake --install build
 	
-	mkdir -p /usr/local/src/quickshell
-	cd /usr/local/src/quickshell
+	mkdir -p /var/cache/src/quickshell
+	cd /var/cache/src/quickshell
 	git clone https://git.outfoxxed.me/quickshell/quickshell
 	cmake -G Ninja -B build -W no-dev -D CMAKE_BUILD_TYPE=RelWithDebInfo \
-		-D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_QML_PREFIX=lib/qt6/qml \
+		-D CMAKE_INSTALL_PREFIX=$new_root/usr/local -D INSTALL_QML_PREFIX=lib/qt6/qml \
 		-D CRASH_REPORTER=OFF -D X11=OFF -D SERVICE_POLKIT=OFF \
 		-D SERVICE_PAM=OFF -D WAYLAND_SESSION_LOCK=OFF -D WAYLAND_TOPLEVEL_MANAGEMENT=OFF
 	cmake --build build && cmake --install build
@@ -37,13 +37,24 @@ switch_usr() {
 	echo "new packages will be available on the next reboot"
 	echo "do you want them on currently running system? (y/N)"
 	read -r ans
-	[ "$ans" = y ] || [ "$ans" = yes ] && mount "$new_usr" /usr
+	[ "$ans" = y ] || [ "$ans" = yes ] && mount "$new_usr" /usr && rm /tmp/spm-status
+}
+
+boot_entry() {
+	# boot entry: usrflags=subvol=$new_usr
+	# if a new boot entry is available (due to kernel, systemd-boot, or ucode being updated),
+	# 	do the above there, then make that entry default
+	
+	echo reboot > /tmp/spm-status
 }
 
 case "$1" in
 update)
 	prepare_usr
-	apk upgrade
+	apk upgrade --root "$new_root" || {
+		echo error > /tmp/spm-status
+		exit 1
+	}
 	
 	[ -f /usr/local/bin/quickshell ] || if apk info quickshell &>/dev/null; then
 		apk add quickshell --virtual .quickshell
@@ -54,20 +65,15 @@ update)
 	
 	[ -d /home ] && rmdir --ignore-fail-on-non-empty /home
 	
-	# spm-alpine codev-util codev-shell codev
+	# update spm-alpine codev-util codev-shell codev
 	
-	# create update notification file
-	
+	boot_entry
 	[ "$2" = auto ] && switch_usr
 	;;
 install)
 	prepare_usr
-	shift; apk add $@
-	
-	# if there are services, ask user whether to activate it or not
-	
-	# create update notification file
-	
+	shift; apk add --root "$new_root" $@ || exit 1
+	boot_entry
 	switch_usr
 	;;
 remove) shift; apk del $@ ;;
@@ -77,5 +83,8 @@ mkinst)
 	script_dir="$(dirname "$(realpath "$0")")"
 	. "$script_dir"/mkinst.sh
 	;;
-quickshell) build_and_install_quickshell ;;
+quickshell)
+	new_root=
+	build_and_install_quickshell
+	;;
 esac
