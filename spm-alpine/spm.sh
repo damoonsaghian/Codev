@@ -2,6 +2,9 @@
 
 # implement "spm" by wrapping apk commands
 
+# atomic updates in /usr
+# the fact that alpine keeps info about installed packages in /usr/lib/apk/db, helps a lot
+
 # build quickshell from source, then install it in /usr/local/
 build_and_install_quickshell() {
 	mkdir -p /var/cache/src/cli11
@@ -24,20 +27,29 @@ build_and_install_quickshell() {
 prepare_usr() {
 	local current_usr=
 	if [ $(stat -c %i /usr) = $(stat -c %i /usr0) ]; then
-		current_usr="/usr0"
-		new_usr="/usr1"
+		current_usr=/usr0
+		new_usr=/usr1
 	elif [ $(stat -c %i /usr) = $(stat -c %i /usr1) ]; then
-		current_usr="/usr1"
-		new_usr="/usr0"
+		current_usr=/usr1
+		new_usr=/usr0
 	fi
-	rm -rf "$new_usr"
-	btrfs snapshot "$current_usr" "$new_usr"
+	
+	# to atomically handle multiple offline updates (before reboot)
+	grep usrflags=subvol=$current_user /boot/loader/entries/alpine-old.conf &>/dev/null &&
+		mv /boot/loader/entries/alpine-old.conf /boot/loader/entries/alpine.conf
+	
+	[ -e "$current_usr"/.old ] || {
+		rm -rf "$new_usr"
+		btrfs snapshot "$current_usr" "$new_usr"
+		touch "$current_usr"/.old
+	}
 }
 
 boot_entry() {
-	# boot entry: usrflags=subvol=$new_usr
-	# if a new boot entry is available (due to kernel, systemd-boot, or ucode being updated),
-	# 	do the above there, then make that entry default
+	# setup boot files and generate tpm policy, when systemd-boot or ucodes or kernel are updated
+	unshare --mount sh -c "mount --bind $new_usr /usr && spm-bootup $new_usr"
+	cp /boot/loader/entries/alpine.conf /boot/loader/entries/alpine-old.conf
+	mv /boot/loader/entries/alpine-new.conf /boot/loader/entries/alpine.conf
 	
 	echo reboot > /tmp/spm-status
 }
