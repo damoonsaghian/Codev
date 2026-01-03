@@ -185,7 +185,7 @@ linux /efi/boot/vmlinuz
 initrd /efi/boot/ucode.img
 initrd /efi/boot/initramfs
 options cryptkey=EXEC=tpm-getkey cryptroot=UUID=$cryptroot_uuid cryptdm=rootfs
-options root=/dev/mapper/rootfs rootfstype=btrfs rootflags=rw,noatime usrflags=subvol=usr0,ro,noatime \
+options root=/dev/mapper/rootfs rootfstype=btrfs rootflags=rw,noatime usrflags=subvol=/usr0,ro,noatime \
 options modules=$modules quiet
 " > "$target_dir"/boot/loader/entries/alpine.conf
 printf 'default alpine.conf
