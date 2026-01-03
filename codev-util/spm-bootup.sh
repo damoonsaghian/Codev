@@ -1,15 +1,13 @@
 #!/usr/bin/env sh
 
-new_kernel_version="$2"
+new_usr="$1"
 
-# hook triggered for the kernel removal, nothing to do here
-[ "$new_kernel_version" ] || exit 0
-
-efi_name="$(ls /usr/lib/systemd/boot/efi/system-boot*.efi | sed -n "s@/usr/lib/systemd/boot/efi/system-@@p")"
 if [ -f /usr/lib/systemd/boot/efi/system-boot*.efi ]; then
-	mv /usr/lib/systemd/boot/efi/system-boot*.efi /boot/efi/boot-new/"$efi_name"
+	efi_name="$(ls /usr/lib/systemd/boot/efi/system-boot*.efi | sed -n "s@/usr/lib/systemd/boot/efi/system-@@p")"
+	cp /usr/lib/systemd/boot/efi/system-boot*.efi /boot/efi/boot/"$efi_name"-new
+	mv -f /boot/efi/boot/"$efi_name"-new /boot/efi/boot/"$efi_name"
 else
-	cp /boot/efi/boot/"$efi_name" /boot/efi/boot-new/
+	efi_name="$(basename /boot/efi/boot/boot*.efi)"
 fi
 
 if [ -f /boot/vmlinuz-stable ]; then
@@ -22,7 +20,7 @@ fi
 # sha256 sum of the sentence "Calling EFI Application from Boot Option":
 # 	3d6772b4f84ed47595d72a2c4c5ffd15f5bb72c7507fe26f2aaee2c69d5633ba
 # plus sha256 sum of 0x00000000 (32 bits of zeros): df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119
-# plus sha256 sum of /boot/efi/boot-new/"$efi_name"
+# plus sha256 sum of /boot/efi/boot/"$efi_name"
 # plus sha256 sum of /boot/efi/boot-new/vmlinuz
 # https://github.com/grawity/tpm_futurepcr#usage
 # https://github.com/grawity/tpm_futurepcr/blob/main/tpm_futurepcr/__init__.py
@@ -42,10 +40,12 @@ fi
 initfs_features="ata base nvme scsi usb mmc virtio btrfs cryptsetup tpm"
 [ "$(uname -m)" = "aarch64" ] && initfs_features="$initfs_features phy"
 mkinitfs -P /usr/local/share/mkinitfs/features -F "$initfs_features" \
-	-o /boot/efi/boot-new/initramfs "${new_kernel_version}-stable"
+	-o /boot/efi/boot-new/initramfs "$(cat /usr/share/kernel/stable/kernel.release)"
 
 initramfs_sum="$(cat /boot/efi/boot-new/ucode.img /boot/efi/boot-new/initramfs | sha256sum)"
 # initramfs_sum as pcr9 digest
+
+# boot entry: usrflags=subvol=$new_usr
 
 cmdline=
 cat /boot/loader/entries/alpine.conf | grep '^options' | sed "s/^options[[:space:]]+//p" | while read -r option; do
