@@ -71,7 +71,7 @@ rc_new killprocs shutdown
 rc_new mount-ro shutdown
 
 apk_new eudev eudev-netifnames earlyoom acpid zzz bluez \
-	networkmanager-cli wireless-regdb mobile-broadband-provider-info ppp-pppoe dnsmasq chrony dcron
+	networkmanager-cli wireless-regdb mobile-broadband-provider-info ppp-pppoe dnsmasq chrony dcron fwupd
 rc_new udev sysinit
 rc_new udev-trigger sysinit
 rc_new udev-settle sysinit
@@ -82,6 +82,7 @@ rc_new bluetooth
 rc_new networkmanager
 rc_new networkmanager-dispatcher
 rc_new dcron
+rc_new fwupd
 
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
 

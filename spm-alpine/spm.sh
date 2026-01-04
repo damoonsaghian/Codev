@@ -63,11 +63,16 @@ switch_usr() {
 case "$1" in
 update)
 	prepare_usr
-	unshare --mount sh -c "mount --bind $new_usr /usr && apk upgrade" || {
-		echo error > /tmp/spm-status
-		exit 1
-	}
+	unshare --mount sh -c "mount --bind $new_usr /usr && apk upgrade" || exit 1
 	[ -d /home ] && rmdir --ignore-fail-on-non-empty /home
+	
+	if [ "$2" != auto ] && fwupdmgr refresh -y &>/dev/null && fwupdmgr get-updates -y &>/dev/null; then
+		echo "updates are available for flash"
+		echo "flashing firmware updates can break the system if interupted"
+		echo "flash firmware updates? (y/N) "
+		read -r ans
+		[ "$ans" = y ] && fwupdmge update
+	fi
 	
 	[ -f $new_usr/local/bin/quickshell ] || if apk info quickshell &>/dev/null; then
 		unshare --mount sh -c "mount --bind $new_usr /usr && apk add quickshell --virtual .quickshell"
