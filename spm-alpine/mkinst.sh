@@ -74,8 +74,8 @@ try_cached_alpine_iso() {
 download_url="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/$arch"
 if command -v curl; then
 	if curl --proto '=https' -fO "$download_url/latest-releases.yaml"; then
-		cat latest-releases.yaml | grep "file: alpine-standared-.*" | grep -o "alpine-standared-.*" |
-			read -r alpine_iso_file_name
+		alpine_iso_file_name="$(cat latest-releases.yaml | grep "file: alpine-standared-.*")"
+		alpine_iso_file_name="$(echo "$alpine_iso_file_name" | cut -d: -f2 | tr -d "[:blank:]")"
 		curl --proto '=https' -fO -C- "$download_url/$alpine_iso_file_name"
 		curl --proto '=https' -fO  "$download_url/$alpine_iso_file_name.sha256"
 		sha256sum "$alpine_iso_file_name" | rm -f "$alpine_iso_file_name"
@@ -86,8 +86,8 @@ if command -v curl; then
 elif command -v wget; then
 	rm -f latest-releases.yaml
 	if wget --no-verbose "$download_url/latest-releases.yaml"; then
-		cat latest-releases.yaml | grep "file: alpine-standared-.*" | grep -o "alpine-standared-.*" |
-			read -r alpine_iso_file_name
+		alpine_iso_file_name="$(cat latest-releases.yaml | grep "file: alpine-standared-.*")"
+		alpine_iso_file_name="$(echo "$alpine_iso_file_name" | cut -d: -f2 | tr -d "[:blank:]")"
 		wget --no-verbose --show-progress --no-clobber "$download_url/$alpine_iso_file_name"
 		rm -f "$alpine_iso_file_name.sha256"
 		wget --no-verbose "$download_url/$alpine_iso_file_name.sha256"
