@@ -2,7 +2,7 @@
 
 # implement "spm" by wrapping apk commands
 
-# atomic updates in /usr
+# atomic updates of /usr
 # the fact that alpine keeps info about installed packages in /usr/lib/apk/db, helps a lot
 
 # build quickshell from source, then install it in /usr/local/
@@ -107,7 +107,7 @@ mkinst)
 	. "$script_dir"/mkinst.sh
 	;;
 quickshell)
-	new_root=
+	new_usr=
 	build_and_install_quickshell
 	;;
 esac
