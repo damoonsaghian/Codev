@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 
-new_usr="$1"
+# setup boot files and generate tpm policies, when systemd-boot or ucodes or kernel are updated,
+# or a usr_sovol is given as the first arg
+
+usr_subvol="$1"
 
 if [ -f /usr/lib/systemd/boot/efi/system-boot*.efi ]; then
 	efi_name="$(ls /usr/lib/systemd/boot/efi/system-boot*.efi | sed -n "s@/usr/lib/systemd/boot/efi/system-@@p")"
@@ -45,10 +48,11 @@ mkinitfs -P /usr/local/share/mkinitfs/features -F "$initfs_features" \
 initramfs_sum="$(cat /boot/efi/boot-new/ucode.img /boot/efi/boot-new/initramfs | sha256sum)"
 # initramfs_sum as pcr9 digest
 
-# boot entry: usrflags=subvol=$new_usr
+usr_option=
+[ -n "$usr_subvol" ] && usr_option="usrflags=subvol=/$usr_subvol,ro,noatime"
 
 cmdline=
-cat /boot/loader/entries/alpine.conf | grep '^options' | sed "s/^options[[:space:]]+//p" | while read -r option; do
+cat /boot/loader/entries/linux.conf | grep '^options' | sed "s/^options[[:space:]]+//p" | while read -r option; do
 	if [ -n "$cmdline" ]; then
 		cmdline="$option"
 	elif [ -n "$option" ]; then

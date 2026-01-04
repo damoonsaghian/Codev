@@ -3,19 +3,11 @@
 # a 5min delay, for when it's started on boot
 sleep 300
 
-metered_connection() {
-	#nmcli --terse --fields GENERAL.METERED dev show | grep --quiet "yes"
-	#dbus: org.freedesktop.NetworkManager Metered
-}
-metered_connection && exit 0
+metered="$(dbus-send --system --print-reply=literal --dest=org.freedesktop.NetworkManager \
+	/org/freedesktop/NetworkManager org.freedesktop.DBus.Properties.Get \
+	string:org.freedesktop.NetworkManager string:Metered | )"
+[ "$metered" = NM_METERED_YES ] || [ "$metered" = NM_METERED_GUESS_YES ] && exit 1
 
 # if plugged
 
-# inhibit suspend/shutdown when an upgrade is in progress
-
-# if during autoupdate an error occures: echo error > /var/cache/autoupdate-status
-
-spm update auto
-
-# fwupd
-# just check, if available download and show notification in status bar
+spm update auto || echo error > /tmp/spm-status
