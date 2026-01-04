@@ -87,6 +87,8 @@ fi
 
 # the following is run only when "$1" is "mksys"
 
+usr_subvol="$3"
+
 target_partitions="$(echo /sys/block/"$target_device"/"$target_device"* |
 	sed -n "s/\/sys\/block\/$target_device\///pg")"
 target_partition1="$(echo "$target_partitions" | cut -d " " -f1)"
@@ -168,27 +170,31 @@ fi
 
 mount /dev/mapper/rootfs "$target_dir" || exit 1
 
-btrfs subvolume create "$target_dir"/usr0
-mkdir "$target_dir"/usr
-mount --bind "$target_dir"/usr0 "$target_dir"/usr || exit 1
+if [ -n "$usr_subvol" ]; then
+	btrfs subvolume create "$target_dir/$usr_subvol"
+	mkdir "$target_dir"/usr
+	mount --bind "$target_dir/$usr_subvol" "$target_dir"/usr || exit 1
+fi
 
 mkdir -p "$target_dir"/boot
 mount "$taget_partition1" "$target_dir"/boot || exit 1
 
 # systemd bootloader
-cryptroot_uuid="$(blkid "$taget_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
+cryptroot_uuid="$(blkid "$target_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
 modules="nvme,sd-mod,usb-storage,btrfs"
 [ -e /sys/module/vmd ] && modules="$modules,vmd"
+usr_option=
+[ -n "$usr_subvol" ] && usr_option="usrflags=subvol=/$usr_subvol,ro,noatime"
 mkdir -p "$target_dir"/boot/loader/entries
-printf "title Alpine Linux
+printf "title Linux
 linux /efi/boot/vmlinuz
 initrd /efi/boot/ucode.img
 initrd /efi/boot/initramfs
 options cryptkey=EXEC=tpm-getkey cryptroot=UUID=$cryptroot_uuid cryptdm=rootfs
-options root=/dev/mapper/rootfs rootfstype=btrfs rootflags=rw,noatime usrflags=subvol=/usr0,ro,noatime \
+options root=/dev/mapper/rootfs rootfstype=btrfs rootflags=rw,noatime $usr_option \
 options modules=$modules quiet
-" > "$target_dir"/boot/loader/entries/alpine.conf
-printf 'default alpine.conf
+" > "$target_dir"/boot/loader/entries/linux.conf
+printf 'default linux.conf
 timeout 0
 auto-entries no
 ' > "$target_dir"/boot/loader/loader.conf
