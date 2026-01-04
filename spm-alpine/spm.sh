@@ -35,8 +35,8 @@ prepare_usr() {
 	fi
 	
 	# to atomically handle multiple offline updates (before reboot)
-	grep usrflags=subvol=$current_user /boot/loader/entries/alpine-old.conf &>/dev/null &&
-		mv /boot/loader/entries/alpine-old.conf /boot/loader/entries/alpine.conf
+	grep usrflags=subvol=$current_user /boot/loader/entries/linux-old.conf &>/dev/null &&
+		mv /boot/loader/entries/linux-old.conf /boot/loader/entries/linux.conf
 	
 	[ -e "$current_usr"/.old ] || {
 		rm -rf "$new_usr"
@@ -45,11 +45,10 @@ prepare_usr() {
 	}
 }
 
-boot_entry() {
-	# setup boot files and generate tpm policy, when systemd-boot or ucodes or kernel are updated
+boot_setup() {
 	unshare --mount sh -c "mount --bind $new_usr /usr && spm-bootup $new_usr"
-	cp /boot/loader/entries/alpine.conf /boot/loader/entries/alpine-old.conf
-	mv /boot/loader/entries/alpine-new.conf /boot/loader/entries/alpine.conf
+	cp /boot/loader/entries/linux.conf /boot/loader/entries/linux-old.conf
+	mv /boot/loader/entries/linux-new.conf /boot/loader/entries/linux.conf
 	
 	echo reboot > /tmp/spm-status
 }
@@ -68,6 +67,7 @@ update)
 		echo error > /tmp/spm-status
 		exit 1
 	}
+	[ -d /home ] && rmdir --ignore-fail-on-non-empty /home
 	
 	[ -f $new_usr/local/bin/quickshell ] || if apk info quickshell &>/dev/null; then
 		unshare --mount sh -c "mount --bind $new_usr /usr && apk add quickshell --virtual .quickshell"
@@ -86,18 +86,17 @@ update)
 		build_and_install_quickshell
 	fi
 	
-	[ -d /home ] && rmdir --ignore-fail-on-non-empty /home
-	
 	#todo: update spm-alpine codev-util codev-shell codev (in $new_usr/local)
 	
-	boot_entry
+	boot_setup
 	[ "$2" = auto ] && switch_usr
 	;;
 install)
 	prepare_usr
 	shift
 	unshare --mount sh -c "mount --bind $new_usr /usr && apk add $@" || exit 1
-	boot_entry
+	[ -d /home ] && rmdir --ignore-fail-on-non-empty /home
+	boot_setup
 	switch_usr
 	;;
 remove) shift; apk del $@ ;;

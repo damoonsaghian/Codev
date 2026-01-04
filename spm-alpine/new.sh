@@ -17,7 +17,7 @@ unmount_all="umount -q \"$new_root\"/boot; umount -q \"$new_root\"/usr; \
 	umount -q \"$new_root\"/dev; umount -q \"$new_root\"/proc; \
 	umount -q \"$new_root\"; rmdir \"$new_root\""
 trap "trap - EXIT; $unmount_all" EXIT INT TERM QUIT HUP PIPE
-sh "$script_dir"/../codev-shell/sd.sh mksys "$new_root" || exit 1
+sh "$script_dir"/../codev-shell/sd.sh mksys usr0 "$new_root" || exit 1
 
 mkdir -p "$new_root"/dev "$new_root"/proc
 mount --bind /dev "$new_root"/dev
@@ -125,7 +125,7 @@ x86*)
 ;;
 esac
 
-"$script_dir"/../codev-util/spm-bootup.sh
+chroot "$new_usr" /usr/local/bin/spm-bootup /usr0
 
 ########
 # user #
