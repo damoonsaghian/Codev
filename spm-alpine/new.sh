@@ -100,7 +100,7 @@ echo 'permit nopass nu cmd /usr/local/bin/spm' > "$new_root"/etc/doas.d/spm.conf
 
 chmod +x "$new_root"/usr/local/share/codev-util/spm-autoup.sh
 ln -s /usr/local/share/codev-util/spm-autoup.sh "$new_root"/usr/local/bin/spm-autoup
-echo '@daily ID=autoupdate spm-autoup' > "$new_root"/etc/cron.d/spm-autoup
+echo '* * * * * ID=autoupdate FREQ=1d/5m spm-autoup' > "$new_root"/etc/cron.d/spm-autoup
 
 ########
 # boot #
