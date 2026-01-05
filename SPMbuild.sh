@@ -1,6 +1,7 @@
 pkg=codev-util
 
 spm_import gnunet
+spm_import netman
 spm_import cryptsetup
 
 # doas rules for sd.sh
