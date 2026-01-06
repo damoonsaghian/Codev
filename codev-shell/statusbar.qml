@@ -21,10 +21,11 @@ battery: if exist, show icon
 https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/status/system.js
 https://github.com/ultrabug/py3status/blob/master/py3status/modules/battery_level.py
 https://www.kernel.org/doc/html/latest/power/power_supply_class.html
-if "/sys/class/power_supply/BAT0" exists
-read "/sys/class/power_supply/BAT0/uevent"
-find "POWER_SUPPLY_CAPACITY=<value>" in contents
-POWER_SUPPLY_CAPACITY=Charging/Full/Discharging
+if [ -e /sys/class/power_supply/BAT0 ]; then
+	# /sys/class/power_supply/BAT0/capacity
+	# /sys/class/power_supply/BAT0/status
+	# https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-power
+fi
 */
 
 // graph
