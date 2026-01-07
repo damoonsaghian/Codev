@@ -228,8 +228,7 @@ set_timezone() {
 	
 	if [ "$1" = set ]; then
 		tz="$2"
-		[ -f "$script_dir"/tzdata/"$tz" ] &&
-			ln -s "$tzdata_path/$tz" "$HOME/.config/tz"
+		ln -s -f "$tzdata_path/$tz" "$HOME/.config/tz"
 	elif [ "$1" = continents ]; then
 		ls -1 -d "$tzdata_path"/*/ | cut -d / -f5
 	elif [ "$1" = cities ]; then
@@ -239,7 +238,12 @@ set_timezone() {
 		# https://www.freedesktop.org/software/geoclue/docs/gdbus-org.freedesktop.GeoClue2.Location.html
 		# https://github.com/evansiroky/timezone-boundary-builder (releases -> timezone-with-oceans-now.geojson.zip)
 		# https://github.com/BertoldVdb/ZoneDetect
-		# ln -s "$tzdata_path/$continent/$city" /nu/.cache/system/tz-guess"
+		# if failed to detect, set to UTC
+		if [ -e "$HOME/.config/tz" ]; then
+			ln -s "$tzdata_path/$continent/$city" "$HOME"/.cache/system/tz-guess
+		else
+			ln -s "$tzdata_path/$continent/$city" "$HOME"/.config/tz
+		fi
 	else
 		echo "usage:"
 		echo "	tz set <offset|city/continent>"
