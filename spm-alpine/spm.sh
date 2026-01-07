@@ -2,8 +2,8 @@
 
 # implement "spm" by wrapping apk commands
 
-# atomic updates of /usr
-# the fact that alpine keeps info about installed packages in /usr/lib/apk/db, helps a lot
+# /usr is updated atomically
+# the fact that alpine keeps info about installed packages in /usr/lib/apk/db (and not in /var), helps a lot
 
 # build quickshell from source, then install it in /usr/local/
 build_and_install_quickshell() {
@@ -71,10 +71,11 @@ update)
 		echo "flashing firmware updates can break the system if interupted"
 		echo "flash firmware updates? (y/N) "
 		read -r ans
-		[ "$ans" = y ] && fwupdmge update
+		[ "$ans" = y ] && fwupdmgr update
 	fi
 	
-	[ -f $new_usr/local/bin/quickshell ] || if apk info quickshell &>/dev/null; then
+	[ -f $new_usr/local/bin/quickshell ] &&
+	if apk info quickshell &>/dev/null; then
 		unshare --mount sh -c "mount --bind $new_usr /usr && apk add quickshell --virtual .quickshell"
 		# remove quickshell and cli11 files from $new_usr/local/
 		rm -r $new_usr/local/bin/qs $new_usr/local/bin/quickshell $new_usr/local/lib/qt6/qml/Quickshell \
@@ -86,7 +87,6 @@ update)
 			$new_usr/local/share/licenses/cli11
 		rmdir --ignore-fail-on-non-empty $new_usr/local/lib/qt6 $new_usr/local/share/applications $new_usr/local/share/icons \
 			$new_usr/local/share/cmake $new_usr/local/share/pkgconfig $new_usr/local/share/licenses
-			
 	else
 		build_and_install_quickshell
 	fi

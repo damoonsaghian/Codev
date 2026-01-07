@@ -81,16 +81,11 @@ rc_new acpid
 rc_new bluetooth
 rc_new networkmanager
 rc_new networkmanager-dispatcher
+rc_new chronyd
 rc_new dcron
 rc_new fwupd
 
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
-
-chmod +x "$new_root"/usr/local/share/codev-util/timesync.sh
-ln -s /usr/local/share/codev-util/timesync.sh "$new_root"/usr/local/bin/timesync
-echo '@daily ID=timesync timesync
-@reboot timesync reboot
-' > "$new_root"/etc/cron.d/timesync
 
 mkdir -p "$new_root"/usr/local/share/spm
 cp -r "$script_dir"/* "$new_root"/usr/local/share/spm/
@@ -206,6 +201,7 @@ up) sudo -u nu system tz guess ;;
 esac
 ' > /etc/NetworkManager/dispatcher.d/09-dispatch-script
 chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
+"$new_user"/nu/.cache/system
 
 #########
 # codev #
