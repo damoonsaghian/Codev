@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # setup boot files and generate tpm policies, when systemd-boot or ucodes or kernel are updated,
-# or a usr_sovol is given as the first arg
+# or a usr_subvol is given as the first arg
 
 usr_subvol="$1"
 
