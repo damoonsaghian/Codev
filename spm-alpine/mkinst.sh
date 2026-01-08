@@ -61,7 +61,11 @@ esac
 # try previously downloaded file from cache, and exit if there is none
 try_cached_alpine_iso() {
 	alpine_iso_file_name=$(ls alpine-standard-*-"$arch".iso | tail -n1)
-	sha256sum "$alpine_iso_file_name" | rm -f "$alpine_iso_file_name"
+	sha256sum "$alpine_iso_file_name" || {
+		rm -f "$alpine_iso_file_name"
+		echo "downloaded file was corrupted; try again"
+		exit 1
+	}
 	if [ -e "$alpine_iso_file_name" ]; then
 		echo "using previousely downloaded file: '$(realpath .)/$alpine_iso_file_name'"
 	else
@@ -78,7 +82,11 @@ if command -v curl; then
 		alpine_iso_file_name="$(echo "$alpine_iso_file_name" | cut -d: -f2 | tr -d "[:blank:]")"
 		curl --proto '=https' -fO -C- "$download_url/$alpine_iso_file_name"
 		curl --proto '=https' -fO  "$download_url/$alpine_iso_file_name.sha256"
-		sha256sum "$alpine_iso_file_name" | rm -f "$alpine_iso_file_name"
+		sha256sum "$alpine_iso_file_name" || {
+			rm -f "$alpine_iso_file_name"
+			echo "downloaded file was corrupted; try again"
+			exit 1
+		}
 	else
 		echo "can't reach Alpine Linux server"
 		try_cached_alpine_iso
@@ -91,7 +99,11 @@ elif command -v wget; then
 		wget --no-verbose --show-progress --no-clobber "$download_url/$alpine_iso_file_name"
 		rm -f "$alpine_iso_file_name.sha256"
 		wget --no-verbose "$download_url/$alpine_iso_file_name.sha256"
-		sha256sum "$alpine_iso_file_name" | rm -f "$alpine_iso_file_name"
+		sha256sum "$alpine_iso_file_name" || {
+			rm -f "$alpine_iso_file_name"
+			echo "downloaded file was corrupted; try again"
+			exit 1
+		}
 	else
 		echo "can't reach Alpine Linux server"
 		try_cached_alpine_iso
@@ -105,6 +117,6 @@ mount "$alpine_iso_file_name" iso_mount
 # prepare a storage device, and copy the files into it
 sh "$script_dir"/../codev-shell/sd.sh format-inst "$(realpath ./target)" || exit 1
 cp -r iso_mount/* target/
-mv localhost.apkovl.tar.gz "$targte_dir"/
+mv localhost.apkovl.tar.gz target/
 
 echo "bootable installer successfully created"

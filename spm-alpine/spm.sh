@@ -46,7 +46,7 @@ prepare_usr() {
 }
 
 boot_setup() {
-	unshare --mount sh -c "mount --bind $new_usr /usr && spm-bootup $new_usr"
+	unshare --mount sh -c "mount --bind $new_usr /usr && sh /usr/local/share/codev-util/spm-bootup.sh $new_usr"
 	cp /boot/loader/entries/linux.conf /boot/loader/entries/linux-old.conf
 	mv /boot/loader/entries/linux-new.conf /boot/loader/entries/linux.conf
 	
@@ -94,7 +94,7 @@ update)
 	#todo: update spm-alpine codev-util codev-shell codev (in $new_usr/local)
 	
 	boot_setup
-	[ "$2" = auto ] && switch_usr
+	[ "$2" != auto ] && switch_usr
 	;;
 install)
 	prepare_usr

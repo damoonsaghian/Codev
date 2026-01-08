@@ -40,15 +40,16 @@ apk_new() {
 }
 
 rc_new() {
+	local service runlevel
 	if [ "$1" = --nu ]; then
-		local service="$2"
-		local runlevel="$3"
+		service="$2"
+		runlevel="$3"
 		[ -z "$service" ] && return
 		[ -z "$runlevel" ] && runlevel=sysinit
 		ln -s /etc/user/init.d/"$service" "$new_root"/nu/.config/rc/runlevels/"$runlevel"/
 	else
-		local service="$1"
-		local runlevel="$2"
+		service="$1"
+		runlevel="$2"
 		[ -z "$service" ] && return
 		[ -z "$runlevel" ] && runlevel=default
 		ln -s /etc/init.d/"$service" "$new_root"/etc/runlevels/"$runlevel"/
@@ -93,22 +94,11 @@ chmod +x "$new_root"/usr/local/share/spm/spm.sh
 ln -s /usr/local/share/spm/spm.sh "$new_root"/usr/local/bin/spm
 echo 'permit nopass nu cmd /usr/local/bin/spm' > "$new_root"/etc/doas.d/spm.conf
 
-chmod +x "$new_root"/usr/local/share/codev-util/spm-autoup.sh
-ln -s /usr/local/share/codev-util/spm-autoup.sh "$new_root"/usr/local/bin/spm-autoup
-echo '* * * * * ID=autoupdate FREQ=1d/5m spm-autoup' > "$new_root"/etc/cron.d/spm-autoup
+echo '* * * * * ID=autoupdate FREQ=1d/5m sh /usr/local/share/codev-util/spm-autoup.sh' > "$new_root"/etc/cron.d/spm-autoup
 
 ########
 # boot #
 ########
-
-chmod +x "$new_root"/usr/local/share/codev-util/spm-bootup.sh
-ln -s /usr/local/share/codev-util/spm-bootup.sh "$new_root"/usr/local/bin/spm-bootup
-
-chmod +x "$new_root"/usr/local/share/codev-util/tpm-getkey.sh
-ln -s /usr/local/share/codev-util/tpm-getkey.sh "$new_root"/usr/local/bin/tpm-getkey
-echo '/usr/bin/tpm2_nvread
-/usr/local/bin/tpm-getkey
-' > "$new_root"/usr/local/share/mkinitfs/features/tpm.files
 
 echo "disable_trigger=yes" > "$new_root"/etc/mkinitfs/mkinitfs.conf
 
@@ -121,7 +111,10 @@ x86*)
 ;;
 esac
 
-chroot "$new_usr" /usr/local/bin/spm-bootup /usr0
+chmod +x "$new_root"/usr/local/share/codev-util/tpm-getkey.sh
+ln -s /usr/local/share/codev-util/tpm-getkey.sh "$new_root"/usr/local/bin/tpm-getkey
+
+chroot "$new_root" sh /usr/local/share/codev-util/spm-bootup.sh /usr0
 
 ########
 # user #
@@ -156,7 +149,7 @@ chmod +x "$new_root"/usr/local/bin/autologin
 # codev-shell #
 ###############
 
-if apk info quickshell &>/dev/null; then
+if apk info quickshell >/dev/null 2>&1; then
 	apk_new quickshell --virtual .quickshell
 else
 	apk_new git clang cmake ninja-is-really-ninja pkgconf spirv-tools wayland-protocols qt6-qtshadertools-dev \
@@ -201,7 +194,6 @@ up) sudo -u nu system tz guess ;;
 esac
 ' > /etc/NetworkManager/dispatcher.d/09-dispatch-script
 chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
-"$new_user"/nu/.cache/system
 
 #########
 # codev #
@@ -227,7 +219,7 @@ StartupNotify=true
 Type=Application
 ' > "$new_root"/usr/local/share/applications/codev.desktop
 
-echo; echo -n "installation completed successfully"
-echo "press any key to reboot the system"
-read -rsn1
-reboot
+echo; echo "installation completed successfully"
+printf "reboot the system? (Y/n) "
+read -r ans
+[ "$ans" != n ] && [ "$ans" != no ] && reboot
