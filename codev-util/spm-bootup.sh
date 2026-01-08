@@ -42,7 +42,12 @@ fi
 
 initfs_features="ata base nvme scsi usb mmc virtio btrfs cryptsetup tpm"
 [ "$(uname -m)" = "aarch64" ] && initfs_features="$initfs_features phy"
-mkinitfs -P /usr/local/share/mkinitfs/features -F "$initfs_features" \
+features_dir="$(mktemp -d)"
+trap "trap - EXIT; rm -r \"$features_dir\"" EXIT INT TERM QUIT HUP PIPE
+echo '/usr/bin/tpm2_nvread
+/usr/local/bin/tpm-getkey
+' > "$features_dir"/tpm.files
+mkinitfs -P "$features_dir" -F "$initfs_features" \
 	-o /boot/efi/boot-new/initramfs "$(cat /usr/share/kernel/stable/kernel.release)"
 
 initramfs_sum="$(cat /boot/efi/boot-new/ucode.img /boot/efi/boot-new/initramfs | sha256sum)"
