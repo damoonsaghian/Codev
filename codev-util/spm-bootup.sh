@@ -1,43 +1,31 @@
 #!/usr/bin/env sh
 
-# setup boot files and generate tpm policies, when systemd-boot or ucodes or kernel are updated,
-# or a usr_subvol is given as the first arg
-
-usr_subvol="$1"
+# setup boot files and generate tpm policies, when systemd-boot or ucodes or kernel are updated
 
 if [ -f /usr/lib/systemd/boot/efi/system-boot*.efi ]; then
 	efi_name="$(ls /usr/lib/systemd/boot/efi/system-boot*.efi | sed -n "s@/usr/lib/systemd/boot/efi/system-@@p")"
-	cp /usr/lib/systemd/boot/efi/system-boot*.efi /boot/efi/boot/"$efi_name"-new
-	mv -f /boot/efi/boot/"$efi_name"-new /boot/efi/boot/"$efi_name"
+	mv /usr/lib/systemd/boot/efi/system-boot*.efi /boot/efi/boot-new/"$efi_name"
 else
-	efi_name="$(basename /boot/efi/boot/boot*.efi)"
+	efi_name="$(ls /boot/efi/boot/boot*.efi | sed -n "s@/boot/efi/boot/@@p")"
+	cp /boot/efi/boot/"$efi_name" /boot/efi/boot-new/"$efi_name"
 fi
-
-if [ -f /boot/vmlinuz-stable ]; then
-	mv /boot/vmlinuz-stable /boot/efi/boot-new/vmlinuz
-else
-	cp /boot/efi/boot/vmlinuz /boot/efi/boot-new/
-fi
-
-# efi_apps_sum as the digest of pcr4:
-# sha256 sum of the sentence "Calling EFI Application from Boot Option":
-# 	3d6772b4f84ed47595d72a2c4c5ffd15f5bb72c7507fe26f2aaee2c69d5633ba
-# plus sha256 sum of 0x00000000 (32 bits of zeros): df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119
-# plus sha256 sum of /boot/efi/boot/"$efi_name"
-# plus sha256 sum of /boot/efi/boot-new/vmlinuz
-# https://github.com/grawity/tpm_futurepcr#usage
-# https://github.com/grawity/tpm_futurepcr/blob/main/tpm_futurepcr/__init__.py
-
 
 if [ -f /boot/amd-ucode.img ]; then
 	mv /boot/amd-ucode.img /boot/efi/boot-new/ucode.img
-elif [ -f /boot/efi/boot/ucode.img ]; then
+else
 	cp /boot/efi/boot/ucode.img /boot/efi/boot-new/ucode.img
 fi
 if [ -f /boot/intel-ucode.img ]; then
-	mv /boot/amd-ucode.img /boot/efi/boot-new/ucode.img
-elif [ -f /boot/efi/boot/ucode.img ]; then
-	cp /boot/efi/boot/ucode.img /boot/efi/boot-new/ucode.img
+	mv /boot/intel-ucode.img /boot/efi/boot-new/ucode.img
+else
+	cp /boot/efi/boot/intel-ucode.img /boot/efi/boot-new/ucode.img
+fi
+
+vmlinuz_path="$(readlink -f /boot/vmlinuz)"
+if [ -f "$vmlinuz_path" ]; then
+	mv "$vmlinuz_path" /boot/efi/boot-new/vmlinuz
+else
+	cp /boot/efi/boot/vmlinuz /boot/efi/boot/initramfs /boot/efi/boot-new/
 fi
 
 initfs_features="ata base nvme scsi usb mmc virtio btrfs cryptsetup tpm"
@@ -53,8 +41,14 @@ mkinitfs -P "$features_dir" -F "$initfs_features" \
 initramfs_sum="$(cat /boot/efi/boot-new/ucode.img /boot/efi/boot-new/initramfs | sha256sum)"
 # initramfs_sum as pcr9 digest
 
-usr_option=
-[ -n "$usr_subvol" ] && usr_option="usrflags=subvol=/$usr_subvol,ro,noatime"
+# efi_apps_sum as the digest of pcr4:
+# sha256 sum of the sentence "Calling EFI Application from Boot Option":
+# 	3d6772b4f84ed47595d72a2c4c5ffd15f5bb72c7507fe26f2aaee2c69d5633ba
+# plus sha256 sum of 0x00000000 (32 bits of zeros): df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119
+# plus sha256 sum of /boot/efi/boot-new/"$efi_name"
+# plus sha256 sum of /boot/efi/boot-new/vmlinuz
+# https://github.com/grawity/tpm_futurepcr#usage
+# https://github.com/grawity/tpm_futurepcr/blob/main/tpm_futurepcr/__init__.py
 
 cmdline=
 cat /boot/loader/entries/linux.conf | grep '^options' | sed "s/^options[[:space:]]+//p" | while read -r option; do
@@ -112,8 +106,4 @@ openssl dgst -sha256 -sign signing_key_private.pem -out set2.pcr.signature set2.
 
 # sign the result with the private key, and store the signature in /boot/pcrsig
 
-if [ -e /boot/efi/boot ]; then
-	# exch /boot/efi/boot-new /boot/efi/boot
-else
-	mv /boot/efi/boot-new /boot/efi/boot
-fi
+mv /boot/efi/boot-new /boot/efi/boot

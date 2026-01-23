@@ -13,4 +13,4 @@ esac
 	[ "$(cat /sys/class/power_supply/BAT0/capacity)" -lt 10 ] &&
 	exit 11
 
-spm update auto || echo error > /tmp/spm-status
+spm update || echo error > /tmp/spm-status
