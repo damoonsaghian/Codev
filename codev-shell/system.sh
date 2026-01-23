@@ -1,7 +1,10 @@
-#!/apps/env sh
-set -e
+script_dir="$(dirname "$(readlink -f "$0")")"
 
-script_dir="$(dirname "$(realpath "$0")")"
+if [ "$1" = run ]; then
+	mode=exec
+else
+	mode=include
+fi
 
 # session
 # connections
@@ -299,3 +302,14 @@ mode="$(menu "upgrade\nremove\ninstall SPM Linux")"
 spm "$mode" "$package_name" "$package_name"
 
 [ "$mode" = "install SPM Linux" ] && # if not already running, create a gtkvte and run: spm spmlinux
+
+if [ -f /tmp/fwupdmgr-status ] || {
+	fwupdmgr refresh -y >/dev/null 2>&1 &&
+	fwupdmgr get-updates -y >/dev/null 2>&1
+}; then
+	echo "firmware updates are available"
+	echo "flashing firmware updates can break the system if interupted"
+	echo "apply firmware updates anyway? (y/N) "
+	read -r ans
+	[ "$ans" = y ] && fwupdmgr update
+fi

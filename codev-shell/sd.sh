@@ -2,82 +2,116 @@
 
 # mounting and formatting storage devices
 
-[ "$1" = mount ] && {
-	# mount with suid bits disabled
-	# mount to ~/.local/state/mounts
+[ "$1" = mount ] && [ -n "$2" ] {
+	device_name="$(echo "$2" | sed -n "s@/dev/@@p")"
+	[ -b "/dev/$device_name" ] || {
+		echo "no block device in \"/dev/$device_name\""
+		exit 1
+	}
 	
-	# it seems that vfat does not mount with discard as default (unlike btrfs)
-	# if queued trim is supported, use discard option when mounting
-	if [ "$(cat /sys/block/"$device"/queue/discard_granularity)" -gt 0 ] &&
-		[ "$(cat /sys/block/"$device"/queue/discard_max_bytes)" -gt 2147483648 ]
-	then
+	fstype="$(blkid /dev/"$device_name" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
+	if [ "$fstype" = vfat ]; then
+		# it seems that vfat does not mount with discard as default (unlike btrfs)
+		# if queued trim is supported, use discard option when mounting
+		discard_opt=
+		if [ "$(cat /sys/block/"$device_name"/queue/discard_granularity)" -gt 0 ] &&
+			[ "$(cat /sys/block/"$device_name"/queue/discard_max_bytes)" -gt 2147483648 ]
+		then
+			discard_opt="discard,"
+		fi
+		mount -o ${discard_opt}nosuid,nodev,uid=$(id -u nu),gid=$(id -g nu) "$2" /nu/.local/state/mounts/"$device_name"
+	else
+		mount -o nosuid,nodev "$2" /nu/.local/state/mounts/"$device_name"
 	fi
 	exit
 }
 
-[ "$1" = unmount ] && {
+[ "$1" = unmount ] && [ -n "$2" ] && {
+	mount_point="$2"
+	
 	# before unmount, run "fstrim <mount-point>" for devices supporting unqueued trim
 	# [ "$(cat /sys/block/"$device"/queue/discard_granularity)" -gt 0 ] &&
 	# [ "$(cat /sys/block/"$device"/queue/discard_max_bytes)" -lt 2147483648 ] &&
+	
+	# /nu/.local/state/mounts/"$(basename "$2")"
+	
 	exit
 }
 
-[ "$1" = format ] && {
-	# format devices
-	# type: fat
-	# mkfs-args: -F, 32, -I (to override partitions)
-	# format non'system devices, format with vfat or exfat (if wants files bigger than 4GB)
-	# for system devices:
-	# doas sh -c "mkfs.btrfs -f <dev-path>; mount <dev-path> /mnt; chmod 777 /mnt; umount /mnt"
-	exit
+target_device="$(echo "$3" | sed -n "s@/dev/@@p")"
+
+# if $target_device is empty, and first arg is format-inst or format-sys, this script is interactive,
+# and will allow the user to choose the $target_device
+is_interactive=false
+[ -z "$target_device" ] && [ "$1" != format ] && is_interactive=true
+$is_interactive && {
+	echo; echo "available storage devices:"
+	printf "\tname\tsize\tmodel\n"
+	printf "\t----\t----\t-----\n"
+	ls -1 --color=never /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
+		device_size="$(cat /sys/block/"$device_name"/size)"
+		device_size="$((device_size / 1000000))GB"
+		device_model="$(cat /sys/block/"$device_name"/device/model)"
+		printf "\t$device_name\t$device_size\t$device_model\n"
+	done
+	printf "enter the name of the target device for installation: "
+	read -r target_device
 }
 
-if [ "$1" != mksys ] && [ "$1" != format-inst ]; then
-	echo "usage:"
-	echo "	sd mount <dev-name>"
-	echo "	sd unmount <mount-point>"
-	echo "	sd format <dev-name>"
-	echo "	sd mksys"
-	exit 1
-fi
-
-target_dir="$2"
-if [ -z "$target_dir" ]; then
-	target_dir=target
-fi
-
-echo; echo "available storage devices:"
-printf "\tname\tsize\tmodel\n"
-printf "\t----\t----\t-----\n"
-ls -1 --color=never /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
-	device_size="$(cat /sys/block/"$device_name"/size)"
-	device_size="$((device_size / 1000000))GB"
-	device_model="$(cat /sys/block/"$device_name"/device/model)"
-	printf "\t$device_name\t$device_size\t$device_model\n"
-done
-printf "enter the name of the target device for installation: "
-read -r target_device
-
-test -e /sys/block/"$target_device" || {
+[ -e /sys/block/"$target_device" ] || {
 	echo "there is no storage device named \"$target_device\""
 	exit 1
 }
 
-# if target_device is a partition, find the parent device
-/sys/class/block/"$target_device"/dev
+# if $target_device is a partition, set it to the parent device
 target_device_num="$(cat /sys/class/block/"$target_device"/dev | cut -d ":" -f 1):0"
 target_device="$(basename "$(readlink /dev/block/"$target_device_num")")"
 
-# exit if $target_device is the system device
-root_partition="$(df / | tail -n 1 | cut -d " " -f 1 | cut -d / -f 3)"
+# exit if $target_device is the root device
+root_partition="$(mount -l | grep " on / " | cut -d ' ' -f 1 | sed -n "s@/dev/@@p")"
 root_device_num="$(cat /sys/class/block/"$root_partition"/dev | cut -d ":" -f 1):0"
 root_device="$(basename "$(readlink /dev/block/"$root_device_num")")"
 if [ "$(stat -L -c %d:%i "/dev/$target_device")" = "$(stat -L -c %d:%i "/dev/$root_device")"]; then
-	echo "can't install on \"$target_device\", since it contains the running system"
+	echo "can't install on \"$target_device\"; it contains the running system"
 	exit 1
 fi
 
+[ "$1" = format ] && [ "$2" = backup ] && {
+	mkfs.btrfs -f /dev/"$target_device"
+	mount_dir="$(mktemp -d)"
+	trap "trap - EXIT; umount '$mount_dir'; rmdir '$mount_dir'" EXIT INT TERM QUIT HUP PIPE
+	mount /dev/"$target_device" "$mount_dir"
+	chmod 777 "$mount_dir"
+	exit
+}
+[ "$1" = format ] && [ "$2" = fat ] && {
+	mkfs.vfat -I -F 32 /dev/"$target_device"
+	exit
+} 
+[ "$1" = format ] && [ "$2" = exfat ] && {
+	mkfs.exfat /dev/"$target_device"
+	exit
+} 
+
+if [ "$1" != format-inst ] && [ "$1" != format-sys ] || [ -z "$2" ]; then
+	echo "usage:"
+	echo "	sd mount <dev-name>"
+	echo "	sd unmount <mount-point>"
+	echo "	sd format backup|fat|exfat <dev-name>"
+	echo "	sd format-inst <target-path> [<dev-name>]"
+	echo "	sd format-sys <target-path> [<dev-name>]"
+	exit 1
+fi
+
+target_dir="$2"
+mkdir -p "$target_dir" || exit
+
 [ "$1" = format-inst ] && {
+	$is_interactive && {
+		printf "WARNING! all the data on \"/dev/$target_device\" will be erased; continue? (y/N) "
+		read -r answer
+		[ "$answer" = y ] || exit
+	}
 	# create a UEFI partition, and format it with FAT32
 	printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/"$target_device"
 	mkfs.vfat -F 32 /dev/"$target_device"
@@ -85,30 +119,37 @@ fi
 	exit
 }
 
-# the following is run only when "$1" is "mksys"
+# the following is run only when "$1" is "format-sys"
 
-usr_subvol="$3"
-
-target_partitions="$(echo /sys/block/"$target_device"/"$target_device"* |
-	sed -n "s/\/sys\/block\/$target_device\///pg")"
-target_partition1="$(echo "$target_partitions" | cut -d " " -f1)"
-target_partition2="$(echo "$target_partitions" | cut -d " " -f2)"
-fdisk -l /dev/"$target_device" | sed -n "/$target_partition1.*EFI System/p" | {
-	read -r line
-	test -n "$line" && target_partition1_is_efi=true
-}
-target_partition1_fstype="$(blkid /dev/"$target_partition1" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
-target_partition2_fstype="$(blkid /dev/"$target_partition2" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
-
-# if the target device has a uefi vfat, and a LUKS encrypted BTRFS partition,
-# ask the user whether to to use the current partitions instead of wiping them off
-if [ "$target_partition1_is_efi" != true ] ||
-	[ "$target_partition1_fstype" != vfat ] ||
-	[ "$target_partition2_fstype" != luks ] ||
+do_repaire() {
+	local target_device="$1" target_partitions= target_partition1_fstype= target_partition2_fstype=
+	
+	# if this script is not interactive, repair is not possible
+	# since the user must enter the password of encrypted root partition
+	$is_interactive || return false
+	
+	target_partitions="$(echo /sys/block/"$target_device"/"$target_device"* |
+		sed -n "s/\/sys\/block\/$target_device\///pg")"
+	target_partition1="$(echo "$target_partitions" | cut -d " " -f1)"
+	target_partition2="$(echo "$target_partitions" | cut -d " " -f2)"
+	fdisk -l /dev/"$target_device" | sed -n "/$target_partition1.*EFI System/p" | {
+		read -r line
+		[ -n "$line" ] && target_partition1_is_efi=true
+	}
+	target_partition1_fstype="$(blkid /dev/"$target_partition1" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
+	target_partition2_fstype="$(blkid /dev/"$target_partition2" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
+	
+	# if the target device has a uefi vfat, and a LUKS encrypted BTRFS partition,
+	# try to to use the current partitions instead of wiping them off
+	
+	[ "$target_partition1_is_efi" = true ] &&
+	[ "$target_partition1_fstype" = vfat ] &&
+	[ "$target_partition2_fstype" = luks ] &&
 	{
 		echo "it seems that the target device is already partitioned properly"
 		printf "do you want to keep the partitions? (Y/n) "
 		read -r answer
+		
 		[ "$answer" != n ] && while [ "$answer" != n ]; do
 			[ -b /dev/mapper/rootfs ] || {
 				echo "enter the password to open the encrypted root partition"
@@ -118,19 +159,24 @@ if [ "$target_partition1_is_efi" != true ] ||
 					[ "$answer" = n ] && break
 				}
 			}
-			root_fstype="$(blkid /dev/mapper/rootfs | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
-			[ "$root_fstype" = btrfs ] || {
-				echo "can't use the root partition, cause its file system is not BTRFS"
-				answer=n
-			}
-		}
+		done
+		root_fstype="$(blkid /dev/mapper/rootfs | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
+		if [ "$root_fstype" = btrfs ]; then
+			break
+		else
+			echo "can't use the root partition, cause its file system is not BTRFS"
+			answer=n
+		fi
 		[ "$answer" = n ]
+	} || {
+		printf "WARNING! all the data on \"/dev/$target_device\" will be erased; continue? (y/N) "
+		read -r answer
+		[ "$answer" = y ] || exit
+		false
 	}
-then
-	printf "WARNING! all the data on \"/dev/$target_device\" will be erased; continue? (y/N) "
-	read -r answer
-	[ "$answer" = y ] || exit
-	
+}
+
+do_repaire "$target_device" || {
 	# create partitions
 	{
 	echo g # create a GPT partition table
@@ -165,34 +211,25 @@ then
 	cryptsetup luksAddKey --key-file "$luks_key_file" "$target_partition2" || exit 1
 	cryptsetup open --allow-discards --persistent --type luks --key-file "$luks_key_file" "$target_partition2" "rootfs"
 	
-	mkfs.btrfs -f --quiet "/dev/mapper/rootfs" || exit 1
-fi
+	mkfs.btrfs -f --quiet "/dev/mapper/rootfs" || exit
+}
 
-mount /dev/mapper/rootfs "$target_dir" || exit 1
-
-if [ -n "$usr_subvol" ]; then
-	btrfs subvolume create "$target_dir/$usr_subvol"
-	mkdir "$target_dir"/usr
-	mount --bind "$target_dir/$usr_subvol" "$target_dir"/usr || exit 1
-fi
+mount /dev/mapper/rootfs "$target_dir" || exit
 
 mkdir -p "$target_dir"/boot
-mount "$taget_partition1" "$target_dir"/boot || exit 1
+mount "$target_partition1" "$target_dir"/boot || exit
 
 # systemd bootloader
 cryptroot_uuid="$(blkid "$target_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
 modules="nvme,sd-mod,usb-storage,btrfs"
 [ -e /sys/module/vmd ] && modules="$modules,vmd"
-usr_option=
-[ -n "$usr_subvol" ] && usr_option="usrflags=subvol=/$usr_subvol,ro,noatime"
 mkdir -p "$target_dir"/boot/loader/entries
 printf "title Linux
 linux /efi/boot/vmlinuz
 initrd /efi/boot/ucode.img
 initrd /efi/boot/initramfs
 options cryptkey=EXEC=tpm-getkey cryptroot=UUID=$cryptroot_uuid cryptdm=rootfs
-options root=/dev/mapper/rootfs rootfstype=btrfs rootflags=rw,noatime $usr_option \
-options modules=$modules quiet
+options root=/dev/mapper/rootfs rootfstype=btrfs rootflags=rw,noatime modules=$modules quiet
 " > "$target_dir"/boot/loader/entries/linux.conf
 printf 'default linux.conf
 timeout 0
@@ -212,7 +249,6 @@ fi
 boot_uuid="$(blkid "$taget_partition1" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
 mkdir -p "$target_dir"/var/etc
 printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
-/dev/mapper/rootfs /usr btrfs noauto 0 0
 " > "$target_dir"/var/etc/fstab
 
 mkdir -p "$target_dir"/var/lib/luks

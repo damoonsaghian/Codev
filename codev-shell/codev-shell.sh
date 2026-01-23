@@ -4,7 +4,7 @@
 	exec sudo setpriv --reuid=nu --regid=nu --groups=input,video,audio /usr/local/bin/codev-shell priv
 }
 
-script_dir="$(dirname "$(realpath "$0")")"
+script_dir="$(dirname "$(readlink -f "$0")")"
 
 [ -f /etc/profile ] && . /etc/profile
 for profile_script in /usr/share/profile/*.sh; do

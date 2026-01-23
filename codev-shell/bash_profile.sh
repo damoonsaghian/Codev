@@ -1,4 +1,4 @@
-script_dir="$(dirname "$(realpath "$0")")"
+script_dir="$(dirname "$(readlink -f "$0")")"
 
 # ask:
 # , auto repair (if no internet and no LAN, setup network; spm update; also if not on tty1, restart tty1)
