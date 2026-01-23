@@ -4,24 +4,31 @@
 # https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/openrc
 # https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/busybox
 
-script_dir="$(dirname "$(realpath "$0")")"
+# name of the target device to install the new system
+# it's an optional argument
+# if empty, this script will be interactive, and will allow the user to choose the target device
+target_device="$1"
+
+script_dir="$(dirname "$(readlink -f "$0")")"
 
 setup-interfaces -r
 ntpd -qnN -p pool.ntp.org
 rc-service --quiet seedrng start
 
-# setup a storage device for installing the new system
+# format a storage device for installing the new system
 apk add cryptsetup btrfs-progs
 new_root="$(mktemp -d)"
-unmount_all="umount -q \"$new_root\"/boot; umount -q \"$new_root\"/usr; \
+unmount_all="umount -q \"$new_root\"/boot; \
 	umount -q \"$new_root\"/dev; umount -q \"$new_root\"/proc; \
 	umount -q \"$new_root\"; rmdir \"$new_root\""
 trap "trap - EXIT; $unmount_all" EXIT INT TERM QUIT HUP PIPE
-sh "$script_dir"/../codev-shell/sd.sh mksys usr0 "$new_root" || exit 1
+sh "$script_dir"/../codev-shell/sd.sh format-sys "$new_root" "$target_device" || exit
 
 mkdir -p "$new_root"/dev "$new_root"/proc
 mount --bind /dev "$new_root"/dev
 mount --bind /proc "$new_root"/proc
+
+btrfs subvolume create "$new_root/usr"
 
 mkdir -p "$new_root"/usr/bin "$new_root"/usr/sbin "$new_root"/usr/lib
 ln -s usr/bin usr/sbin usr/lib var/etc "$new_root"/
@@ -86,19 +93,19 @@ rc_new chronyd
 rc_new dcron
 rc_new fwupd
 
-cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
-
-mkdir -p "$new_root"/usr/local/share/spm
-cp -r "$script_dir"/* "$new_root"/usr/local/share/spm/
-chmod +x "$new_root"/usr/local/share/spm/spm.sh
-ln -s /usr/local/share/spm/spm.sh "$new_root"/usr/local/bin/spm
+cp -r "$script_dir" "$new_root"/usr/local/share/
+chmod +x "$new_root"/usr/local/share/spm-alpine/spm.sh
+echo '#!/apps/env sh
+sh /usr/local/share/spm-alpine/spm.sh run
+' > "$new_root"/usr/local/bin/spm
 echo 'permit nopass nu cmd /usr/local/bin/spm' > "$new_root"/etc/doas.d/spm.conf
 
+cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
 echo '* * * * * ID=autoupdate FREQ=1d/5m sh /usr/local/share/codev-util/spm-autoup.sh' > "$new_root"/etc/cron.d/spm-autoup
 
-########
-# boot #
-########
+##########
+#  boot  #
+##########
 
 echo "disable_trigger=yes" > "$new_root"/etc/mkinitfs/mkinitfs.conf
 
@@ -111,14 +118,16 @@ x86*)
 ;;
 esac
 
+ln -s vmlinuz-stable "$new_root"/boot/vmlinuz
+
 chmod +x "$new_root"/usr/local/share/codev-util/tpm-getkey.sh
 ln -s /usr/local/share/codev-util/tpm-getkey.sh "$new_root"/usr/local/bin/tpm-getkey
 
-chroot "$new_root" sh /usr/local/share/codev-util/spm-bootup.sh /usr0
+chroot "$new_root" sh /usr/local/share/codev-util/spm-bootup.sh
 
-########
-# user #
-########
+##########
+#  user  #
+##########
 
 echo; echo "set root password (can be the same one entered before, to encrypt the root partition)"
 while ! chroot "$new_root" passwd root; do
@@ -126,7 +135,9 @@ while ! chroot "$new_root" passwd root; do
 done
 
 # create a normal user
-chroot "$new_root" adduser --empty-password --home /nu --shell /usr/local/bin/codev-shell nu
+chroot "$new_root" adduser --empty-password --no-create-home --home /nu --shell /usr/local/bin/codev-shell nu
+btrfs subvolume create "$new_root/nu"
+chroot "$new_root" chown nu: /nu
 
 echo; echo "set lock'screen password"
 while ! chroot "$new_root" passwd nu; do
@@ -138,16 +149,12 @@ sed 's@tty1:respawn:\(.*\)getty@tty1:respawn:\1getty -n -l /usr/local/bin/autolo
 sed 's@tty2:respawn:\(.*\)getty@tty2:respawn:\1getty -n -l /usr/local/bin/autologin@' \
 	"$new_root"/etc/inittab.tmp > "$new_root"/etc/inittab
 
-printf '#!/usr/bin/env sh
-# set resource limits for realtime applications like the rt module in pipewire
-ulimit -r 95 -e -19 -l 4194304
-exec login -f nu
-' > "$new_root"/usr/local/bin/autologin
-chmod +x "$new_root"/usr/local/bin/autologin
+ln -s /usr/local/share/codev-util/autologin.sh "$new_root"/usr/local/bin/autologin
+chmod +x "$new_root"/usr/local/share/codev-util/autologin.sh
 
-###############
-# codev-shell #
-###############
+#################
+#  codev-shell  #
+#################
 
 if apk info quickshell >/dev/null 2>&1; then
 	apk_new quickshell --virtual .quickshell
@@ -157,7 +164,7 @@ else
 		qt6-qtbase-dev qt6-qtdeclarative-dev qt6-qtsvg-dev qt6-qtwayland-dev --virtual .quickshell
 		chroot "$new_root" sh "$script_dir"/spm.sh quickshell
 fi
-apk_new setpriv doas-sudo-shim musl-locales tzdata geoclue bash bash-completion dbus \
+apk_new setpriv doas-sudo-shim musl-locales exfatprogs tzdata geoclue bash bash-completion dbus \
 	pipewire pipewire-pulse pipewire-alsa pipewire-echo-cancel pipewire-spa-bluez wireplumber sof-firmware \
 	mesa-dri-gallium mesa-va-gallium breeze breeze-icons \
 	font-adobe-source-code-pro font-noto font-noto-emoji \
@@ -181,23 +188,20 @@ permit nopass nu cmd setpriv --reuid=nu --regid=nu --groups=input,video,audio /u
 permit nopass nu cmd /usr/bin/passwd nu
 EOF
 
-chmod +x "$new_root"/usr/local/share/codev-shell/system.sh
-ln -s /usr/local/share/codev-shell/system.sh "$new_root"/usr/local/bin/system
-
 chmod +x "$new_root"/usr/local/share/codev-shell/sd.sh
 ln -s /usr/local/share/codev-shell/sd.sh "$new_root"/usr/local/bin/sd
 echo 'permit nopass nu cmd /usr/local/bin/sd' > "$new_root"/etc/doas.d/sd.conf
 
 echo '#!/bin/sh
 case "$2" in
-up) sudo -u nu system tz guess ;;
+up) sudo -u nu sh /usr/local/share/codev-shell/system.sh tz guess ;;
 esac
 ' > /etc/NetworkManager/dispatcher.d/09-dispatch-script
 chmod 755 /etc/NetworkManager/dispatcher.d/09-dispatch-script
 
-#########
-# codev #
-#########
+###########
+#  codev  #
+###########
 
 apk_new mauikit mauikit-filebrowsing mauikit-texteditor mauikit-imagetools mauikit-documents \
 	kio-extras kimageformats qt6-qtsvg \
@@ -219,7 +223,10 @@ StartupNotify=true
 Type=Application
 ' > "$new_root"/usr/local/share/applications/codev.desktop
 
-echo; echo "installation completed successfully"
-printf "reboot the system? (Y/n) "
-read -r ans
-[ "$ans" != n ] && [ "$ans" != no ] && reboot
+# if $target_device is empty, it means that this script is interactive
+[ -z "$target_device" ] && {
+	echo; echo "installation completed successfully"
+	printf "reboot the system? (Y/n) "
+	read -r ans
+	[ "$ans" != n ] && [ "$ans" != no ] && reboot
+}

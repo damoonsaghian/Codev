@@ -2,15 +2,44 @@
 
 # implement "spm" by wrapping apk commands
 
-# /usr is updated atomically
+# update of /usr will be atomic
 # the fact that alpine keeps info about installed packages in /usr/lib/apk/db (and not in /var), helps a lot
+
+essential_packages="^alpine-base$
+^eudev$
+^eudev-netifnames$
+^earlyoom$
+^acpid$
+^zzz$
+^bluez$
+^networkmanager-cli$
+^wireless-regdb$
+^mobile-broadband-provider-info$
+^ppp-pppoe$
+^dnsmasq$
+^chrony$
+^dcron$
+^fwupd$
+^linux-stable$
+^systemd-boot$
+^mkinitfs$
+^btrfs-progs$
+^cryptsetup$
+^tpm2-tools$
+^amd-ucode$
+^intel-ucode$
+^.codev-shell$
+^.codev$"
 
 # build quickshell from source, then install it in /usr/local/
 build_and_install_quickshell() {
+	local usr_dir="$1"
+	[ -z "$usr_dir" ] && usr_dir=/usr
+	
 	mkdir -p /var/cache/src/cli11
 	cd /var/cache/src/cli11
 	git clone https://github.com/CLIUtils/CLI11
-	cmake -B build -W no-dev -D CMAKE_BUILD_TYPE=None -D CMAKE_INSTALL_PREFIX=$new_usr/local \
+	cmake -B build -W no-dev -D CMAKE_BUILD_TYPE=None -D CMAKE_INSTALL_PREFIX=$usr_dir/local \
 		-D CLI11_BUILD_TESTS=OFF -D CLI11_BUILD_EXAMPLES=OFF
 	cmake --build build && cmake --install build
 	
@@ -18,101 +47,89 @@ build_and_install_quickshell() {
 	cd /var/cache/src/quickshell
 	git clone https://git.outfoxxed.me/quickshell/quickshell
 	cmake -G Ninja -B build -W no-dev -D CMAKE_BUILD_TYPE=RelWithDebInfo \
-		-D CMAKE_INSTALL_PREFIX=$new_usr/local -D INSTALL_QML_PREFIX=lib/qt6/qml \
+		-D CMAKE_INSTALL_PREFIX=$usr_dir/local -D INSTALL_QML_PREFIX=lib/qt6/qml \
 		-D CRASH_REPORTER=OFF -D X11=OFF -D SERVICE_POLKIT=OFF \
 		-D SERVICE_PAM=OFF -D WAYLAND_SESSION_LOCK=OFF -D WAYLAND_TOPLEVEL_MANAGEMENT=OFF
 	cmake --build build && cmake --install build
 }
 
-prepare_usr() {
-	local current_usr=
-	if [ $(stat -c %i /usr) = $(stat -c %i /usr0) ]; then
-		current_usr=/usr0
-		new_usr=/usr1
-	elif [ $(stat -c %i /usr) = $(stat -c %i /usr1) ]; then
-		current_usr=/usr1
-		new_usr=/usr0
-	fi
-	
-	# to atomically handle multiple offline updates (before reboot)
-	grep usrflags=subvol=$current_user /boot/loader/entries/linux-old.conf &>/dev/null &&
-		mv /boot/loader/entries/linux-old.conf /boot/loader/entries/linux.conf
-	
-	[ -e "$current_usr"/.old ] || {
-		rm -rf "$new_usr"
-		btrfs snapshot "$current_usr" "$new_usr"
-		touch "$current_usr"/.old
-	}
-}
-
-boot_setup() {
-	unshare --mount sh -c "mount --bind $new_usr /usr && sh /usr/local/share/codev-util/spm-bootup.sh $new_usr"
-	cp /boot/loader/entries/linux.conf /boot/loader/entries/linux-old.conf
-	mv /boot/loader/entries/linux-new.conf /boot/loader/entries/linux.conf
-	
-	echo reboot > /tmp/spm-status
-}
-
-switch_usr() {
-	echo "new packages will be available on the next reboot"
-	echo "do you want them on currently running system? (y/N)"
-	read -r ans
-	[ "$ans" = y ] || [ "$ans" = yes ] && mount --bind "$new_usr" /usr && rm /tmp/spm-status
-}
-
 case "$1" in
 update)
-	prepare_usr
-	unshare --mount sh -c "mount --bind $new_usr /usr && apk upgrade" || exit 1
-	[ -d /home ] && rmdir --ignore-fail-on-non-empty /home
+	# exit if there is no updates
+	[ -z "$(apk list --upgradable)" ] && exit
 	
-	if [ "$2" != auto ] && fwupdmgr refresh -y &>/dev/null && fwupdmgr get-updates -y &>/dev/null; then
-		echo "updates are available for flash"
-		echo "flashing firmware updates can break the system if interupted"
-		echo "flash firmware updates? (y/N) "
-		read -r ans
-		[ "$ans" = y ] && fwupdmgr update
-	fi
+	# keep last kernel modules
+	# /usr/lib/modules btrfs subvol
 	
-	[ -f $new_usr/local/bin/quickshell ] &&
-	if apk info quickshell &>/dev/null; then
-		unshare --mount sh -c "mount --bind $new_usr /usr && apk add quickshell --virtual .quickshell"
-		# remove quickshell and cli11 files from $new_usr/local/
-		rm -r $new_usr/local/bin/qs $new_usr/local/bin/quickshell $new_usr/local/lib/qt6/qml/Quickshell \
-			$new_usr/local/share/applications/org.quickshell.desktop \
-			$new_usr/local/share/icons/hicolor/scalable/apps/org.quickshell.svg \
-			$new_usr/local/share/licenses/quickshell \
-			$new_usr/local/include/CLI $new_usr/local/share/cmake/CLI11 \
-			$new_usr/local/share/pkgconfig/CLI11.pc \
-			$new_usr/local/share/licenses/cli11
-		rmdir --ignore-fail-on-non-empty $new_usr/local/lib/qt6 $new_usr/local/share/applications $new_usr/local/share/icons \
-			$new_usr/local/share/cmake $new_usr/local/share/pkgconfig $new_usr/local/share/licenses
+	[ -d /usr-new ] || btrfs subvolume snapshot /usr /usr-new
+	unshare --mount sh -c "mount --bind /usr-new /usr && apk upgrade" || exit 1
+	[ -d /home ] && rmdir --ignore-fail-on-non-empty /usr-new/home
+	
+	[ ! -f /tmp/fwupdmgr-status ] &&
+		fwupdmgr refresh -y >/dev/null 2>&1 &&
+		fwupdmgr get-updates -y >/dev/null 2>&1 &&
+		touch /tmp/fwupdmgr-status
+	
+	[ -f /usr-new/local/bin/quickshell ] &&
+	if apk info quickshell >/dev/null 2>&1; then
+		unshare --mount sh -c "mount --bind /usr-new /usr && apk add quickshell --virtual .quickshell"
+		# remove quickshell and cli11 files from /usr-new/local/
+		rm -r /usr-new/local/bin/qs /usr-new/local/bin/quickshell /usr-new/local/lib/qt6/qml/Quickshell \
+			/usr-new/local/share/applications/org.quickshell.desktop \
+			/usr-new/local/share/icons/hicolor/scalable/apps/org.quickshell.svg \
+			/usr-new/local/share/licenses/quickshell \
+			/usr-new/local/include/CLI /usr-new/local/share/cmake/CLI11 \
+			/usr-new/local/share/pkgconfig/CLI11.pc \
+			/usr-new/local/share/licenses/cli11
+		rmdir --ignore-fail-on-non-empty /usr-new/local/lib/qt6 /usr-new/local/share/applications /usr-new/local/share/icons \
+			/usr-new/local/share/cmake /usr-new/local/share/pkgconfig /usr-new/local/share/licenses
 	else
-		build_and_install_quickshell
+		build_and_install_quickshell /usr-new
 	fi
 	
-	#todo: update spm-alpine codev-util codev-shell codev (in $new_usr/local)
+	#todo: update spm-alpine codev-util codev-shell codev (in /usr-new/local)
 	
-	boot_setup
-	[ "$2" != auto ] && switch_usr
+	sh /usr/local/share/codev-util/spm-bootup.sh
+	mv /usr-new /usr
+	rm /tmp/spm-status
 	;;
 install)
-	prepare_usr
 	shift
-	unshare --mount sh -c "mount --bind $new_usr /usr && apk add $@" || exit 1
-	[ -d /home ] && rmdir --ignore-fail-on-non-empty /home
-	boot_setup
-	switch_usr
+	package=
+	packages=
+	installed_packages=
+	for package in $@; do
+		if apk info --exists "$package" >/dev/null 2>&1; then
+			apk add "$package"
+		elif apk info "$package" >/dev/null 2>&1; then
+			packages="$packages $package"
+		fi
+	done
+	[ -z "$packages" ] && exit
+	
+	[ -d /usr-new ] || btrfs subvolume snapshot /usr /usr-new
+	unshare --mount sh -c "mount --bind /usr-new /usr && apk add $packages" || exit 1
+	[ -d /home ] && rmdir --ignore-fail-on-non-empty /usr-new/home
+	mv /usr-new /usr
 	;;
-remove) shift; apk del $@ ;;
-list) shift; apk list $@ ;;
+remove)
+	shift
+	packages="$(echo "$@" | sed -n "s/ /\n/pg" | grep -v "$essential_packages")"
+	apk del $packages
+	;;
+list)
+	shift
+	if [ -z "$@" ]; then
+		# list all explicitly installed, non'essential packages
+		grep -v "$essential_packages" /etc/apk/world
+	else
+		apk list $@
+	fi
+	;;
 srv) openrc -U ;;
 mkinst)
-	script_dir="$(dirname "$(realpath "$0")")"
-	. "$script_dir"/mkinst.sh
+	script_dir="$(dirname "$(readlink -f "$0")")"
+	. "$script_dir"/mkinst.sh "$2"
 	;;
-quickshell)
-	new_usr=
-	build_and_install_quickshell
-	;;
+quickshell) build_and_install_quickshell ;;
 esac

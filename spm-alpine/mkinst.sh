@@ -1,8 +1,14 @@
 # create a bootable installer on a removable storage device
 
-script_dir="$(dirname "$(realpath "$0")")"
+# name of the target device to write the installer on
+# it's an optional argument
+# if empty, this script will be interactive, and will allow the user to choose the target device
+target_device="$1"
 
-cd "$script_dir"/../.cache/spm-alpine
+script_dir="$(dirname "$(readlink -f "$0")")"
+
+wdir="$HOME"/.cache/spm-alpine
+cd "$wdir"
 
 mkdir -p target iso_mount
 ovl_dir="$(mktemp -d)"
@@ -14,7 +20,11 @@ cp -r "$script_dir"/../spm-alpine "$ovl_dir"/codev/
 cp -r "$script_dir"/../codev "$ovl_dir"/codev/
 cp -r "$script_dir"/../codev-shell "$ovl_dir"/codev/
 cp -r "$script_dir"/../codev-util "$ovl_dir"/codev/
-cp -r "$script_dir"/../.data "$ovl_dir"/codev/
+if [ -d "$script_dir"/../.data]; then
+	cp -r "$script_dir"/../.data "$ovl_dir"/codev/
+else
+	cp -r "$script_dir"/../icons/hicolor/scalable/apps/codev.svg "$ovl_dir"/codev/.data/
+fi
 
 mkdir -p "$ovl_dir"/root
 printf 'sh /codev/alpine/new.sh
@@ -67,10 +77,10 @@ try_cached_alpine_iso() {
 		exit 1
 	}
 	if [ -e "$alpine_iso_file_name" ]; then
-		echo "using previousely downloaded file: '$(realpath .)/$alpine_iso_file_name'"
+		echo "using previousely downloaded file: '$wdir/$alpine_iso_file_name'"
 	else
 		echo "alternatively, download an standard image from https://alpinelinux.org/downloads/,"
-		echo "	and put it in '$(realpath .)'"
+		echo "	and put it in '$wdir'"
 		exit 1
 	fi
 }
@@ -115,7 +125,7 @@ fi
 mount "$alpine_iso_file_name" iso_mount
 
 # prepare a storage device, and copy the files into it
-sh "$script_dir"/../codev-shell/sd.sh format-inst "$(realpath ./target)" || exit 1
+sh "$script_dir"/../codev-shell/sd.sh format-inst "$wdir/target" "$target_device" || exit
 cp -r iso_mount/* target/
 mv localhost.apkovl.tar.gz target/
 
