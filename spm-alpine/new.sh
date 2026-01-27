@@ -4,11 +4,6 @@
 # https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/openrc
 # https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/busybox
 
-# name of the target device to install the new system
-# it's an optional argument
-# if empty, this script will be interactive, and will allow the user to choose the target device
-target_device="$1"
-
 script_dir="$(dirname "$(readlink -f "$0")")"
 
 setup-interfaces -r
@@ -22,7 +17,7 @@ unmount_all="umount -q \"$new_root\"/boot; \
 	umount -q \"$new_root\"/dev; umount -q \"$new_root\"/proc; \
 	umount -q \"$new_root\"; rmdir \"$new_root\""
 trap "trap - EXIT; $unmount_all" EXIT INT TERM QUIT HUP PIPE
-sh "$script_dir"/../codev-shell/sd.sh format-sys "$new_root" "$target_device" || exit
+sh "$script_dir"/../codev-util/sd.sh format-sys "$new_root" || exit
 
 mkdir -p "$new_root"/dev "$new_root"/proc
 mount --bind /dev "$new_root"/dev
@@ -98,10 +93,15 @@ chmod +x "$new_root"/usr/local/share/spm-alpine/spm.sh
 echo '#!/apps/env sh
 sh /usr/local/share/spm-alpine/spm.sh run
 ' > "$new_root"/usr/local/bin/spm
+mkdir -p "$new_root"/etc/doas.d
 echo 'permit nopass nu cmd /usr/local/bin/spm' > "$new_root"/etc/doas.d/spm.conf
 
 cp -r "$script_dir"/../codev-util "$new_root"/usr/local/share/
 echo '* * * * * ID=autoupdate FREQ=1d/5m sh /usr/local/share/codev-util/spm-autoup.sh' > "$new_root"/etc/cron.d/spm-autoup
+
+chmod +x "$new_root"/usr/local/share/codev-util/sd.sh
+ln -s /usr/local/share/codev-util/sd.sh "$new_root"/usr/local/bin/sd
+echo 'permit nopass nu cmd /usr/local/bin/sd' > "$new_root"/etc/doas.d/sd.conf
 
 ##########
 #  boot  #
@@ -182,15 +182,10 @@ cp -r "$script_dir"/../codev-shell "$new_root"/usr/local/share/codev-shell
 chmod +x "$new_root"/usr/local/share/codev-shell/codev-shell.sh
 ln -s "$new_root"/usr/local/share/codev-shell/codev-shell.sh "$new_root"/usr/local/bin/codev-shell
 
-mkdir -p "$new_root"/etc/doas.d
 cat <<-EOF > "$new_root"/etc/doas.d/codev-shell.conf
 permit nopass nu cmd setpriv --reuid=nu --regid=nu --groups=input,video,audio /usr/local/bin/codev-shell priv
 permit nopass nu cmd /usr/bin/passwd nu
 EOF
-
-chmod +x "$new_root"/usr/local/share/codev-shell/sd.sh
-ln -s /usr/local/share/codev-shell/sd.sh "$new_root"/usr/local/bin/sd
-echo 'permit nopass nu cmd /usr/local/bin/sd' > "$new_root"/etc/doas.d/sd.conf
 
 echo '#!/bin/sh
 case "$2" in
@@ -223,10 +218,7 @@ StartupNotify=true
 Type=Application
 ' > "$new_root"/usr/local/share/applications/codev.desktop
 
-# if $target_device is empty, it means that this script is interactive
-[ -z "$target_device" ] && {
-	echo; echo "installation completed successfully"
-	printf "reboot the system? (Y/n) "
-	read -r ans
-	[ "$ans" != n ] && [ "$ans" != no ] && reboot
-}
+echo; echo "installation completed successfully"
+printf "reboot the system? (Y/n) "
+read -r ans
+[ "$ans" != n ] && [ "$ans" != no ] && reboot

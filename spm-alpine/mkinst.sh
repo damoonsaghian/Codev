@@ -125,7 +125,7 @@ fi
 mount "$alpine_iso_file_name" iso_mount
 
 # prepare a storage device, and copy the files into it
-sh "$script_dir"/../codev-shell/sd.sh format-inst "$wdir/target" "$target_device" || exit
+sh "$script_dir"/../codev-util/sd.sh format-inst "$wdir/target" "$target_device" || exit
 cp -r iso_mount/* target/
 mv localhost.apkovl.tar.gz target/
 
