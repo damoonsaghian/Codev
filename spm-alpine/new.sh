@@ -130,6 +130,8 @@ chroot "$new_root" sh /usr/local/share/codev-util/spm-bootup.sh
 ##########
 
 echo; echo "set root password (can be the same as he one used to encrypt the root partition)"
+echo "WARNING! do not use this password carelessly"
+echo "in practice, it's only required for manually changing system files, ie almost never"
 while ! chroot "$new_root" passwd root; do
 	echo "please retry"
 done
