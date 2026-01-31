@@ -37,14 +37,14 @@ build_and_install_quickshell() {
 	[ -z "$usr_dir" ] && usr_dir=/usr
 	
 	mkdir -p /var/cache/src/cli11
-	cd /var/cache/src/cli11
+	cd /var/cache/src/cli11 || exit
 	git clone https://github.com/CLIUtils/CLI11
 	cmake -B build -W no-dev -D CMAKE_BUILD_TYPE=None -D CMAKE_INSTALL_PREFIX=$usr_dir/local \
 		-D CLI11_BUILD_TESTS=OFF -D CLI11_BUILD_EXAMPLES=OFF
 	cmake --build build && cmake --install build
 	
 	mkdir -p /var/cache/src/quickshell
-	cd /var/cache/src/quickshell
+	cd /var/cache/src/quickshell || exit
 	git clone https://git.outfoxxed.me/quickshell/quickshell
 	cmake -G Ninja -B build -W no-dev -D CMAKE_BUILD_TYPE=RelWithDebInfo \
 		-D CMAKE_INSTALL_PREFIX=$usr_dir/local -D INSTALL_QML_PREFIX=lib/qt6/qml \
@@ -58,11 +58,22 @@ update)
 	# exit if there is no updates
 	[ -z "$(apk list --upgradable)" ] && exit
 	
-	# keep last kernel modules
-	# /usr/lib/modules btrfs subvol
-	
 	[ -d /usr-new ] || btrfs subvolume snapshot /usr /usr-new
+	
+	# to keep current kernel modules
+	for mod_dir in /usr-new/lib/modules/*; do
+		[ -h "$mod_dir" ] && rm "$mod_dir"
+	done
+	current_version="$(uname -r)"
+	[ -e /usr-new/lib/modules/"$current_version" ] && {
+		rm -r /usr-new/lib/modules/old
+		mv /usr-new/lib/modules/"$current_version" /usr-new/lib/modules/old
+	}
+	
 	unshare --mount sh -c "mount --bind /usr-new /usr && apk upgrade" || exit 1
+	
+	ln -s old /usr-new/lib/modules/"$current_version"
+	
 	[ -d /home ] && rmdir --ignore-fail-on-non-empty /usr-new/home
 	
 	[ ! -f /tmp/fwupdmgr-status ] &&
@@ -97,8 +108,7 @@ install)
 	shift
 	package=
 	packages=
-	installed_packages=
-	for package in $@; do
+	for package in "$@"; do
 		if apk info --exists "$package" >/dev/null 2>&1; then
 			apk add "$package"
 		elif apk info "$package" >/dev/null 2>&1; then
@@ -123,13 +133,13 @@ list)
 		# list all explicitly installed, non'essential packages
 		grep -v "$essential_packages" /etc/apk/world
 	else
-		apk list $@
+		apk list "$@"
 	fi
 	;;
 srv) openrc -U ;;
 mkinst)
 	script_dir="$(dirname "$(readlink -f "$0")")"
-	. "$script_dir"/mkinst.sh "$2"
+	sh "$script_dir"/mkinst.sh "$2"
 	;;
 quickshell) build_and_install_quickshell ;;
 esac

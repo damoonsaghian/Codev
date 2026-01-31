@@ -38,7 +38,7 @@ https://dl-cdn.alpinelinux.org/alpine/edge/community
 ' > "$new_root"/etc/apk/repositories
 
 apk_new() {
-	apk --repositories-file "$new_root"/etc/apk/repositories --root "$new_root" --quiet --progress add $@
+	apk --repositories-file "$new_root"/etc/apk/repositories --root "$new_root" --quiet --progress add "$@"
 }
 
 rc_new() {
@@ -129,7 +129,7 @@ chroot "$new_root" sh /usr/local/share/codev-util/spm-bootup.sh
 #  user  #
 ##########
 
-echo; echo "set root password (can be the same one entered before, to encrypt the root partition)"
+echo; echo "set root password (can be the same as he one used to encrypt the root partition)"
 while ! chroot "$new_root" passwd root; do
 	echo "please retry"
 done
