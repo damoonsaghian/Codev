@@ -2,10 +2,22 @@
 
 # mounting and formatting storage devices
 
-[ "$1" = mount ] && [ -n "$2" ] {
-	device_name="$(echo "$2" | sed -n "s@/dev/@@p")"
-	[ -b "/dev/$device_name" ] || {
-		echo "no block device in \"/dev/$device_name\""
+usage_error() {
+	echo "usage:"
+	echo "	sd mount <dev-name>"
+	echo "	sd unmount <dev-name>"
+	echo "	sd format backup|fat|exfat <dev-name>"
+	echo "	sd format-inst <target-path> [<dev-name>]"
+	echo "	sd format-sys <target-path>"
+	exit 1
+}
+
+[ "$1" = mount ] && {
+	[ -n "$2" ] && usage_error
+	
+	device_name="$(basename "$2")"
+	[ -e /sys/block/"$device_name" ] || {
+		echo "there is no storage device named \"$device_name\""
 		exit 1
 	}
 	
@@ -19,26 +31,40 @@
 		then
 			discard_opt="discard,"
 		fi
-		mount -o ${discard_opt}nosuid,nodev,uid=$(id -u nu),gid=$(id -g nu) "$2" /nu/.local/state/mounts/"$device_name"
+		
+		if [ -n "$SUDO_UID" ] && [ -n "$SUDO_GID" ]; then
+			mount -o ${discard_opt}nosuid,nodev,uid="$SUDO_UID",gid="$SUDO_GID" "$2" /nu/.local/state/mounts/"$device_name"
+		else
+			mount -o ${discard_opt}nosuid,nodev "$2" /nu/.local/state/mounts/"$device_name"
+		fi
 	else
 		mount -o nosuid,nodev "$2" /nu/.local/state/mounts/"$device_name"
 	fi
 	exit
 }
 
-[ "$1" = unmount ] && [ -n "$2" ] && {
-	mount_point="$2"
+[ "$1" = unmount ] && {
+	[ -n "$2" ] && usage_error
 	
-	# before unmount, run "fstrim <mount-point>" for devices supporting unqueued trim
-	# [ "$(cat /sys/block/"$device"/queue/discard_granularity)" -gt 0 ] &&
-	# [ "$(cat /sys/block/"$device"/queue/discard_max_bytes)" -lt 2147483648 ] &&
+	device_name="$(basename "$2")"
+	mount_point=/nu/.local/state/mounts/"$device_name"
+	[ -d "$mount_point" ] || {
+		echo "there is no mounted storage device named \"$device_name\""
+		exit 1
+	}
 	
-	# /nu/.local/state/mounts/"$(basename "$2")"
+	# run fstrim for devices supporting unqueued trim
+	[ "$(cat /sys/block/"$device_name"/queue/discard_granularity)" -gt 0 ] &&
+	[ "$(cat /sys/block/"$device_name"/queue/discard_max_bytes)" -lt 2147483648 ] &&
+		fstrim "$mount_point"
 	
+	umount "$mount_point"
 	exit
 }
 
-target_device="$(echo "$3" | sed -n "s@/dev/@@p")"
+[ "$1" != format ] && [ "$1" != format-inst ] && [ "$1" != format-sys ] && usage_error
+
+target_device="$(basename "$3")"
 
 is_interactive=false
 [ "$1" = format-sys ] && is_interactive=true
@@ -47,7 +73,7 @@ $is_interactive && {
 	echo; echo "available storage devices:"
 	printf "\tname\tsize\tmodel\n"
 	printf "\t----\t----\t-----\n"
-	ls -1 --color=never /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
+	ls -1 /sys/block/ | sed -n '/^loop/!p' | while read -r device_name; do
 		device_size="$(cat /sys/block/"$device_name"/size)"
 		device_size="$((device_size / 1000000))GB"
 		device_model="$(cat /sys/block/"$device_name"/device/model)"
@@ -70,7 +96,7 @@ target_device="$(basename "$(readlink /dev/block/"$target_device_num")")"
 root_partition="$(mount -l | grep " on / " | cut -d ' ' -f 1 | sed -n "s@/dev/@@p")"
 root_device_num="$(cat /sys/class/block/"$root_partition"/dev | cut -d ":" -f 1):0"
 root_device="$(basename "$(readlink /dev/block/"$root_device_num")")"
-if [ "$(stat -L -c %d:%i "/dev/$target_device")" = "$(stat -L -c %d:%i "/dev/$root_device")"]; then
+if [ "$target_device" = "$root_device" ]; then
 	echo "can't install on \"$target_device\"; it contains the running system"
 	exit 1
 fi
@@ -93,13 +119,7 @@ fi
 } 
 
 if [ "$1" != format-inst ] && [ "$1" != format-sys ] || [ -z "$2" ]; then
-	echo "usage:"
-	echo "	sd mount <dev-name>"
-	echo "	sd unmount <mount-point>"
-	echo "	sd format backup|fat|exfat <dev-name>"
-	echo "	sd format-inst <target-path> [<dev-name>]"
-	echo "	sd format-sys <target-path>"
-	exit 1
+	usage_error
 fi
 
 target_dir="$2"
@@ -113,30 +133,31 @@ mkdir -p "$target_dir" || exit
 	}
 	# create a UEFI partition, and format it with FAT32
 	printf "g\nn\n1\n\n\nt\nuefi\nw\nq\n" | fdisk -w always /dev/"$target_device"
-	mkfs.vfat -F 32 /dev/"$target_device"
-	mount "$target_device" "$target_dir"
+	target_device_p1_num="$(cat /sys/class/block/"$target_device"/dev | cut -d ":" -f 1):1"
+	target_device_p1="$(basename "$(readlink /dev/block/"$target_device_p1_num")")"
+	mkfs.vfat -F 32 "/dev/$target_device_p1"
+	mount "/dev/$target_device_p1" "$target_dir"
 	exit
 }
 
 # the following is run only when "$1" is "format-sys"
 
 do_repaire() {
-	local target_device="$1" target_partitions= target_partition1_fstype= target_partition2_fstype=
+	local target_device="$1" target_partitions=''
+	local target_partition1_fstype='' target_partition2_fstype=''
+	local target_partition1_is_efi=''
 	
 	target_partitions="$(echo /sys/block/"$target_device"/"$target_device"* |
 		sed -n "s/\/sys\/block\/$target_device\///pg")"
 	target_partition1="$(echo "$target_partitions" | cut -d " " -f1)"
 	target_partition2="$(echo "$target_partitions" | cut -d " " -f2)"
-	fdisk -l /dev/"$target_device" | sed -n "/$target_partition1.*EFI System/p" | {
-		read -r line
-		[ -n "$line" ] && target_partition1_is_efi=true
-	}
+	target_partition1_is_efi="$(fdisk -l /dev/"$target_device" | sed -n "/$target_partition1.*EFI System/p")"
+	[ -n "$target_partition1_is_efi" ] && target_partition1_is_efi=true
 	target_partition1_fstype="$(blkid /dev/"$target_partition1" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
 	target_partition2_fstype="$(blkid /dev/"$target_partition2" | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
 	
 	# if the target device has a uefi vfat, and a LUKS encrypted BTRFS partition,
 	# try to to use the current partitions instead of wiping them off
-	
 	[ "$target_partition1_is_efi" = true ] &&
 	[ "$target_partition1_fstype" = vfat ] &&
 	[ "$target_partition2_fstype" = luks ] &&
@@ -151,13 +172,13 @@ do_repaire() {
 				cryptsetup open --allow-discards --persistent --type luks  "$target_partition2" "rootfs" || {
 					echo "you entered a wrong password to decrypt root partition; try again? (Y/n) "
 					read -r answer
-					[ "$answer" = n ] && break
+					[ "$answer" = n ] && return
 				}
 			}
 		done
 		root_fstype="$(blkid /dev/mapper/rootfs | sed -rn 's/.*TYPE="(.*)".*/\1/p')"
 		if [ "$root_fstype" = btrfs ]; then
-			break
+			return 0
 		else
 			echo "can't use the root partition, cause its file system is not BTRFS"
 			answer=n
@@ -198,13 +219,13 @@ do_repaire "$target_device" || {
 	
 	luks_key_file="$(mktemp)"
 	dd if=/dev/random of="$luks_key_file" bs=32 count=1 status=none
-	cryptsetup luksFormat --batch-mode --key-file="$luks_key_file" "$target_partition2" || exit 1
-	# other than a key'based slot, create a password based slot
-	# warn the user that the passwrod must not be used carelessly
-	# only if the system is tampered it will ask for the password
-	# use password only if you are sure that the source of tamper is yourself
-	cryptsetup luksAddKey --key-file "$luks_key_file" "$target_partition2" || exit 1
-	cryptsetup open --allow-discards --persistent --type luks --key-file "$luks_key_file" "$target_partition2" "rootfs"
+	cryptsetup luksFormat --batch-mode --key-file "$luks_key_file" "$target_partition2" || exit
+	# other than a key'based slot (in slot 0), create a password based slot (in slot 1)
+	echo; echo "set the password for encryption of root partition"
+	echo "WARNING! do not use this password carelessly"
+	echo "in practice, it's only required when restoring your data from a backup, on a new system"
+	cryptsetup luksAddKey --key-file "$luks_key_file" "$target_partition2" || exit
+	cryptsetup open --allow-discards --persistent --type=luks --key-file "$luks_key_file" "$target_partition2" "rootfs"
 	
 	mkfs.btrfs -f --quiet "/dev/mapper/rootfs" || exit
 }
@@ -213,6 +234,17 @@ mount /dev/mapper/rootfs "$target_dir" || exit
 
 mkdir -p "$target_dir"/boot
 mount "$target_partition1" "$target_dir"/boot || exit
+
+mkdir -p "$target_dir"/var/lib/luks
+[ -z "$luks_key_file" ] && luks_key_file="$target_dir"/var/lib/luks/key1
+cat "$luks_key_file" > "$target_dir"/var/lib/luks/key1
+dd if=/dev/random of="$target_dir"/var/lib/luks/key1 bs=32 count=1 status=none
+dd if=/dev/random of="$target_dir"/var/lib/luks/key2 bs=32 count=1 status=none
+chmod 600 "$target_dir"/var/lib/luks/key1
+chmod 600 "$target_dir"/var/lib/luks/key2
+chmod 600 "$target_dir"/var/lib/luks/key3
+cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 2 "$target_partition2" "$target_dir"/var/lib/luks/key2 || exit
+cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 3 "$target_partition2" "$target_dir"/var/lib/luks/key3 || exit
 
 # systemd bootloader
 cryptroot_uuid="$(blkid "$target_partition2" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
@@ -231,28 +263,16 @@ timeout 0
 auto-entries no
 ' > "$target_dir"/boot/loader/loader.conf
 
+# fstab
 # it seems that vfat does not mount with discard as default (unlike btrfs)
 # so if queued trim is supported, use discard option when mounting boot
-boot_mountopt=""
+discard_opt=""
 if [ "$(cat /sys/block/"$target_device"/queue/discard_granularity)" -gt 0 ] &&
 	[ "$(cat /sys/block/"$target_device"/queue/discard_max_bytes)" -gt 2147483648 ]
 then
-	boot_mountopt="discard,"
+	discard_opt="discard,"
 fi
-
-# fstab
-boot_uuid="$(blkid "$taget_partition1" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
+boot_uuid="$(blkid "$target_partition1" | sed -nr 's/^.*[[:space:]]+UUID="([^"]*)".*$/\1/p')"
 mkdir -p "$target_dir"/var/etc
-printf "UUID=$boot_uuid /boot vfat ${boot_mountopt}rw,noatime 0 0
+printf "UUID=$boot_uuid /boot vfat ${discard_opt}rw,noatime 0 0
 " > "$target_dir"/var/etc/fstab
-
-mkdir -p "$target_dir"/var/lib/luks
-[ -n "$luks_key_file" ] && cat "$luks_key_file" > "$target_dir"/var/lib/luks/key0
-dd if=/dev/random of="$target_dir"/var/lib/luks/key1 bs=32 count=1 status=none
-dd if=/dev/random of="$target_dir"/var/lib/luks/key2 bs=32 count=1 status=none
-chmod 600 "$target_dir"/var/lib/luks/key0
-chmod 600 "$target_dir"/var/lib/luks/key1
-chmod 600 "$target_dir"/var/lib/luks/key2
-cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 0 "$target_partition2" "$target_dir"/var/lib/luks/key0
-cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 1 "$target_partition2" "$target_dir"/var/lib/luks/key1
-cryptsetup luksAddKey --keyfile "$luks_key_file" --new-key-slot 2 "$target_partition2" "$target_dir"/var/lib/luks/key2
